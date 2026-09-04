@@ -12,14 +12,13 @@ import {
 } from '../types';
 import { INITIAL_USERS } from '../data/initialUsers';
 import { INITIAL_SPOTS } from '../data/initialSpots';
-import CURATED_FREE_SPOTS from '../data/imported/curatedFreeSpots.json';
 import { INITIAL_REQUESTS } from '../data/initialTripsAndRequests';
 import { INITIAL_THREADS } from '../data/initialMessages';
 import { INITIAL_REVIEWS } from '../data/initialReviews';
 import { INITIAL_COMMUNITY_POSTS } from '../data/initialCommunity';
 import { INITIAL_REPORTS } from '../data/initialReports';
 import { api } from '../services/api';
-import { createSupabaseSpot, deleteSupabaseSpot, fetchSupabaseSpots } from '../lib/supabase';
+import { createSupabaseSpot, deleteSupabaseSpot, fetchSupabaseSpots, updateSupabaseSpotPhotos } from '../lib/supabase';
 
 interface AppContextType {
   currentUser: User;
@@ -48,6 +47,7 @@ interface AppContextType {
   createSpot: (newSpot: Omit<Spot, 'id' | 'createdAt' | 'rating' | 'reviewCount' | 'isFree'>) => Spot;
   deleteSpot: (spotId: string) => void;
   updateSpotStatus: (spotId: string, status: 'active' | 'paused') => void;
+  addSpotPhotos: (spotId: string, photoUrls: string[]) => void;
   submitReview: (review: Omit<Review, 'id' | 'createdAt'>) => void;
   submitReport: (report: Omit<ReportItem, 'id' | 'createdAt' | 'status'>) => void;
   blockUser: (userIdToBlock: string) => void;
@@ -97,17 +97,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   const [spots, setSpots] = useState<Spot[]>(() => {
-    const saved = localStorage.getItem('camproo_spots_real_v3');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch (e) {}
-    }
-    // Only real non-stock verified images
-    return (CURATED_FREE_SPOTS as unknown as Spot[]).filter(s =>
-      s.photos && s.photos.length > 0 && s.photos.every(p => !p.includes('unsplash.com') && !p.includes('pexels.com'))
-    );
+    // Clear legacy small cache to ensure nationwide 9,777 spots load
+    try {
+      localStorage.removeItem('camproo_spots_real_v3');
+      localStorage.removeItem('camproo_spots');
+    } catch (e) {}
+
+    // Load user created spots
+    let userCreatedSpots: Spot[] = [];
+    try {
+      const savedUserSpots = localStorage.getItem('camproo_user_spots');
+      if (savedUserSpots) userCreatedSpots = JSON.parse(savedUserSpots);
+    } catch (e) {}
+
+    return [...userCreatedSpots, ...INITIAL_SPOTS];
   });
 
   const [requests, setRequests] = useState<StayRequest[]>(() => {
@@ -146,7 +149,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [users]);
 
   useEffect(() => {
-    localStorage.setItem('camproo_spots_real_v3', JSON.stringify(spots));
+    try {
+      const userCreatedSpots = spots.filter(s => s.hostId !== 'pipeline-import');
+      localStorage.setItem('camproo_user_spots', JSON.stringify(userCreatedSpots));
+    } catch (e) {}
   }, [spots]);
 
   useEffect(() => {
@@ -177,6 +183,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     let isMounted = true;
     
+    // Asynchronously load curated spots from public data (non-blocking)
+    fetch('/data/curatedFreeSpots.json')
+      .then(r => r.ok ? r.json() : null)
+      .then(curated => {
+        if (isMounted && curated && Array.isArray(curated)) {
+          setSpots(prev => {
+            const existingIds = new Set(prev.map(s => s.id));
+            const newSpots = (curated as Spot[]).filter(s => !existingIds.has(s.id));
+            return [...prev, ...newSpots];
+          });
+        }
+      })
+      .catch(() => {});
+
     // Fetch live spots from Supabase
     fetchSupabaseSpots({ limit: 1000 }).then(supabaseSpots => {
       if (isMounted && supabaseSpots && supabaseSpots.length > 0) {
@@ -412,6 +432,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSpots(prev => prev.map(s => (s.id === spotId ? { ...s, status } : s)));
   };
 
+  const addSpotPhotos = (spotId: string, newPhotoUrls: string[]) => {
+    if (!newPhotoUrls || newPhotoUrls.length === 0) return;
+
+    // Filter out any stock photos strictly
+    const cleanUrls = newPhotoUrls.filter(u => u && !u.includes('unsplash.com') && !u.includes('pexels.com'));
+    if (cleanUrls.length === 0) return;
+
+    setSpots(prev =>
+      prev.map(s => {
+        if (s.id === spotId) {
+          const updatedPhotos = [...cleanUrls, ...(s.photos || [])];
+          return {
+            ...s,
+            photos: updatedPhotos,
+          };
+        }
+        return s;
+      })
+    );
+
+    // Save to local custom photo overrides
+    try {
+      const savedOverrides = localStorage.getItem('camproo_custom_photos');
+      const photoOverrides: Record<string, string[]> = savedOverrides ? JSON.parse(savedOverrides) : {};
+      photoOverrides[spotId] = [...cleanUrls, ...(photoOverrides[spotId] || [])];
+      localStorage.setItem('camproo_custom_photos', JSON.stringify(photoOverrides));
+    } catch (e) {}
+
+    // Update in Supabase
+    updateSupabaseSpotPhotos(spotId, cleanUrls).catch(() => {});
+  };
+
   const submitReview = (reviewData: Omit<Review, 'id' | 'createdAt'>) => {
     const newReview: Review = {
       ...reviewData,
@@ -574,6 +626,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         createSpot,
         deleteSpot,
         updateSpotStatus,
+        addSpotPhotos,
         submitReview,
         submitReport,
         blockUser,
