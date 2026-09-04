@@ -1,0 +1,289 @@
+{
+  "users": [
+    {
+      "id": "user-traveler-1",
+      "name": "Alex & Sam Rover",
+      "email": "alex.sam@camproo.com",
+      "role": "traveler",
+      "phone": "+1 (555) 432-8765",
+      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+      "bio": "Full-time rovers in a 28ft Class C with two Australian Shepherds.",
+      "homeRegion": "Pacific Northwest",
+      "yearsRVing": 5,
+      "joinedYear": 2021,
+      "rating": 4.96,
+      "reviewCount": 28,
+      "newsletterOptIn": true,
+      "trafficAttribution": {
+        "source": "direct",
+        "medium": "none",
+        "campaign": "",
+        "referrer": "Direct Visit"
+      },
+      "rig": {
+        "type": "class_c",
+        "makeModel": "Thor Chateau 28Z",
+        "lengthFt": 28,
+        "year": 2021
+      },
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      },
+      "createdAt": "2021-04-10T12:00:00.000Z"
+    },
+    {
+      "id": "user-host-1",
+      "name": "Caleb & Sarah Jenkins",
+      "email": "caleb.sarah@redrockmoab.com",
+      "role": "host",
+      "phone": "+1 (555) 987-6543",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
+      "bio": "Lifelong Moab locals hosting sustainable boondockers on 40 private desert acres.",
+      "homeRegion": "Moab, UT",
+      "yearsRVing": 12,
+      "joinedYear": 2019,
+      "rating": 4.98,
+      "reviewCount": 64,
+      "newsletterOptIn": true,
+      "trafficAttribution": {
+        "source": "google",
+        "medium": "organic",
+        "campaign": "free_rv_spots",
+        "referrer": "https://www.google.com"
+      },
+      "rig": {
+        "type": "campervan",
+        "makeModel": "Mercedes Sprinter 4x4",
+        "lengthFt": 22,
+        "year": 2023
+      },
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      },
+      "createdAt": "2019-08-15T10:30:00.000Z"
+    },
+    {
+      "id": "user-1788514811043-lrqxo",
+      "createdAt": "2026-09-04T09:40:11.043Z",
+      "joinedYear": 2026,
+      "rating": 5,
+      "reviewCount": 0,
+      "tripsCompleted": 0,
+      "spotsHosted": 0,
+      "name": "Sierra West",
+      "email": "sierra@westnomad.io",
+      "role": "traveler",
+      "phone": "+1 555-492-1100",
+      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+      "bio": "Excited to explore free spots and connect with fellow nomads across the USA.",
+      "homeRegion": "Bend, OR",
+      "yearsRVing": 2,
+      "newsletterOptIn": true,
+      "trafficAttribution": {
+        "source": "twitter",
+        "medium": "social",
+        "campaign": "launch_promo",
+        "referrer": "https://twitter.com/vanlife"
+      },
+      "rig": {
+        "type": "campervan",
+        "makeModel": "Winnebago Revel",
+        "lengthFt": 20,
+        "year": 2023
+      },
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      }
+    },
+    {
+      "id": "user-1788514996490-os6a0",
+      "createdAt": "2026-09-04T09:43:16.490Z",
+      "joinedYear": 2026,
+      "rating": 5,
+      "reviewCount": 0,
+      "tripsCompleted": 0,
+      "spotsHosted": 0,
+      "name": "Dave Miller (Facebook Camper)",
+      "email": "dave.facebook@camproo.com",
+      "role": "traveler",
+      "phone": "+1 (555) 723-9912",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
+      "bio": "Full-time RV adventurer authenticated via FACEBOOK.",
+      "homeRegion": "Sedona, AZ",
+      "yearsRVing": 3,
+      "newsletterOptIn": true,
+      "trafficAttribution": {
+        "source": "facebook",
+        "medium": "social",
+        "campaign": "rv_boondockers_group",
+        "referrer": "https://facebook.com/groups/boondocking"
+      },
+      "rig": {
+        "type": "campervan",
+        "makeModel": "Storyteller Mode LT",
+        "lengthFt": 21,
+        "year": 2024
+      },
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      }
+    }
+  ],
+  "traffic_events": [
+    {
+      "id": "evt-sample-1",
+      "sessionId": "sess-init-1",
+      "path": "/",
+      "referrer": "https://www.google.com",
+      "utmSource": "google",
+      "utmMedium": "organic",
+      "utmCampaign": "free_rv_camping",
+      "device": "desktop",
+      "browser": "Chrome",
+      "ip": "127.0.0.1",
+      "country": "United States",
+      "city": "Austin",
+      "timestamp": "2026-09-04T05:39:50.045Z"
+    },
+    {
+      "id": "evt-sample-2",
+      "sessionId": "sess-init-2",
+      "path": "/explore",
+      "referrer": "https://www.reddit.com/r/vandwellers",
+      "utmSource": "reddit",
+      "utmMedium": "social",
+      "utmCampaign": "community_spots",
+      "device": "mobile",
+      "browser": "Safari",
+      "ip": "127.0.0.1",
+      "country": "United States",
+      "city": "Denver",
+      "timestamp": "2026-09-04T07:39:50.045Z"
+    },
+    {
+      "id": "evt-1788514800701-7c7x",
+      "timestamp": "2026-09-04T09:40:00.701Z",
+      "path": "/",
+      "referrer": "https://twitter.com/vanlife",
+      "utmSource": "twitter",
+      "utmMedium": "social",
+      "utmCampaign": "launch_promo",
+      "utmContent": "",
+      "sessionId": "test-session-123",
+      "device": "mobile",
+      "browser": "Unknown",
+      "screenWidth": 1920,
+      "ip": "1"
+    }
+  ],
+  "newsletter_subscribers": [
+    {
+      "id": "sub-1",
+      "email": "alex.sam@camproo.com",
+      "name": "Alex & Sam Rover",
+      "status": "active",
+      "source": "signup_checkbox",
+      "trafficSource": "direct",
+      "subscribedAt": "2021-04-10T12:00:00.000Z"
+    },
+    {
+      "id": "sub-2",
+      "email": "caleb.sarah@redrockmoab.com",
+      "name": "Caleb & Sarah Jenkins",
+      "status": "active",
+      "source": "signup_checkbox",
+      "trafficSource": "google",
+      "subscribedAt": "2019-08-15T10:30:00.000Z"
+    },
+    {
+      "id": "sub-1788514806355-1bet",
+      "email": "wanderlust@adventure.org",
+      "name": "Elena Vance",
+      "status": "active",
+      "source": "footer",
+      "trafficSource": "twitter",
+      "subscribedAt": "2026-09-04T09:40:06.355Z"
+    },
+    {
+      "id": "sub-1788514811044-jhbv",
+      "email": "sierra@westnomad.io",
+      "name": "Sierra West",
+      "status": "active",
+      "source": "signup_form",
+      "trafficSource": "twitter",
+      "subscribedAt": "2026-09-04T09:40:11.044Z"
+    },
+    {
+      "id": "sub-1788514996491-a4kd",
+      "email": "dave.facebook@camproo.com",
+      "name": "Dave Miller (Facebook Camper)",
+      "status": "active",
+      "source": "signup_facebook",
+      "trafficSource": "facebook",
+      "subscribedAt": "2026-09-04T09:43:16.491Z"
+    }
+  ],
+  "email_logs": [
+    {
+      "id": "email-1",
+      "to": "alex.sam@camproo.com",
+      "subject": "Welcome to CampRoo! 🚐",
+      "type": "welcome",
+      "status": "delivered",
+      "provider": "mock_sandbox",
+      "sentAt": "2021-04-10T12:00:05.000Z"
+    },
+    {
+      "id": "email-1788514806357-n2lg",
+      "to": "wanderlust@adventure.org",
+      "subject": "You're on the list! 📬 The CampRoo Weekly Road Digest",
+      "type": "newsletter_confirmation",
+      "status": "delivered_sandbox",
+      "provider": "sandbox_local",
+      "details": "Simulated delivery recorded in database. Ready for live API key.",
+      "sentAt": "2026-09-04T09:40:06.357Z"
+    },
+    {
+      "id": "email-1788514811044-rr1a",
+      "to": "sierra@westnomad.io",
+      "subject": "Welcome to CampRoo, Sierra West! 🚐 Your Roaming Journey Begins",
+      "type": "welcome",
+      "status": "delivered_sandbox",
+      "provider": "sandbox_local",
+      "details": "Simulated delivery recorded in database. Ready for live API key.",
+      "sentAt": "2026-09-04T09:40:11.044Z"
+    },
+    {
+      "id": "email-1788514996492-u12p",
+      "to": "dave.facebook@camproo.com",
+      "subject": "Welcome to CampRoo, Dave Miller (Facebook Camper)! 🚐 Your Roaming Journey Begins",
+      "type": "welcome",
+      "status": "delivered_sandbox",
+      "provider": "sandbox_local",
+      "details": "Simulated delivery recorded in database. Ready for live API key.",
+      "sentAt": "2026-09-04T09:43:16.492Z"
+    },
+    {
+      "id": "email-1788516428502-v1q7",
+      "to": "aalbadi1911@gmail.com",
+      "subject": "Welcome to CampRoo, Aziz (CampRoo Explorer)! 🚐 Your Roaming Journey Begins",
+      "type": "welcome",
+      "status": "sent",
+      "provider": "resend",
+      "details": "Message ID: 76db4d91-a151-46ce-bce7-0247e40d458b",
+      "sentAt": "2026-09-04T10:07:08.502Z"
+    }
+  ]
+}

@@ -1,0 +1,1651 @@
+{
+  "users": [
+    {
+      "id": "user-traveler-1",
+      "name": "Alex & Sam Rivera",
+      "role": "traveler",
+      "email": "alex.sam@roamlife.com",
+      "phone": "+1 (555) 234-8901",
+      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+      "bio": "Full-time rovers traveling in our 28ft Class C with our Australian Shepherd, Jasper. We love off-the-beaten-path astronomy spots, quiet gravel driveways, and swapping trail stories with fellow RVers.",
+      "homeRegion": "Colorado Springs, CO",
+      "yearsRVing": 6,
+      "rig": {
+        "type": "class_c",
+        "makeModel": "Coachmen Leprechaun 260DS",
+        "lengthFt": 28,
+        "year": 2022
+      },
+      "tripsCompleted": 24,
+      "spotsHosted": 0,
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      },
+      "joinedYear": 2024,
+      "rating": 4.96,
+      "reviewCount": 19
+    },
+    {
+      "id": "user-host-1",
+      "name": "Caleb & Sarah Jenkins",
+      "role": "host",
+      "email": "caleb.sarah@moabredrock.org",
+      "phone": "+1 (435) 259-8812",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
+      "bio": "Avid desert and red rock overland enthusiasts. We have an expansive 10-acre parcel bordering BLM land south of Moab with dedicated 30A power, high-speed Starlink, and pure well water. Nothing makes us happier than sharing our quiet canyon vistas with fellow roaming RVers.",
+      "homeRegion": "Moab, UT",
+      "yearsRVing": 9,
+      "rig": {
+        "type": "fifth_wheel",
+        "makeModel": "Grand Design Reflection 31MB",
+        "lengthFt": 35,
+        "year": 2021
+      },
+      "tripsCompleted": 18,
+      "spotsHosted": 42,
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      },
+      "joinedYear": 2023,
+      "rating": 4.98,
+      "reviewCount": 32
+    },
+    {
+      "id": "user-host-2",
+      "name": "Marcus & Linda Vance",
+      "role": "host",
+      "email": "marcus.vance@sedonapines.net",
+      "phone": "+1 (555) 762-3490",
+      "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
+      "bio": "Retired landscape photographer and former Class A driver. We opened our flat 5-acre ponderosa parcel outside Sedona so fellow travelers can enjoy sunset views over red rocks without crowded commercial parks.",
+      "homeRegion": "Sedona, AZ",
+      "yearsRVing": 16,
+      "rig": {
+        "type": "class_a",
+        "makeModel": "Tiffin Phaeton 40AH",
+        "lengthFt": 40,
+        "year": 2019
+      },
+      "tripsCompleted": 42,
+      "spotsHosted": 54,
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      },
+      "joinedYear": 2022,
+      "rating": 4.94,
+      "reviewCount": 47
+    },
+    {
+      "id": "user-host-3",
+      "name": "Clara & Ben Bennett",
+      "role": "host",
+      "email": "clara.ben@bendranch.org",
+      "phone": "+1 (555) 912-3841",
+      "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80",
+      "bio": "Organic berry farmers and Sprinter vanlifers. We have a peaceful level meadow with mountain stream access, fire pit, and 30A power hookup. Dogs welcome on leash!",
+      "homeRegion": "Bend, OR",
+      "yearsRVing": 5,
+      "rig": {
+        "type": "campervan",
+        "makeModel": "Mercedes Sprinter 144 Custom",
+        "lengthFt": 21,
+        "year": 2023
+      },
+      "tripsCompleted": 19,
+      "spotsHosted": 26,
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      },
+      "joinedYear": 2024,
+      "rating": 5,
+      "reviewCount": 22
+    },
+    {
+      "id": "user-host-4",
+      "name": "Captain Dave Miller",
+      "role": "host",
+      "email": "dave@coastalroam.com",
+      "phone": "+1 (555) 438-1902",
+      "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80",
+      "bio": "Former commercial tugboat captain, full-time Airstream enthusiast for 12 years. Park on our coastal bluff in Maine overlooking the harbor. Watch lobster boats head out at dawn.",
+      "homeRegion": "Bar Harbor, ME",
+      "yearsRVing": 12,
+      "rig": {
+        "type": "travel_trailer",
+        "makeModel": "Airstream Flying Cloud 25FB",
+        "lengthFt": 26,
+        "year": 2020
+      },
+      "tripsCompleted": 31,
+      "spotsHosted": 44,
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      },
+      "joinedYear": 2023,
+      "rating": 4.97,
+      "reviewCount": 39
+    },
+    {
+      "id": "user-admin",
+      "name": "CampRoo Ranger Team",
+      "role": "admin",
+      "email": "ranger@camproo.community",
+      "phone": "+1 (800) 555-ROAM",
+      "avatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&q=80",
+      "bio": "Official CampRoo Community Team. Ensuring trust, hospitality, and safe roaming for RVers worldwide.",
+      "homeRegion": "Global Headquarters",
+      "yearsRVing": 20,
+      "rig": {
+        "type": "class_b",
+        "makeModel": "Winnebago Revel 4x4",
+        "lengthFt": 20,
+        "year": 2024
+      },
+      "tripsCompleted": 110,
+      "spotsHosted": 140,
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      },
+      "joinedYear": 2022,
+      "rating": 5,
+      "reviewCount": 88
+    },
+    {
+      "id": "user-1788519921502",
+      "joinedDate": "2026-09-04",
+      "memberNumber": 2473,
+      "name": "Aziz Albadi",
+      "role": "traveler",
+      "email": "realalbadi@gmail.com",
+      "phone": "+1 (555) 789-0123",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocKCEBeX3suFFgJPP9wT2NKx4He7kjoIfngqSD39pYgx9akv9rw=s96-c",
+      "bio": "Verified US roamer roaming scenic spots.",
+      "homeRegion": "United States",
+      "yearsRVing": 2,
+      "rig": {
+        "type": "class_c",
+        "makeModel": "Camper Rig",
+        "lengthFt": 25,
+        "year": 2023
+      },
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      },
+      "rating": 5,
+      "reviewCount": 0,
+      "tripsCompleted": 0,
+      "spotsHosted": 0,
+      "joinedYear": 2026
+    },
+    {
+      "id": "user-1788519921503",
+      "joinedDate": "2026-09-04",
+      "memberNumber": 5187,
+      "name": "Aziz Albadi",
+      "role": "traveler",
+      "email": "realalbadi@gmail.com",
+      "phone": "+1 (555) 789-0123",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocKCEBeX3suFFgJPP9wT2NKx4He7kjoIfngqSD39pYgx9akv9rw=s96-c",
+      "bio": "Verified US roamer roaming scenic spots.",
+      "homeRegion": "United States",
+      "yearsRVing": 2,
+      "rig": {
+        "type": "class_c",
+        "makeModel": "Camper Rig",
+        "lengthFt": 25,
+        "year": 2023
+      },
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      },
+      "rating": 5,
+      "reviewCount": 0,
+      "tripsCompleted": 0,
+      "spotsHosted": 0,
+      "joinedYear": 2026
+    },
+    {
+      "id": "user-1788519984856",
+      "joinedDate": "2026-09-04",
+      "memberNumber": 7638,
+      "name": "Aziz Albadi",
+      "role": "traveler",
+      "email": "realalbadi@gmail.com",
+      "phone": "+1 (555) 789-0123",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocKCEBeX3suFFgJPP9wT2NKx4He7kjoIfngqSD39pYgx9akv9rw=s96-c",
+      "bio": "Verified US roamer roaming scenic spots.",
+      "homeRegion": "United States",
+      "yearsRVing": 2,
+      "rig": {
+        "type": "class_c",
+        "makeModel": "Camper Rig",
+        "lengthFt": 25,
+        "year": 2023
+      },
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      },
+      "rating": 5,
+      "reviewCount": 0,
+      "tripsCompleted": 0,
+      "spotsHosted": 0,
+      "joinedYear": 2026
+    },
+    {
+      "id": "user-1788519990752",
+      "joinedDate": "2026-09-04",
+      "memberNumber": 6280,
+      "name": "Aziz Albadi",
+      "role": "traveler",
+      "email": "realalbadi@gmail.com",
+      "phone": "+1 (555) 789-0123",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocKCEBeX3suFFgJPP9wT2NKx4He7kjoIfngqSD39pYgx9akv9rw=s96-c",
+      "bio": "Verified US roamer roaming scenic spots.",
+      "homeRegion": "United States",
+      "yearsRVing": 2,
+      "rig": {
+        "type": "class_c",
+        "makeModel": "Camper Rig",
+        "lengthFt": 25,
+        "year": 2023
+      },
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      },
+      "rating": 5,
+      "reviewCount": 0,
+      "tripsCompleted": 0,
+      "spotsHosted": 0,
+      "joinedYear": 2026
+    },
+    {
+      "id": "user-1788520055119",
+      "joinedDate": "2026-09-04",
+      "memberNumber": 8404,
+      "name": "Aziz Albadi",
+      "role": "traveler",
+      "email": "realalbadi@gmail.com",
+      "phone": "+1 (555) 789-0123",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocKCEBeX3suFFgJPP9wT2NKx4He7kjoIfngqSD39pYgx9akv9rw=s96-c",
+      "bio": "Verified US roamer roaming scenic spots.",
+      "homeRegion": "United States",
+      "yearsRVing": 2,
+      "rig": {
+        "type": "class_c",
+        "makeModel": "Camper Rig",
+        "lengthFt": 25,
+        "year": 2023
+      },
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      },
+      "rating": 5,
+      "reviewCount": 0,
+      "tripsCompleted": 0,
+      "spotsHosted": 0,
+      "joinedYear": 2026
+    },
+    {
+      "id": "user-1788520093039",
+      "joinedDate": "2026-09-04",
+      "memberNumber": 6445,
+      "name": "Aziz Albadi",
+      "role": "traveler",
+      "email": "realalbadi@gmail.com",
+      "phone": "+1 (555) 789-0123",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocKCEBeX3suFFgJPP9wT2NKx4He7kjoIfngqSD39pYgx9akv9rw=s96-c",
+      "bio": "Verified US roamer roaming scenic spots.",
+      "homeRegion": "United States",
+      "yearsRVing": 2,
+      "rig": {
+        "type": "class_c",
+        "makeModel": "Camper Rig",
+        "lengthFt": 25,
+        "year": 2023
+      },
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      },
+      "rating": 5,
+      "reviewCount": 0,
+      "tripsCompleted": 0,
+      "spotsHosted": 0,
+      "joinedYear": 2026
+    },
+    {
+      "id": "user-1788520096387",
+      "joinedDate": "2026-09-04",
+      "memberNumber": 5326,
+      "name": "Aziz Albadi",
+      "role": "traveler",
+      "email": "realalbadi@gmail.com",
+      "phone": "+1 (555) 789-0123",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocKCEBeX3suFFgJPP9wT2NKx4He7kjoIfngqSD39pYgx9akv9rw=s96-c",
+      "bio": "Verified US roamer roaming scenic spots.",
+      "homeRegion": "United States",
+      "yearsRVing": 2,
+      "rig": {
+        "type": "class_c",
+        "makeModel": "Camper Rig",
+        "lengthFt": 25,
+        "year": 2023
+      },
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      },
+      "rating": 5,
+      "reviewCount": 0,
+      "tripsCompleted": 0,
+      "spotsHosted": 0,
+      "joinedYear": 2026
+    },
+    {
+      "id": "user-1788520099651",
+      "joinedDate": "2026-09-04",
+      "memberNumber": 8124,
+      "name": "Aziz Albadi",
+      "role": "traveler",
+      "email": "realalbadi@gmail.com",
+      "phone": "+1 (555) 789-0123",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocKCEBeX3suFFgJPP9wT2NKx4He7kjoIfngqSD39pYgx9akv9rw=s96-c",
+      "bio": "Verified US roamer roaming scenic spots.",
+      "homeRegion": "United States",
+      "yearsRVing": 2,
+      "rig": {
+        "type": "class_c",
+        "makeModel": "Camper Rig",
+        "lengthFt": 25,
+        "year": 2023
+      },
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      },
+      "rating": 5,
+      "reviewCount": 0,
+      "tripsCompleted": 0,
+      "spotsHosted": 0,
+      "joinedYear": 2026
+    },
+    {
+      "id": "user-1788520162985",
+      "joinedDate": "2026-09-04",
+      "memberNumber": 8857,
+      "name": "Aziz Albadi",
+      "role": "traveler",
+      "email": "realalbadi@gmail.com",
+      "phone": "+1 (555) 789-0123",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocKCEBeX3suFFgJPP9wT2NKx4He7kjoIfngqSD39pYgx9akv9rw=s96-c",
+      "bio": "Verified US roamer roaming scenic spots.",
+      "homeRegion": "United States",
+      "yearsRVing": 2,
+      "rig": {
+        "type": "class_c",
+        "makeModel": "Camper Rig",
+        "lengthFt": 25,
+        "year": 2023
+      },
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      },
+      "rating": 5,
+      "reviewCount": 0,
+      "tripsCompleted": 0,
+      "spotsHosted": 0,
+      "joinedYear": 2026
+    },
+    {
+      "id": "user-1788520172426",
+      "joinedDate": "2026-09-04",
+      "memberNumber": 6573,
+      "name": "Aziz Albadi",
+      "role": "traveler",
+      "email": "realalbadi@gmail.com",
+      "phone": "+1 (555) 789-0123",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocKCEBeX3suFFgJPP9wT2NKx4He7kjoIfngqSD39pYgx9akv9rw=s96-c",
+      "bio": "Verified US roamer roaming scenic spots.",
+      "homeRegion": "United States",
+      "yearsRVing": 2,
+      "rig": {
+        "type": "class_c",
+        "makeModel": "Camper Rig",
+        "lengthFt": 25,
+        "year": 2023
+      },
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      },
+      "rating": 5,
+      "reviewCount": 0,
+      "tripsCompleted": 0,
+      "spotsHosted": 0,
+      "joinedYear": 2026
+    },
+    {
+      "id": "user-1788520198053",
+      "joinedDate": "2026-09-04",
+      "memberNumber": 1184,
+      "name": "Aziz Albadi",
+      "role": "traveler",
+      "email": "realalbadi@gmail.com",
+      "phone": "+1 (555) 789-0123",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocKCEBeX3suFFgJPP9wT2NKx4He7kjoIfngqSD39pYgx9akv9rw=s96-c",
+      "bio": "Verified US roamer roaming scenic spots.",
+      "homeRegion": "United States",
+      "yearsRVing": 2,
+      "rig": {
+        "type": "class_c",
+        "makeModel": "Camper Rig",
+        "lengthFt": 25,
+        "year": 2023
+      },
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      },
+      "rating": 5,
+      "reviewCount": 0,
+      "tripsCompleted": 0,
+      "spotsHosted": 0,
+      "joinedYear": 2026
+    },
+    {
+      "id": "user-1788520200638",
+      "joinedDate": "2026-09-04",
+      "memberNumber": 2093,
+      "name": "Aziz Albadi",
+      "role": "traveler",
+      "email": "realalbadi@gmail.com",
+      "phone": "+1 (555) 789-0123",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocKCEBeX3suFFgJPP9wT2NKx4He7kjoIfngqSD39pYgx9akv9rw=s96-c",
+      "bio": "Verified US roamer roaming scenic spots.",
+      "homeRegion": "United States",
+      "yearsRVing": 2,
+      "rig": {
+        "type": "class_c",
+        "makeModel": "Camper Rig",
+        "lengthFt": 25,
+        "year": 2023
+      },
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      },
+      "rating": 5,
+      "reviewCount": 0,
+      "tripsCompleted": 0,
+      "spotsHosted": 0,
+      "joinedYear": 2026
+    },
+    {
+      "id": "user-1788520232255",
+      "joinedDate": "2026-09-04",
+      "memberNumber": 6235,
+      "name": "Aziz Albadi",
+      "role": "traveler",
+      "email": "realalbadi@gmail.com",
+      "phone": "+1 (555) 789-0123",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocKCEBeX3suFFgJPP9wT2NKx4He7kjoIfngqSD39pYgx9akv9rw=s96-c",
+      "bio": "Verified US roamer roaming scenic spots.",
+      "homeRegion": "United States",
+      "yearsRVing": 2,
+      "rig": {
+        "type": "class_c",
+        "makeModel": "Camper Rig",
+        "lengthFt": 25,
+        "year": 2023
+      },
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      },
+      "rating": 5,
+      "reviewCount": 0,
+      "tripsCompleted": 0,
+      "spotsHosted": 0,
+      "joinedYear": 2026
+    },
+    {
+      "id": "user-1788520234883",
+      "joinedDate": "2026-09-04",
+      "memberNumber": 1161,
+      "name": "Aziz Albadi",
+      "role": "traveler",
+      "email": "realalbadi@gmail.com",
+      "phone": "+1 (555) 789-0123",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocKCEBeX3suFFgJPP9wT2NKx4He7kjoIfngqSD39pYgx9akv9rw=s96-c",
+      "bio": "Verified US roamer roaming scenic spots.",
+      "homeRegion": "United States",
+      "yearsRVing": 2,
+      "rig": {
+        "type": "class_c",
+        "makeModel": "Camper Rig",
+        "lengthFt": 25,
+        "year": 2023
+      },
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      },
+      "rating": 5,
+      "reviewCount": 0,
+      "tripsCompleted": 0,
+      "spotsHosted": 0,
+      "joinedYear": 2026
+    },
+    {
+      "id": "user-1788520237503",
+      "joinedDate": "2026-09-04",
+      "memberNumber": 9606,
+      "name": "Aziz Albadi",
+      "role": "traveler",
+      "email": "realalbadi@gmail.com",
+      "phone": "+1 (555) 789-0123",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocKCEBeX3suFFgJPP9wT2NKx4He7kjoIfngqSD39pYgx9akv9rw=s96-c",
+      "bio": "Verified US roamer roaming scenic spots.",
+      "homeRegion": "United States",
+      "yearsRVing": 2,
+      "rig": {
+        "type": "class_c",
+        "makeModel": "Camper Rig",
+        "lengthFt": 25,
+        "year": 2023
+      },
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      },
+      "rating": 5,
+      "reviewCount": 0,
+      "tripsCompleted": 0,
+      "spotsHosted": 0,
+      "joinedYear": 2026
+    },
+    {
+      "id": "user-1788520240461",
+      "joinedDate": "2026-09-04",
+      "memberNumber": 2024,
+      "name": "Aziz Albadi",
+      "role": "traveler",
+      "email": "realalbadi@gmail.com",
+      "phone": "+1 (555) 789-0123",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocKCEBeX3suFFgJPP9wT2NKx4He7kjoIfngqSD39pYgx9akv9rw=s96-c",
+      "bio": "Verified US roamer roaming scenic spots.",
+      "homeRegion": "United States",
+      "yearsRVing": 2,
+      "rig": {
+        "type": "class_c",
+        "makeModel": "Camper Rig",
+        "lengthFt": 25,
+        "year": 2023
+      },
+      "verifications": {
+        "email": true,
+        "phone": true,
+        "idDocument": true,
+        "rvOwnership": true
+      },
+      "rating": 5,
+      "reviewCount": 0,
+      "tripsCompleted": 0,
+      "spotsHosted": 0,
+      "joinedYear": 2026
+    }
+  ],
+  "spots": [
+    {
+      "id": "spot-moab-redrock",
+      "hostId": "user-host-1",
+      "title": "Red Rock Roo Oasis & BLM Gateway",
+      "tagline": "Level pull-through gravel pad 10 mins from Arches with 30A power & dark night skies",
+      "description": "Welcome to our private red rock acreage nestled right along Spanish Valley, just 10 minutes south of Arches and Canyonlands. As longtime fifth-wheel travelers who explored BLM lands across the West, we built this dedicated gravel pull-through pad to welcome roaming RVers with 30A hookup, fresh potable well water, Starlink Wi-Fi, and unobstructed dark-sky milky way views. Step directly onto red rock trails from our fence line.",
+      "locationName": "Moab",
+      "generalArea": "Utah, USA",
+      "coordinates": [
+        38.5733,
+        -109.5498
+      ],
+      "photos": [
+        "/images/desert_spot.jpg",
+        "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1000&q=80",
+        "https://images.unsplash.com/photo-1510312305653-8ed496efae75?auto=format&fit=crop&w=1000&q=80"
+      ],
+      "spaceType": "desert_oasis",
+      "environment": "desert",
+      "rigCompatibility": {
+        "maxLengthFt": 38,
+        "maxHeightFt": 13.5,
+        "maxWidthFt": 8.5,
+        "acceptedTypes": [
+          "class_a",
+          "class_b",
+          "class_c",
+          "travel_trailer",
+          "fifth_wheel",
+          "campervan",
+          "truck_camper"
+        ],
+        "accessType": "pull_through",
+        "surfaceType": "packed_gravel",
+        "isLevel": true,
+        "turnaroundSpace": "Full 80ft circular driveway pad. Effortless pull-through, no backing required.",
+        "lowClearanceNotice": "High clearance desert entrance. No overhead tree branches or low wires.",
+        "trailerDisconnectRequired": false
+      },
+      "amenities": {
+        "electricity": "30amp",
+        "water": "potable_hookup",
+        "sewer": "none",
+        "wifi": true,
+        "wifiSpeed": "120 Mbps Starlink",
+        "bathroom": false,
+        "shower": false,
+        "firePit": true,
+        "trash": true,
+        "shade": "partial",
+        "generatorsAllowed": true,
+        "generatorHours": "10:00 AM - 7:00 PM (Inverter generators only)",
+        "petsAllowed": true,
+        "petRestrictions": "Must be friendly and kept on leash due to local desert wildlife",
+        "familyFriendly": true,
+        "quietSetting": true,
+        "offGridCapable": false
+      },
+      "proximity": {
+        "fuelNearbyMiles": 2.8,
+        "groceriesNearbyMiles": 3.5,
+        "rvDumpNearbyMiles": 4,
+        "attractionNote": "10 mins to Arches National Park entrance; 2 mins to Kane Creek trailhead"
+      },
+      "rules": {
+        "maxStayNights": 4,
+        "checkInWindow": "2:00 PM - 8:00 PM",
+        "checkOutTime": "11:00 AM",
+        "quietHours": "10:00 PM - 7:00 AM",
+        "campfirePolicy": "Allowed in provided heavy steel fire ring; local fire safety rules apply",
+        "childrenAllowed": true,
+        "extraGuestsAllowed": true,
+        "hostInteraction": "social_loves_to_chat"
+      },
+      "gatekeeping": "verified_id_only",
+      "rating": 4.98,
+      "reviewCount": 28,
+      "isFree": true,
+      "isFeatured": true,
+      "exactAddressSecret": "4201 Spanish Valley Dr, Moab, UT 84532",
+      "arrivalGateCodeSecret": "MOAB-ROO-30A",
+      "status": "active",
+      "createdAt": "2024-01-15"
+    },
+    {
+      "id": "spot-sedona-ridge",
+      "hostId": "user-host-2",
+      "title": "Red Rock Juniper Ridge",
+      "tagline": "Panoramic red sandstone sunset vistas on 5 level pine acres",
+      "description": "Park your rig directly overlooking the Crimson Cliffs. As long-time Class A RVers who have driven over 200,000 miles across North America, we crafted this spot specifically to accommodate large rigs without stress. Wide 16ft crushed granite driveway, 50-amp dedicated pedestal, crystal clear well water, and unobstructed southwestern views. Come watch the sunset light up the red rocks right from your camp chairs.",
+      "locationName": "Sedona",
+      "generalArea": "Arizona, USA",
+      "coordinates": [
+        34.8697,
+        -111.761
+      ],
+      "photos": [
+        "https://images.unsplash.com/photo-1516214104703-d870798883c5?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80",
+        "https://images.unsplash.com/photo-1470246973918-29a93221c455?auto=format&fit=crop&w=1000&q=80"
+      ],
+      "spaceType": "acreage",
+      "environment": "mountain",
+      "rigCompatibility": {
+        "maxLengthFt": 42,
+        "maxHeightFt": 14,
+        "maxWidthFt": 8.5,
+        "acceptedTypes": [
+          "class_a",
+          "class_b",
+          "class_c",
+          "travel_trailer",
+          "fifth_wheel",
+          "campervan"
+        ],
+        "accessType": "pull_through",
+        "surfaceType": "level_concrete",
+        "isLevel": true,
+        "turnaroundSpace": "Massive turnaround pad engineered for 45ft rigs with toad vehicles.",
+        "lowClearanceNotice": "No overhead obstructions; dedicated clear passage.",
+        "trailerDisconnectRequired": false
+      },
+      "amenities": {
+        "electricity": "50amp",
+        "water": "potable_hookup",
+        "sewer": "dump_station_on_site",
+        "wifi": true,
+        "wifiSpeed": "120 Mbps Fiber",
+        "bathroom": false,
+        "shower": false,
+        "firePit": true,
+        "trash": true,
+        "shade": "open_sky",
+        "generatorsAllowed": false,
+        "generatorHours": "Not needed with 50A hookup available",
+        "petsAllowed": true,
+        "petRestrictions": "Leashed outside; beware of local desert wildlife and cacti",
+        "familyFriendly": true,
+        "quietSetting": true,
+        "offGridCapable": false
+      },
+      "proximity": {
+        "fuelNearbyMiles": 3.1,
+        "groceriesNearbyMiles": 4.5,
+        "rvDumpNearbyMiles": 0,
+        "attractionNote": "8 mins to Cathedral Rock Trailhead and Oak Creek swimming spots"
+      },
+      "rules": {
+        "maxStayNights": 4,
+        "checkInWindow": "1:00 PM - 7:30 PM",
+        "checkOutTime": "11:30 AM",
+        "quietHours": "9:30 PM - 7:00 AM",
+        "campfirePolicy": "Propane fire pits only due to Coconino National Forest fire restrictions",
+        "childrenAllowed": true,
+        "extraGuestsAllowed": false,
+        "hostInteraction": "peaceful_wave_from_porch"
+      },
+      "gatekeeping": "experienced_rvers_only",
+      "rating": 4.96,
+      "reviewCount": 34,
+      "isFree": true,
+      "isFeatured": true,
+      "exactAddressSecret": "7820 Juniper Vista Way, Sedona, AZ 86336",
+      "arrivalGateCodeSecret": "SEDONA-50A",
+      "status": "active",
+      "createdAt": "2023-11-20"
+    },
+    {
+      "id": "spot-bend-pines",
+      "hostId": "user-host-3",
+      "title": "Whispering Pines Meadow & Creek",
+      "tagline": "Peaceful farm setting along Tumalo Creek with mountain views",
+      "description": "Pull into our organic heirloom berry farm nestled between towering Ponderosa pines and Tumalo Creek. We live here in our converted Sprinter van when not farming, so we know what rovers need: dead-level packed gravel, pure mountain spring water hookup, fast Wi-Fi for remote workers, and a bubbling creek 50 steps away to cool your feet. You are welcome to sample fresh seasonal berries when in harvest!",
+      "locationName": "Bend",
+      "generalArea": "Central Oregon, USA",
+      "coordinates": [
+        44.0582,
+        -121.3153
+      ],
+      "photos": [
+        "/images/meadow_spot.jpg",
+        "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1510312305653-8ed496efae75?auto=format&fit=crop&w=1000&q=80"
+      ],
+      "spaceType": "farm",
+      "environment": "forest",
+      "rigCompatibility": {
+        "maxLengthFt": 30,
+        "maxHeightFt": 12.5,
+        "maxWidthFt": 8.5,
+        "acceptedTypes": [
+          "class_b",
+          "class_c",
+          "travel_trailer",
+          "campervan",
+          "truck_camper",
+          "rooftop_tent"
+        ],
+        "accessType": "pull_through",
+        "surfaceType": "packed_gravel",
+        "isLevel": true,
+        "turnaroundSpace": "Open circular driveway around the farm barn.",
+        "lowClearanceNotice": "Ponderosa canopy at 13ft height.",
+        "trailerDisconnectRequired": false
+      },
+      "amenities": {
+        "electricity": "30amp",
+        "water": "potable_hookup",
+        "sewer": "none",
+        "wifi": true,
+        "wifiSpeed": "100 Mbps Starlink",
+        "bathroom": true,
+        "shower": false,
+        "firePit": true,
+        "trash": true,
+        "shade": "full",
+        "generatorsAllowed": false,
+        "generatorHours": "Quiet farm sanctuary — no generator use",
+        "petsAllowed": true,
+        "petRestrictions": "Well-behaved dogs welcome; keep on leash near chicken coop",
+        "familyFriendly": true,
+        "quietSetting": true,
+        "offGridCapable": false
+      },
+      "proximity": {
+        "fuelNearbyMiles": 3.8,
+        "groceriesNearbyMiles": 4.2,
+        "rvDumpNearbyMiles": 6,
+        "attractionNote": "12 mins to Phil’s Trail mountain bike network and Deschutes River"
+      },
+      "rules": {
+        "maxStayNights": 3,
+        "checkInWindow": "2:00 PM - 7:00 PM",
+        "checkOutTime": "11:00 AM",
+        "quietHours": "10:00 PM - 7:30 AM",
+        "campfirePolicy": "Allowed in farm fire bowl when Oregon Department of Forestry index allows",
+        "childrenAllowed": true,
+        "extraGuestsAllowed": true,
+        "hostInteraction": "social_loves_to_chat"
+      },
+      "gatekeeping": "verified_id_only",
+      "rating": 5,
+      "reviewCount": 22,
+      "isFree": true,
+      "isFeatured": true,
+      "exactAddressSecret": "19420 Tumalo Reservoir Rd, Bend, OR 97703",
+      "arrivalGateCodeSecret": "PINE-3030",
+      "status": "active",
+      "createdAt": "2024-02-10"
+    },
+    {
+      "id": "spot-maine-bluff",
+      "hostId": "user-host-4",
+      "title": "Ocean Bluff Lookout & Pine Haven",
+      "tagline": "Coastal spruce grove overlooking harbor lobster boats at dawn",
+      "description": "Set your parking brake right on our granite point overlooking Frenchman Bay. As a former tugboat captain and long-time Airstreamer, I love hosting fellow road travelers. Watch the seals and lobster boats while sipping morning coffee from your rig. Features a dedicated 30A plug, fresh town water spigot, and firewood for the coastal fire pit.",
+      "locationName": "Bar Harbor",
+      "generalArea": "Maine Coast, USA",
+      "coordinates": [
+        44.3876,
+        -68.2039
+      ],
+      "photos": [
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=1000&q=80",
+        "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?auto=format&fit=crop&w=1000&q=80"
+      ],
+      "spaceType": "backyard",
+      "environment": "coastal",
+      "rigCompatibility": {
+        "maxLengthFt": 32,
+        "maxHeightFt": 13,
+        "maxWidthFt": 8.5,
+        "acceptedTypes": [
+          "class_b",
+          "class_c",
+          "travel_trailer",
+          "campervan",
+          "truck_camper"
+        ],
+        "accessType": "back_in",
+        "surfaceType": "firm_grass",
+        "isLevel": true,
+        "turnaroundSpace": "Spacious yard turn-in, easy back-in with host guidance.",
+        "lowClearanceNotice": "Clear marine driveway, trimmed spruce branches.",
+        "trailerDisconnectRequired": false
+      },
+      "amenities": {
+        "electricity": "30amp",
+        "water": "spigot_fill",
+        "sewer": "none",
+        "wifi": true,
+        "wifiSpeed": "85 Mbps Cable",
+        "bathroom": false,
+        "shower": false,
+        "firePit": true,
+        "trash": true,
+        "shade": "partial",
+        "generatorsAllowed": true,
+        "generatorHours": "11:00 AM - 4:00 PM only",
+        "petsAllowed": true,
+        "petRestrictions": "Dogs welcome, must not chase shorebirds",
+        "familyFriendly": true,
+        "quietSetting": true,
+        "offGridCapable": false
+      },
+      "proximity": {
+        "fuelNearbyMiles": 2.2,
+        "groceriesNearbyMiles": 3,
+        "rvDumpNearbyMiles": 8.5,
+        "attractionNote": "10 mins to Acadia National Park entrance and Cadillac Mountain"
+      },
+      "rules": {
+        "maxStayNights": 2,
+        "checkInWindow": "3:00 PM - 8:00 PM",
+        "checkOutTime": "10:30 AM",
+        "quietHours": "9:00 PM - 6:30 AM",
+        "campfirePolicy": "Shoreline stone fire pit with seasoned birch logs",
+        "childrenAllowed": true,
+        "extraGuestsAllowed": false,
+        "hostInteraction": "social_loves_to_chat"
+      },
+      "gatekeeping": "any_member",
+      "rating": 4.97,
+      "reviewCount": 39,
+      "isFree": true,
+      "isFeatured": true,
+      "exactAddressSecret": "114 Shoreline Way, Bar Harbor, ME 04609",
+      "arrivalGateCodeSecret": "CAPTAIN-DAVE",
+      "status": "active",
+      "createdAt": "2023-09-12"
+    },
+    {
+      "id": "spot-tahoe-glade",
+      "hostId": "user-host-3",
+      "title": "High Sierra Star Gazer Clearing",
+      "tagline": "Crisp alpine air, pine aroma, and off-grid mountain quiet",
+      "description": "An off-grid alpine haven tucked into private Jeffrey pine woods near Truckee. Designed for self-contained rigs who appreciate solar exposure, quiet nights, and stargazing at 6,200ft elevation. Level decomposed granite surface with mountain brook sounds nearby.",
+      "locationName": "Truckee / Lake Tahoe",
+      "generalArea": "California, USA",
+      "coordinates": [
+        39.3279,
+        -120.1833
+      ],
+      "photos": [
+        "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1470246973918-29a93221c455?auto=format&fit=crop&w=1000&q=80"
+      ],
+      "spaceType": "forest_clearing",
+      "environment": "mountain",
+      "rigCompatibility": {
+        "maxLengthFt": 28,
+        "maxHeightFt": 12,
+        "maxWidthFt": 8,
+        "acceptedTypes": [
+          "class_b",
+          "campervan",
+          "truck_camper",
+          "rooftop_tent"
+        ],
+        "accessType": "back_in",
+        "surfaceType": "packed_gravel",
+        "isLevel": true,
+        "turnaroundSpace": "Standard driveway turn, best for vans and shorter trailers.",
+        "lowClearanceNotice": "Watch side tree branches on forest approach.",
+        "trailerDisconnectRequired": true
+      },
+      "amenities": {
+        "electricity": "15amp",
+        "water": "spigot_fill",
+        "sewer": "none",
+        "wifi": false,
+        "bathroom": false,
+        "shower": false,
+        "firePit": false,
+        "trash": true,
+        "shade": "partial",
+        "generatorsAllowed": false,
+        "generatorHours": "Off-grid silent zone — solar charging recommended",
+        "petsAllowed": true,
+        "petRestrictions": "Bear country! Pets must stay close, never left unattended",
+        "familyFriendly": false,
+        "quietSetting": true,
+        "offGridCapable": true
+      },
+      "proximity": {
+        "fuelNearbyMiles": 5.5,
+        "groceriesNearbyMiles": 6,
+        "rvDumpNearbyMiles": 9,
+        "attractionNote": "15 mins to Donner Memorial State Park and Northstar trails"
+      },
+      "rules": {
+        "maxStayNights": 3,
+        "checkInWindow": "1:00 PM - 6:00 PM",
+        "checkOutTime": "11:00 AM",
+        "quietHours": "9:00 PM - 8:00 AM",
+        "campfirePolicy": "Strict no-wood-fire zone due to California wildfire safety",
+        "childrenAllowed": true,
+        "extraGuestsAllowed": false,
+        "hostInteraction": "independent_gate_code"
+      },
+      "gatekeeping": "any_member",
+      "rating": 4.89,
+      "reviewCount": 14,
+      "isFree": true,
+      "isFeatured": false,
+      "exactAddressSecret": "1420 Donner Pass Spur, Truckee, CA 96161",
+      "arrivalGateCodeSecret": "SIERRA-4X4",
+      "status": "active",
+      "createdAt": "2024-04-01"
+    },
+    {
+      "id": "spot-hill-country",
+      "hostId": "user-host-2",
+      "title": "Lone Star Hill Country Vineyard Pad",
+      "tagline": "Wide pull-through space surrounded by live oaks and grapevines",
+      "description": "Pull off Highway 290 into our family vineyard estate. We installed a heavy-duty commercial crushed limestone pull-through space specifically for travelers passing through Texas wine country. Includes full 50A hookup and city potable water. Take an evening stroll through the vines under enormous Texas live oaks.",
+      "locationName": "Fredericksburg",
+      "generalArea": "Texas Hill Country, USA",
+      "coordinates": [
+        30.2752,
+        -98.8719
+      ],
+      "photos": [
+        "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80"
+      ],
+      "spaceType": "vineyard",
+      "environment": "vineyard",
+      "rigCompatibility": {
+        "maxLengthFt": 40,
+        "maxHeightFt": 13.8,
+        "maxWidthFt": 8.5,
+        "acceptedTypes": [
+          "class_a",
+          "class_b",
+          "class_c",
+          "travel_trailer",
+          "fifth_wheel",
+          "campervan"
+        ],
+        "accessType": "pull_through",
+        "surfaceType": "packed_gravel",
+        "isLevel": true,
+        "turnaroundSpace": "Massive 80ft wide driveway turn around winery pavilion.",
+        "lowClearanceNotice": "Trees along lane trimmed to 14ft 6in clearance.",
+        "trailerDisconnectRequired": false
+      },
+      "amenities": {
+        "electricity": "50amp",
+        "water": "potable_hookup",
+        "sewer": "none",
+        "wifi": true,
+        "wifiSpeed": "75 Mbps Wireless",
+        "bathroom": false,
+        "shower": false,
+        "firePit": true,
+        "trash": true,
+        "shade": "partial",
+        "generatorsAllowed": true,
+        "generatorHours": "12:00 PM - 5:00 PM only if not plugged into 50A",
+        "petsAllowed": true,
+        "petRestrictions": "Must be on leash around tasting room grounds",
+        "familyFriendly": true,
+        "quietSetting": true,
+        "offGridCapable": false
+      },
+      "proximity": {
+        "fuelNearbyMiles": 4,
+        "groceriesNearbyMiles": 4.8,
+        "rvDumpNearbyMiles": 5.2,
+        "attractionNote": "8 mins to Historic Main Street and Enchanted Rock State Natural Area"
+      },
+      "rules": {
+        "maxStayNights": 3,
+        "checkInWindow": "1:00 PM - 7:00 PM",
+        "checkOutTime": "11:00 AM",
+        "quietHours": "10:00 PM - 7:00 AM",
+        "campfirePolicy": "Allowed in designated stone circle",
+        "childrenAllowed": true,
+        "extraGuestsAllowed": true,
+        "hostInteraction": "social_loves_to_chat"
+      },
+      "gatekeeping": "verified_id_only",
+      "rating": 4.93,
+      "reviewCount": 26,
+      "isFree": true,
+      "isFeatured": false,
+      "exactAddressSecret": "3300 Wine Trail Lane, Fredericksburg, TX 78624",
+      "arrivalGateCodeSecret": "TEXAS-50A",
+      "status": "active",
+      "createdAt": "2023-12-05"
+    },
+    {
+      "id": "spot-joshua-tree",
+      "hostId": "user-host-1",
+      "title": "Stargazer Ridge & Yucca Sanctuary",
+      "tagline": "Private 5-acre Mojave sanctuary with 30A solar pedestal and 360° mountain vistas",
+      "description": "Bask in the stillness of the high desert. Our 5-acre off-grid property sits directly adjacent to protected BLM wilderness just 12 miles from Joshua Tree National Park entrance. We provide a dead-level crushed granite pad, 30-amp solar-backed power connection, certified well water spigot, and a custom sunken fire ring with uninterrupted views of the Milky Way.",
+      "locationName": "Joshua Tree",
+      "generalArea": "California, USA",
+      "coordinates": [
+        34.1347,
+        -116.3131
+      ],
+      "photos": [
+        "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1000&q=80",
+        "https://images.unsplash.com/photo-1510312305653-8ed496efae75?auto=format&fit=crop&w=1000&q=80"
+      ],
+      "spaceType": "desert_oasis",
+      "environment": "desert",
+      "rigCompatibility": {
+        "maxLengthFt": 34,
+        "maxHeightFt": 13.5,
+        "maxWidthFt": 8.5,
+        "acceptedTypes": [
+          "class_b",
+          "class_c",
+          "travel_trailer",
+          "campervan",
+          "truck_camper"
+        ],
+        "accessType": "pull_through",
+        "surfaceType": "packed_gravel",
+        "isLevel": true,
+        "turnaroundSpace": "Spacious circular turn, great for mid-size rigs and vans.",
+        "lowClearanceNotice": "Completely clear desert sky, no overhead branches.",
+        "trailerDisconnectRequired": false
+      },
+      "amenities": {
+        "electricity": "30amp",
+        "water": "potable_hookup",
+        "sewer": "none",
+        "wifi": true,
+        "wifiSpeed": "100 Mbps Starlink",
+        "bathroom": false,
+        "shower": false,
+        "firePit": true,
+        "trash": true,
+        "shade": "open_sky",
+        "generatorsAllowed": false,
+        "generatorHours": "Silent dark sky area — solar power only",
+        "petsAllowed": true,
+        "petRestrictions": "Leashed pets only due to desert coyotes and cacti",
+        "familyFriendly": true,
+        "quietSetting": true,
+        "offGridCapable": true
+      },
+      "proximity": {
+        "fuelNearbyMiles": 4.5,
+        "groceriesNearbyMiles": 5,
+        "rvDumpNearbyMiles": 11,
+        "attractionNote": "12 mins to West Entrance Joshua Tree National Park"
+      },
+      "rules": {
+        "maxStayNights": 3,
+        "checkInWindow": "2:00 PM - 7:00 PM",
+        "checkOutTime": "11:00 AM",
+        "quietHours": "9:00 PM - 7:00 AM",
+        "campfirePolicy": "Propane fire bowl or strictly in sunken iron ring when calm",
+        "childrenAllowed": true,
+        "extraGuestsAllowed": false,
+        "hostInteraction": "peaceful_wave_from_porch"
+      },
+      "gatekeeping": "verified_id_only",
+      "rating": 4.95,
+      "reviewCount": 21,
+      "isFree": true,
+      "isFeatured": true,
+      "exactAddressSecret": "6480 Desert Sun Way, Joshua Tree, CA 92252",
+      "arrivalGateCodeSecret": "YUCCA-30A",
+      "status": "active",
+      "createdAt": "2024-03-01"
+    },
+    {
+      "id": "spot-smoky-mountains",
+      "hostId": "user-host-2",
+      "title": "Smoky Mountain Laurel Creek Hollow",
+      "tagline": "Lush mountain forest pad beside rushing trout stream with 50A hookup",
+      "description": "Escape into the misty green folds of the Great Smoky Mountains. Our private 8-acre mountain homestead features a dedicated concrete pull-through pad built beside Laurel Creek. Wake up to the roar of cool mountain water and rhododendron in bloom. Features a full 50-amp pedestal, municipal spring water, and high-speed Wi-Fi.",
+      "locationName": "Gatlinburg / Smokies",
+      "generalArea": "Tennessee, USA",
+      "coordinates": [
+        35.7143,
+        -83.5102
+      ],
+      "photos": [
+        "https://images.unsplash.com/photo-1511497584788-87676104235f?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1000&q=80"
+      ],
+      "spaceType": "acreage",
+      "environment": "mountain",
+      "rigCompatibility": {
+        "maxLengthFt": 40,
+        "maxHeightFt": 13.8,
+        "maxWidthFt": 8.5,
+        "acceptedTypes": [
+          "class_a",
+          "class_b",
+          "class_c",
+          "travel_trailer",
+          "fifth_wheel",
+          "campervan"
+        ],
+        "accessType": "pull_through",
+        "surfaceType": "level_concrete",
+        "isLevel": true,
+        "turnaroundSpace": "75ft wide asphalt-to-concrete loop with river bend pull-through.",
+        "lowClearanceNotice": "Mountain canopy trimmed to 14ft 4in along private road.",
+        "trailerDisconnectRequired": false
+      },
+      "amenities": {
+        "electricity": "50amp",
+        "water": "potable_hookup",
+        "sewer": "none",
+        "wifi": true,
+        "wifiSpeed": "150 Mbps Fiber",
+        "bathroom": false,
+        "shower": false,
+        "firePit": true,
+        "trash": true,
+        "shade": "full",
+        "generatorsAllowed": false,
+        "generatorHours": "Not permitted; full 50A hookup provided",
+        "petsAllowed": true,
+        "petRestrictions": "Leashed at all times due to black bears and rushing creek",
+        "familyFriendly": true,
+        "quietSetting": true,
+        "offGridCapable": false
+      },
+      "proximity": {
+        "fuelNearbyMiles": 3,
+        "groceriesNearbyMiles": 4.2,
+        "rvDumpNearbyMiles": 6.5,
+        "attractionNote": "8 mins to Great Smoky Mountains National Park Sugarlands visitor center"
+      },
+      "rules": {
+        "maxStayNights": 4,
+        "checkInWindow": "1:00 PM - 7:30 PM",
+        "checkOutTime": "11:00 AM",
+        "quietHours": "10:00 PM - 7:00 AM",
+        "campfirePolicy": "Wood fires allowed in stone creek ring; kiln-dried firewood available",
+        "childrenAllowed": true,
+        "extraGuestsAllowed": true,
+        "hostInteraction": "social_loves_to_chat"
+      },
+      "gatekeeping": "verified_id_only",
+      "rating": 4.97,
+      "reviewCount": 31,
+      "isFree": true,
+      "isFeatured": true,
+      "exactAddressSecret": "219 Laurel Branch Hollow, Gatlinburg, TN 37738",
+      "arrivalGateCodeSecret": "SMOKY-50A",
+      "status": "active",
+      "createdAt": "2024-02-18"
+    }
+  ],
+  "requests": [
+    {
+      "id": "req-moab-1",
+      "spotId": "spot-moab-redrock",
+      "travelerId": "user-traveler-1",
+      "hostId": "user-host-1",
+      "arrivalDate": "2026-09-12",
+      "departureDate": "2026-09-14",
+      "nights": 2,
+      "guestCount": 2,
+      "travelerRig": {
+        "type": "class_c",
+        "lengthFt": 28,
+        "description": "Coachmen Leprechaun 28ft, completely self-contained with solar and 30A plug adapter"
+      },
+      "personalNote": "Hi Caleb & Sarah! We are roaming south along Highway 191 toward Arches and Canyonlands. We love quiet red rock stargazing and would be thrilled to stay 2 nights on your gravel pad. Our dog Jasper is very calm and will stay on leash.",
+      "status": "pending",
+      "createdAt": "2026-09-02T14:30:00Z",
+      "arrivalTimeEst": "4:30 PM"
+    },
+    {
+      "id": "req-sedona-confirmed",
+      "spotId": "spot-sedona-ridge",
+      "travelerId": "user-traveler-1",
+      "hostId": "user-host-2",
+      "arrivalDate": "2026-09-22",
+      "departureDate": "2026-09-25",
+      "nights": 3,
+      "guestCount": 2,
+      "travelerRig": {
+        "type": "class_c",
+        "lengthFt": 28,
+        "description": "Coachmen Leprechaun 28ft"
+      },
+      "personalNote": "Hi Marcus! Excited to visit Sedona again. We are avid trail runners and photographers. Look forward to meeting you!",
+      "status": "accepted",
+      "createdAt": "2026-08-28T09:15:00Z",
+      "hostResponseNote": "Looking forward to hosting you both! The 50A pedestal is set, gate code is SEDONA-50A. Let me know when you cross into Verde Valley.",
+      "arrivalTimeEst": "3:00 PM"
+    },
+    {
+      "id": "req-bend-completed",
+      "spotId": "spot-bend-pines",
+      "travelerId": "user-traveler-1",
+      "hostId": "user-host-3",
+      "arrivalDate": "2026-07-10",
+      "departureDate": "2026-07-12",
+      "nights": 2,
+      "guestCount": 2,
+      "travelerRig": {
+        "type": "class_c",
+        "lengthFt": 28,
+        "description": "Coachmen Leprechaun 28ft"
+      },
+      "personalNote": "Hi Clara & Ben! Passing through Bend for Phil’s Trail singletrack. Would love to share a quiet spot by Tumalo Creek.",
+      "status": "completed",
+      "createdAt": "2026-07-01T11:00:00Z",
+      "hostResponseNote": "Welcome to the farm! Fresh marionberries are on the porch for you.",
+      "arrivalTimeEst": "2:30 PM"
+    }
+  ],
+  "threads": [
+    {
+      "id": "thread-moab-stay",
+      "participants": [
+        "user-traveler-1",
+        "user-host-1"
+      ],
+      "spotId": "spot-moab-redrock",
+      "stayRequestId": "req-moab-1",
+      "lastMessage": "Hey Alex! We saw your stay request for Sept 12. Does your 28ft Class C have a standard 30A TT-30 cord?",
+      "lastMessageAt": "2026-09-02T15:10:00Z",
+      "unreadBy": [
+        "user-traveler-1"
+      ],
+      "messages": [
+        {
+          "id": "msg-1",
+          "threadId": "thread-moab-stay",
+          "senderId": "user-traveler-1",
+          "text": "Hi Caleb & Sarah! We submitted a stay request for Sept 12-14. Really excited about visiting Moab and Arches.",
+          "timestamp": "2026-09-02T14:32:00Z"
+        },
+        {
+          "id": "msg-2",
+          "threadId": "thread-moab-stay",
+          "senderId": "user-host-1",
+          "text": "Hey Alex! We saw your stay request for Sept 12. Does your 28ft Class C have a standard 30A TT-30 cord or do you need an adapter? Either way, the gravel pad is ready!",
+          "timestamp": "2026-09-02T15:10:00Z"
+        }
+      ]
+    },
+    {
+      "id": "thread-sedona-stay",
+      "participants": [
+        "user-traveler-1",
+        "user-host-2"
+      ],
+      "spotId": "spot-sedona-ridge",
+      "stayRequestId": "req-sedona-confirmed",
+      "lastMessage": "Gate code is set to SEDONA-50A. Safe travels down Highway 89A!",
+      "lastMessageAt": "2026-08-28T10:45:00Z",
+      "unreadBy": [],
+      "messages": [
+        {
+          "id": "msg-sed-1",
+          "threadId": "thread-sedona-stay",
+          "senderId": "user-traveler-1",
+          "text": "Marcus, thank you so much for accepting our stay request! We will be arriving around 3 PM on Sept 22.",
+          "timestamp": "2026-08-28T09:30:00Z"
+        },
+        {
+          "id": "msg-sed-2",
+          "threadId": "thread-sedona-stay",
+          "senderId": "user-host-2",
+          "text": "Wonderful! The crushed granite pad has plenty of room for your 28ft Coachmen. Gate code is set to SEDONA-50A. Safe travels down Highway 89A!",
+          "timestamp": "2026-08-28T10:45:00Z"
+        }
+      ]
+    }
+  ],
+  "posts": [
+    {
+      "id": "post-1788516318235",
+      "upvotes": 0,
+      "upvotedBy": [],
+      "comments": [],
+      "createdAt": "Just now",
+      "authorId": "user-traveler-1",
+      "category": "route_tips",
+      "title": "Pacific Coast Highway 101 Dump Stations",
+      "content": "Here are three free municipal RV dump stations with potable water along the Oregon coast.",
+      "rigTag": "28ft Class C",
+      "locationTag": "Oregon Coast"
+    },
+    {
+      "id": "post-1",
+      "authorId": "user-traveler-1",
+      "category": "route_tips",
+      "title": "Heading from Zion through Scenic Byway 12 to Moab this weekend — anyone else on the road?",
+      "content": "We are leaving Zion on Friday afternoon in our 28ft Class C, heading across Highway 12 toward Escalante and into Moab. Has anyone navigated the Hogsback ridge with a 28ft+ rig recently? Any specific tips on grade management and BLM boondocking spots near Boulder, UT?",
+      "rigTag": "28ft Class C",
+      "locationTag": "Utah Scenic Byway 12",
+      "upvotes": 29,
+      "upvotedBy": [
+        "user-host-1",
+        "user-host-2"
+      ],
+      "createdAt": "2026-09-01T16:20:00Z",
+      "comments": [
+        {
+          "id": "c-1",
+          "authorId": "user-host-1",
+          "authorName": "Caleb Jenkins",
+          "authorAvatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
+          "authorRig": "35ft Fifth Wheel",
+          "content": "Hey Alex! Took our 35ft fifth wheel across the Hogsback last fall. Just take it slow in low gear and soak in the drop-offs on both sides — it is magnificent. You are welcome to pull into our Red Rock Roo pad in Moab for a cold water fill-up and 30A plug once you roll in!",
+          "createdAt": "2026-09-01T17:05:00Z"
+        },
+        {
+          "id": "c-2",
+          "authorId": "user-host-4",
+          "authorName": "Dave Miller",
+          "authorAvatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80",
+          "authorRig": "26ft Airstream",
+          "content": "One of the top 5 drives in the USA! Fill up diesel in Escalante before heading over Boulder Mountain. Safe roaming!",
+          "createdAt": "2026-09-01T19:30:00Z"
+        }
+      ]
+    },
+    {
+      "id": "post-2",
+      "authorId": "user-host-2",
+      "category": "rv_advice",
+      "title": "50-Amp vs 30-Amp hookup etiquette: What every host and guest should know",
+      "content": "As a long-time Class A host, I often get requests from rigs asking if they can run both AC units on a 30-amp service with a dogbone adapter. A quick tip for travelers: on 30A (3,600W max), stagger your loads! Run one AC unit at a time, especially if your electric water heater or microwave kicks on. Hosts love guests who understand how to protect their breakers.",
+      "rigTag": "40ft Class A",
+      "locationTag": "Host Wisdom",
+      "upvotes": 45,
+      "upvotedBy": [
+        "user-traveler-1",
+        "user-host-3",
+        "user-admin"
+      ],
+      "createdAt": "2026-08-25T11:15:00Z",
+      "comments": [
+        {
+          "id": "c-3",
+          "authorId": "user-host-3",
+          "authorName": "Clara Bennett",
+          "authorAvatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
+          "authorRig": "Sprinter 144",
+          "content": "Great reminder Marcus! We also recommend guests use a surge protector with EMS before plugging into host pedestals. Protects both the rig and the host home electrical panel.",
+          "createdAt": "2026-08-25T13:40:00Z"
+        }
+      ]
+    },
+    {
+      "id": "post-3",
+      "authorId": "user-host-3",
+      "category": "hosting_news",
+      "title": "Just added a level gravel extension for rigs up to 32ft at Whispering Pines!",
+      "content": "We spent the weekend spreading 4 loads of crushed granite by Tumalo Creek. The driveway now has an easy circular radius with no tight backing required. Berry picking season is in full swing — excited to welcome more CampRoo rovers this autumn.",
+      "rigTag": "Bend Farm Host",
+      "locationTag": "Bend, Oregon",
+      "upvotes": 38,
+      "upvotedBy": [
+        "user-traveler-1"
+      ],
+      "createdAt": "2026-08-20T09:00:00Z",
+      "comments": []
+    },
+    {
+      "id": "post-4",
+      "authorId": "user-host-4",
+      "category": "repairs",
+      "title": "Quick roadside fix: Dealing with a sticky 12V black tank dump valve",
+      "content": "If your cable-actuated black tank valve starts binding when you pull into a dump station, do not force the T-handle! Spray silicone lubricant along the cable sheath under the underbelly coroplast, let it sit 5 minutes, and gently cycle it. Saved me a huge headache on the Maine turnpike yesterday.",
+      "rigTag": "25ft Airstream",
+      "locationTag": "DIY Tech Tips",
+      "upvotes": 52,
+      "upvotedBy": [
+        "user-host-2",
+        "user-host-1"
+      ],
+      "createdAt": "2026-08-15T14:45:00Z",
+      "comments": []
+    }
+  ],
+  "reviews": [
+    {
+      "id": "rev-desert-1",
+      "spotId": "spot-moab-redrock",
+      "travelerId": "user-traveler-1",
+      "hostId": "user-host-1",
+      "stayRequestId": "req-past-desert",
+      "authorId": "user-traveler-1",
+      "authorRole": "traveler",
+      "ratingOverall": 5,
+      "categories": {
+        "communication": 5,
+        "accuracy": 5,
+        "hospitality": 5,
+        "safety": 5,
+        "cleanliness": 5
+      },
+      "wouldWelcomeAgain": true,
+      "comment": "Staying at Caleb and Sarah’s red rock oasis in Moab was the highlight of our Utah parks trip! The gravel pad is dead level, 30A power ran our AC and induction cooktop flawlessly, and Caleb recommended an incredible hidden canyon sunset hike right off their back fence. This is what CampRoo is all about: true RV community hospitality.",
+      "createdAt": "2026-05-18"
+    },
+    {
+      "id": "rev-desert-2",
+      "spotId": "spot-moab-redrock",
+      "travelerId": "user-host-3",
+      "hostId": "user-host-1",
+      "stayRequestId": "req-past-desert-2",
+      "authorId": "user-host-3",
+      "authorRole": "traveler",
+      "ratingOverall": 4.8,
+      "categories": {
+        "communication": 5,
+        "accuracy": 5,
+        "hospitality": 5,
+        "safety": 5,
+        "cleanliness": 4.5
+      },
+      "wouldWelcomeAgain": true,
+      "comment": "Spectacular red sandstone cliffs right outside the camper window. Plenty of turnaround space for our van and easy gate access off Spanish Valley Dr. The well water is icy cold and delicious. We would love to host Caleb & Sarah in Bend whenever they roam the PNW!",
+      "createdAt": "2026-04-02"
+    },
+    {
+      "id": "rev-sedona-1",
+      "spotId": "spot-sedona-ridge",
+      "travelerId": "user-host-4",
+      "hostId": "user-host-2",
+      "stayRequestId": "req-past-sedona-1",
+      "authorId": "user-host-4",
+      "authorRole": "traveler",
+      "ratingOverall": 5,
+      "categories": {
+        "communication": 5,
+        "accuracy": 5,
+        "hospitality": 5,
+        "safety": 5,
+        "cleanliness": 5
+      },
+      "wouldWelcomeAgain": true,
+      "comment": "Marcus has built an RV paradise. Unbelievable red rock views at golden hour. The 50A hookup is pristine, and having an on-site dump station saved us an hour detour. Marcus gave great advice on high-clearance backroads.",
+      "createdAt": "2026-06-11"
+    },
+    {
+      "id": "rev-bend-1",
+      "spotId": "spot-bend-pines",
+      "travelerId": "user-traveler-1",
+      "hostId": "user-host-3",
+      "stayRequestId": "req-bend-completed",
+      "authorId": "user-traveler-1",
+      "authorRole": "traveler",
+      "ratingOverall": 5,
+      "categories": {
+        "communication": 5,
+        "accuracy": 5,
+        "hospitality": 5,
+        "safety": 5,
+        "cleanliness": 5
+      },
+      "wouldWelcomeAgain": true,
+      "comment": "Clara and Ben were the most gracious hosts! Fresh marionberries were waiting on our arrival, and falling asleep to the sound of Tumalo Creek was pure therapy. Very easy pull-through for our 28ft Class C.",
+      "createdAt": "2026-07-13",
+      "hostReply": "Alex & Sam are model CampRoo members! Their rig was spotless, Jasper the pup was a delight, and we loved sharing stories around the fire bowl. Welcome back anytime!"
+    }
+  ],
+  "reports": [
+    {
+      "id": "rep-1",
+      "reporterId": "user-traveler-1",
+      "reportedTargetType": "spot",
+      "targetId": "spot-sedona-ridge",
+      "targetName": "Red Rock Juniper Ridge",
+      "reason": "Incorrect road signage query",
+      "details": "The listing mentions GPS sometimes routes down Forest Road 152. Just suggesting adding an extra signpost note so rigs don’t miss the cattle guard turn.",
+      "status": "resolved",
+      "createdAt": "2026-08-20T10:00:00Z",
+      "adminNotes": "Contacted Marcus. He updated the host arrival instructions with mile marker details."
+    },
+    {
+      "id": "rep-2",
+      "reporterId": "user-host-1",
+      "reportedTargetType": "user",
+      "targetId": "user-spammer-99",
+      "targetName": "Commercial Tour Operator (Fake Profile)",
+      "reason": "Commercial solicitation",
+      "details": "Sent an unsolicited promo message offering paid desert dune buggy tours instead of normal RV stay communication.",
+      "status": "pending",
+      "createdAt": "2026-09-03T18:40:00Z",
+      "adminNotes": "Investigating account history and outbound messaging logs."
+    }
+  ],
+  "updatedAt": "2026-09-04T11:10:40.493Z"
+}

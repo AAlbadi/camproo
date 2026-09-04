@@ -1,0 +1,184 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Outdoor-Friendly Natural Theme (Campfire Terracotta, Pine Forest & Warm Stone) */
+    --background: 40 20% 99%;
+    --foreground: 24 10% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 24 10% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 24 10% 10%;
+
+    /* Campfire Roo Orange (#FF5A1F) */
+    --primary: 16 100% 56%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Pine & Sage Green Tint */
+    --secondary: 154 35% 95%;
+    --secondary-foreground: 154 50% 16%;
+
+    /* Warm Stone / Sand Linen */
+    --muted: 36 18% 94%;
+    --muted-foreground: 24 6% 45%;
+
+    /* Forest Moss Accent */
+    --accent: 154 30% 92%;
+    --accent-foreground: 154 50% 15%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 36 12% 91%;
+    --input: 36 12% 91%;
+    --ring: 16 100% 56%;
+
+    --radius: 1.25rem;
+  }
+
+  .dark {
+    /* Deep Wilderness Starry Night */
+    --background: 24 10% 8%;
+    --foreground: 36 18% 96%;
+
+    --card: 24 10% 11%;
+    --card-foreground: 36 18% 96%;
+
+    --popover: 24 10% 11%;
+    --popover-foreground: 36 18% 96%;
+
+    --primary: 16 100% 56%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 154 28% 18%;
+    --secondary-foreground: 154 35% 85%;
+
+    --muted: 24 8% 18%;
+    --muted-foreground: 36 10% 65%;
+
+    --accent: 154 28% 18%;
+    --accent-foreground: 154 35% 85%;
+
+    --destructive: 0 62% 35%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 24 8% 20%;
+    --input: 24 8% 20%;
+    --ring: 16 100% 56%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    @apply font-sans antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Custom smooth scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Modern 2026 Micro-Animations */
+@keyframes pulseSubtle {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.06); opacity: 0.9; }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-pulse-subtle {
+  animation: pulseSubtle 2.5s infinite cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+/* 2026 Liquid Glass & Spatial 3D Effects */
+.liquid-glass {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08), inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.liquid-glass-pill {
+  backdrop-filter: blur(16px) saturate(190%);
+  -webkit-backdrop-filter: blur(16px) saturate(190%);
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.09), inset 0 1px 1px 0 rgba(255, 255, 255, 1);
+}
+
+.liquid-glass-dark {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: rgba(17, 17, 17, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35), inset 0 1px 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+/* Leaflet map styling overrides */
+.leaflet-container {
+  font-family: 'Plus Jakarta Sans', -apple-system, sans-serif !important;
+  background-color: hsl(var(--muted)) !important;
+  border-radius: var(--radius) !important;
+  outline: none;
+}
+
+.leaflet-popup-content-wrapper {
+  background: hsl(var(--card)) !important;
+  border-radius: 1.25rem !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  line-height: 1.4 !important;
+}
+
+.leaflet-popup-tip {
+  background: hsl(var(--card)) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.custom-camproo-marker {
+  background: transparent !important;
+  border: none !important;
+}

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="none">
+  <!-- Logo Mark -->
+  <g transform="translate(4, 6)">
+    <rect width="48" height="48" rx="16" fill="#1B3D2B"/>
+    <path d="M10 38 C12 32, 17 29, 23 28 C22 23, 22 18, 26 14 C28 11, 33 9, 38 8 C39 5, 42 2, 45 1 C45 3, 44 6, 43 8 C46 9, 48 11, 48 13 C48 14, 47 15, 45 15 C42 16, 39 14, 38 15 C36 17, 35 21, 37 24 C40 27, 44 29, 47 30 C49 31, 48 32, 47 33 C44 34, 39 35, 34 34 C31 33, 29 31, 27 30 C25 33, 21 35, 17 35 C14 35, 12 34, 10 38 Z" fill="#E76F51" transform="scale(0.8) translate(5, 5)"/>
+    <circle cx="34" cy="18" r="1.2" fill="#FAF8F5"/>
+  </g>
+  <!-- Text -->
+  <text x="64" y="34" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="24" fill="#1B3D2B" letter-spacing="-0.03em">Camp<tspan fill="#E76F51">Roo</tspan></text>
+  <text x="65" y="47" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="600" font-size="8.5" fill="#69A07E" letter-spacing="0.16em">WHERE RVERS HELP RVERS</text>
+</svg>

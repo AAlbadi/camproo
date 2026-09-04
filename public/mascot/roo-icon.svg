@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <!-- Soft background pill -->
+  <rect width="120" height="120" rx="36" fill="#1B3D2B"/>
+  <!-- Mountain crest in background -->
+  <path d="M15 95 L50 45 L75 80 L95 55 L110 95 Z" fill="#234E37" opacity="0.6"/>
+  <!-- Rising warm sun -->
+  <circle cx="85" cy="40" r="14" fill="#E9A825" opacity="0.9"/>
+  <!-- Stylized modern 2026 minimalist kangaroo jumping silhouette -->
+  <path d="M30 88 C32 82, 38 78, 48 76 C46 68, 45 58, 52 48 C55 43, 62 38, 70 36 C73 31, 78 22, 85 18 C86 21, 84 27, 81 32 C86 34, 91 38, 93 43 C94 45, 93 47, 89 48 C84 49, 78 46, 75 48 C72 52, 70 60, 75 66 C80 72, 88 77, 95 80 C98 81, 99 84, 96 86 C90 89, 80 91, 70 88 C64 86, 59 83, 56 81 C52 87, 44 91, 35 91 C31 91, 29 89, 30 88 Z" fill="#E76F51"/>
+  <!-- Pouch line / warm accent -->
+  <path d="M60 62 C64 68, 68 70, 72 68" stroke="#FAF8F5" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/>
+  <!-- Subtle eye -->
+  <circle cx="82" cy="38" r="1.8" fill="#FAF8F5"/>
+</svg>
