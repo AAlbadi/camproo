@@ -31,17 +31,20 @@ export interface MapBounds {
   southWest: { lat: number; lng: number };
 }
 
-export type MapTileTheme = 'voyager' | 'satellite' | 'dark';
+export type MapTileTheme = 'roadmap' | 'satellite' | 'terrain' | 'dark';
 
 const TILE_LAYERS: Record<MapTileTheme, { base: string; labels?: string; attribution: string }> = {
-  voyager: {
-    base: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
-    attribution: '&copy; Esri &copy; OpenStreetMap',
+  roadmap: {
+    base: 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+    attribution: '&copy; Google Maps',
   },
   satellite: {
-    base: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    labels: 'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
-    attribution: '&copy; Esri, Maxar, Earthstar Geographics',
+    base: 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+    attribution: '&copy; Google Maps, Maxar',
+  },
+  terrain: {
+    base: 'https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
+    attribution: '&copy; Google Maps',
   },
   dark: {
     base: 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png',
@@ -135,7 +138,7 @@ export const LeafletInteractiveMap: React.FC<LeafletInteractiveMapProps> = (prop
   const [currentZoom, setCurrentZoom] = useState<number>(6);
 
   // Airbnb Map Controls & Logic
-  const [mapTheme, setMapTheme] = useState<MapTileTheme>('voyager');
+  const [mapTheme, setMapTheme] = useState<MapTileTheme>('roadmap');
   const [searchAsIMove, setSearchAsIMove] = useState(true);
   const [hasMovedSinceSearch, setHasMovedSinceSearch] = useState(false);
   const [showOriginMenu, setShowOriginMenu] = useState(false);
@@ -1341,16 +1344,22 @@ export const LeafletInteractiveMap: React.FC<LeafletInteractiveMapProps> = (prop
               className="absolute bottom-0 right-12 mb-0 bg-white/95 backdrop-blur-xl border border-dark-200 rounded-2xl shadow-xl p-1.5 flex flex-col gap-1 min-w-[120px] animate-fade-in"
             >
               <button
-                onClick={() => { setMapTheme('voyager'); setShowLayersMenu(false); }}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold text-left flex items-center gap-2 transition-colors ${mapTheme === 'voyager' ? 'bg-dark-900 text-white' : 'hover:bg-dark-100 text-dark-800'}`}
+                onClick={() => { setMapTheme('roadmap'); setShowLayersMenu(false); }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold text-left flex items-center gap-2 transition-colors ${mapTheme === 'roadmap' ? 'bg-dark-900 text-white' : 'hover:bg-dark-100 text-dark-800'}`}
               >
-                <span>🗺️ Map</span>
+                <span>🗺️ Google Map</span>
               </button>
               <button
                 onClick={() => { setMapTheme('satellite'); setShowLayersMenu(false); }}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold text-left flex items-center gap-2 transition-colors ${mapTheme === 'satellite' ? 'bg-dark-900 text-white' : 'hover:bg-dark-100 text-dark-800'}`}
               >
                 <span>🛰️ Satellite</span>
+              </button>
+              <button
+                onClick={() => { setMapTheme('terrain'); setShowLayersMenu(false); }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold text-left flex items-center gap-2 transition-colors ${mapTheme === 'terrain' ? 'bg-dark-900 text-white' : 'hover:bg-dark-100 text-dark-800'}`}
+              >
+                <span>⛰️ Terrain</span>
               </button>
               <button
                 onClick={() => { setMapTheme('dark'); setShowLayersMenu(false); }}

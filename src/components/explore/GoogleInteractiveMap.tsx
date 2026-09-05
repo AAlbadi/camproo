@@ -195,7 +195,7 @@ export const GoogleInteractiveMap: React.FC<GoogleInteractiveMapProps> = (props)
     tripRoute,
   } = props;
 
-  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyAi33AFf-vkrfIulTmXNs2DVrkkJPoEsQk';
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
