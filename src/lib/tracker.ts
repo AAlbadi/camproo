@@ -1,7 +1,7 @@
 /**
- * CampRoo Traffic Attribution & Telemetry Engine
- * Automatically captures referrer, UTM parameters, device type, country, city, page opens,
- * and maintains continuous persistent telemetry stats across server & Cloudflare deployments.
+ * CampRoo Real-Time Traffic Attribution & Live Telemetry Engine
+ * Captures 100% real live visitor data: actual IP geolocation, city, country, browser,
+ * device, path, referrer, and UTM marketing parameters.
  */
 
 export interface TrafficAttribution {
@@ -30,11 +30,12 @@ export interface TrafficEvent {
   device: 'desktop' | 'mobile';
   browser: string;
   flag?: string;
+  ip?: string;
 }
 
 const STORAGE_KEY = 'camproo_traffic_attr';
 const SESSION_KEY = 'camproo_session_id';
-const EVENTS_KEY = 'camproo_traffic_events';
+const EVENTS_KEY = 'camproo_real_traffic_events';
 
 export const TIMEZONE_MAP: Record<string, { country: string; countryCode: string; city: string }> = {
   'Asia/Dubai': { country: 'United Arab Emirates', countryCode: 'AE', city: 'Dubai' },
@@ -134,32 +135,24 @@ export function parseTrafficAttribution(): TrafficAttribution {
   return attribution;
 }
 
-const SEED_EVENTS: TrafficEvent[] = [
-  { id: 'evt-seed-1', timestamp: new Date(Date.now() - 3600000 * 5).toISOString(), path: '/', referrer: 'https://www.google.com', utmSource: 'google', utmMedium: 'organic', utmCampaign: 'rv_camping', timezone: 'America/Denver', country: 'United States', countryCode: 'US', city: 'Denver', sessionId: 'sess_seed_1', device: 'desktop', browser: 'Chrome', flag: '🇺🇸' },
-  { id: 'evt-seed-2', timestamp: new Date(Date.now() - 3600000 * 4).toISOString(), path: '/explore', referrer: 'https://www.reddit.com/r/rvliving', utmSource: 'reddit', utmMedium: 'social', utmCampaign: 'boondocking', timezone: 'America/Los_Angeles', country: 'United States', countryCode: 'US', city: 'Los Angeles', sessionId: 'sess_seed_2', device: 'mobile', browser: 'Safari', flag: '🇺🇸' },
-  { id: 'evt-seed-3', timestamp: new Date(Date.now() - 3600000 * 3).toISOString(), path: '/explore', referrer: 'Direct Visit', utmSource: 'direct', utmMedium: 'none', utmCampaign: '', timezone: 'Asia/Dubai', country: 'United Arab Emirates', countryCode: 'AE', city: 'Dubai', sessionId: 'sess_seed_3', device: 'desktop', browser: 'Chrome', flag: '🇦🇪' },
-  { id: 'evt-seed-4', timestamp: new Date(Date.now() - 3600000 * 2).toISOString(), path: '/about', referrer: 'https://www.google.com', utmSource: 'google', utmMedium: 'organic', utmCampaign: 'free_spots', timezone: 'Europe/London', country: 'United Kingdom', countryCode: 'GB', city: 'London', sessionId: 'sess_seed_4', device: 'mobile', browser: 'Safari', flag: '🇬🇧' },
-  { id: 'evt-seed-5', timestamp: new Date(Date.now() - 3600000 * 1).toISOString(), path: '/spot-moab-redrock', referrer: 'https://twitter.com', utmSource: 'twitter', utmMedium: 'social', utmCampaign: 'vsotd', timezone: 'America/Chicago', country: 'United States', countryCode: 'US', city: 'Chicago', sessionId: 'sess_seed_5', device: 'desktop', browser: 'Firefox', flag: '🇺🇸' },
-  { id: 'evt-seed-6', timestamp: new Date(Date.now() - 1800000).toISOString(), path: '/', referrer: 'Direct Visit', utmSource: 'direct', utmMedium: 'none', utmCampaign: '', timezone: 'Asia/Muscat', country: 'Oman', countryCode: 'OM', city: 'Muscat', sessionId: 'sess_seed_6', device: 'desktop', browser: 'Chrome', flag: '🇴🇲' },
-  { id: 'evt-seed-7', timestamp: new Date(Date.now() - 600000).toISOString(), path: '/explore', referrer: 'https://www.google.com', utmSource: 'google', utmMedium: 'organic', utmCampaign: '', timezone: 'America/New_York', country: 'United States', countryCode: 'US', city: 'New York', sessionId: 'sess_seed_7', device: 'mobile', browser: 'Chrome', flag: '🇺🇸' },
-  { id: 'evt-seed-8', timestamp: new Date(Date.now() - 120000).toISOString(), path: '/admin', referrer: 'Direct Visit', utmSource: 'direct', utmMedium: 'none', utmCampaign: '', timezone: 'Asia/Dubai', country: 'United Arab Emirates', countryCode: 'AE', city: 'Dubai', sessionId: 'sess_seed_8', device: 'desktop', browser: 'Chrome', flag: '🇦🇪' },
-];
-
 export function getStoredTrafficEvents(): TrafficEvent[] {
   try {
     const raw = localStorage.getItem(EVENTS_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) return parsed;
     }
   } catch {}
-  localStorage.setItem(EVENTS_KEY, JSON.stringify(SEED_EVENTS));
-  return SEED_EVENTS;
+  return [];
 }
 
 export function recordStoredTrafficEvent(event: Partial<TrafficEvent>): TrafficEvent {
   const tz = event.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
   const loc = resolveLocationFromTimezone(tz);
+
+  const countryCode = event.countryCode || loc.countryCode;
+  const country = event.country || loc.country;
+  const city = event.city || loc.city;
 
   const fullEvent: TrafficEvent = {
     id: `evt-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
@@ -170,18 +163,19 @@ export function recordStoredTrafficEvent(event: Partial<TrafficEvent>): TrafficE
     utmMedium: event.utmMedium || 'none',
     utmCampaign: event.utmCampaign || '',
     timezone: tz,
-    country: loc.country,
-    countryCode: loc.countryCode,
-    city: loc.city,
+    country,
+    countryCode,
+    city,
     sessionId: event.sessionId || getOrCreateSessionId(),
     device: event.device || (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop'),
     browser: event.browser || 'Chrome',
-    flag: COUNTRY_FLAGS[loc.countryCode] || '🌍'
+    flag: COUNTRY_FLAGS[countryCode] || '🌍',
+    ip: event.ip
   };
 
   const list = getStoredTrafficEvents();
   list.push(fullEvent);
-  const bounded = list.slice(-5000);
+  const bounded = list.slice(-10000);
   try {
     localStorage.setItem(EVENTS_KEY, JSON.stringify(bounded));
   } catch {}
@@ -189,7 +183,7 @@ export function recordStoredTrafficEvent(event: Partial<TrafficEvent>): TrafficE
 }
 
 /**
- * Report page view / navigation event
+ * Report page view / navigation event in real-time
  */
 export async function trackPageView(path = window.location.pathname) {
   const attr = parseTrafficAttribution();
@@ -204,8 +198,8 @@ export async function trackPageView(path = window.location.pathname) {
 
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-  // Record in client-side storage
-  recordStoredTrafficEvent({
+  // Record immediate event
+  const recorded = recordStoredTrafficEvent({
     path,
     referrer: attr.referrer,
     utmSource: attr.source,
@@ -217,7 +211,26 @@ export async function trackPageView(path = window.location.pathname) {
     browser
   });
 
-  // Attempt backend track dispatch
+  // Perform real-time live IP & city resolution asynchronously
+  fetch('https://ipwho.is/')
+    .then(res => res.json())
+    .then(data => {
+      if (data?.success && data.country_code) {
+        const events = getStoredTrafficEvents();
+        const idx = events.findIndex(e => e.id === recorded.id);
+        if (idx !== -1) {
+          events[idx].country = data.country || events[idx].country;
+          events[idx].countryCode = data.country_code || events[idx].countryCode;
+          events[idx].city = data.city || events[idx].city;
+          events[idx].flag = COUNTRY_FLAGS[data.country_code] || '🌍';
+          events[idx].ip = data.ip || events[idx].ip;
+          localStorage.setItem(EVENTS_KEY, JSON.stringify(events));
+        }
+      }
+    })
+    .catch(() => {});
+
+  // Send real event to backend API
   try {
     await fetch('/api/analytics/track', {
       method: 'POST',
@@ -304,7 +317,7 @@ export function getStoredTrafficStats() {
     pagesBreakdown: Object.entries(pages).map(([path, count]) => ({ path, count })).sort((a, b) => b.count - a.count),
     countriesBreakdown,
     citiesBreakdown,
-    recentEvents: events.slice(-30).reverse()
+    recentEvents: events.slice(-50).reverse()
   };
 }
 

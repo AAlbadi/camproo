@@ -85,6 +85,7 @@ export const AdminDashboard: React.FC = () => {
         } catch {}
       }
 
+      localStorage.removeItem('camproo_traffic_events');
       const fallbackStats = getStoredTrafficStats();
       if (serverStats && typeof serverStats.totalViews === 'number' && serverStats.totalViews > 0) {
         setLiveStats(serverStats);
