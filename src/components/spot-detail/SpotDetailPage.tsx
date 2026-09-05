@@ -80,14 +80,15 @@ export const SpotDetailPage: React.FC = () => {
   const [reportDetails, setReportDetails] = useState('');
   const [copiedGps, setCopiedGps] = useState(false);
 
-  const spot = spots.find(s => s.id === selectedSpotId) || spots[0];
-  const isSaved = isSpotSaved(spot.id);
-  const host = users.find(u => u.id === spot.hostId);
-  const spotReviews = reviews.filter(r => r.spotId === spot.id);
-  const isPublic = isPublicSpot(spot, users);
-  const agencyInfo = getSpotAgencyInfo(spot);
+  const spot = spots.find(s => s.id === selectedSpotId);
+  const isSaved = spot ? isSpotSaved(spot.id) : false;
+  const host = spot ? users.find(u => u.id === spot.hostId) : undefined;
+  const spotReviews = spot ? reviews.filter(r => r.spotId === spot.id) : [];
+  const isPublic = spot ? isPublicSpot(spot, users) : true;
+  const agencyInfo = spot ? getSpotAgencyInfo(spot) : { agency: 'Public Land', shortName: 'Public', isFederal: true };
 
   const handleCopyGps = () => {
+    if (!spot) return;
     navigator.clipboard?.writeText(`${spot.coordinates[0].toFixed(6)}, ${spot.coordinates[1].toFixed(6)}`);
     setCopiedGps(true);
     showToast('GPS coordinates copied to clipboard!', 'success');
@@ -98,7 +99,7 @@ export const SpotDetailPage: React.FC = () => {
     if (spot && typeof window !== 'undefined') {
       try {
         const searchParams = new URLSearchParams(window.location.search);
-        if (!searchParams.has('spot')) {
+        if (searchParams.get('spot') !== spot.id) {
           const url = new URL(window.location.href);
           url.searchParams.set('spot', spot.id);
           url.searchParams.set('view', 'spot-detail');
@@ -108,6 +109,29 @@ export const SpotDetailPage: React.FC = () => {
       } catch (e) {}
     }
   }, [spot]);
+
+  if (!spot) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-24 text-center space-y-6">
+        <div className="w-16 h-16 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto text-2xl font-bold">
+          404
+        </div>
+        <h2 className="text-2xl font-extrabold text-foreground">Spot No Longer Available</h2>
+        <p className="text-sm text-muted-foreground max-w-md mx-auto">
+          This campsite listing has been permanently removed from CampRoo. Only verified public domain campsites are listed.
+        </p>
+        <Button
+          variant="primary"
+          onClick={() => {
+            setCurrentView('explore');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        >
+          Explore Verified Free Spots
+        </Button>
+      </div>
+    );
+  }
 
   const handlePhotoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

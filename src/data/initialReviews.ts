@@ -2,42 +2,6 @@ import { Review } from '../types';
 
 export const INITIAL_REVIEWS: Review[] = [
   {
-    id: 'rev-desert-1',
-    spotId: 'spot-moab-redrock',
-    travelerId: 'user-traveler-1',
-    authorId: 'user-traveler-1',
-    authorRole: 'traveler',
-    ratingOverall: 5,
-    categories: {
-      communication: 5,
-      accuracy: 5,
-      hospitality: 5,
-      safety: 5,
-      cleanliness: 5
-    },
-    wouldWelcomeAgain: true,
-    comment: 'Classic Moab BLM dispersed boondocking. Washboard dirt road on the way in, but our 28ft Class C handled it at 10-15 mph with zero issues. Direct satellite line-of-sight for our Starlink dish, 100% solar exposure all day, and mind-blowing dark night skies. Remember to pack out all trash and bring plenty of fresh water.',
-    createdAt: '2026-05-18'
-  },
-  {
-    id: 'rev-desert-2',
-    spotId: 'spot-moab-redrock',
-    travelerId: 'user-host-3',
-    authorId: 'user-host-3',
-    authorRole: 'traveler',
-    ratingOverall: 4.8,
-    categories: {
-      communication: 5,
-      accuracy: 5,
-      hospitality: 5,
-      safety: 5,
-      cleanliness: 4.5
-    },
-    wouldWelcomeAgain: true,
-    comment: 'Unbelievable sandstone views right out the rear van doors. Hard-packed slickrock and red dirt turnouts. Plenty of space to turn around. As always on BLM land, zero hookups so arrive with full fresh tank and empty gray/black tanks. 14-day BLM limit is strictly enforced by rangers.',
-    createdAt: '2026-04-02'
-  },
-  {
     id: 'rev-sedona-1',
     spotId: 'spot-sedona-ridge',
     travelerId: 'user-host-4',

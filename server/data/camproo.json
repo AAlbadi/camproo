@@ -667,93 +667,6 @@
   ],
   "spots": [
     {
-      "id": "spot-moab-redrock",
-      "hostId": "pipeline-import",
-      "spotType": "public",
-      "_pipeline": {
-        "land_manager": "BLM"
-      },
-      "title": "Moab Spanish Valley BLM Dispersed",
-      "tagline": "Classic red rock desert dispersed boondocking on BLM land 10 mins south of Moab",
-      "description": "Free public BLM dispersed camping in Spanish Valley south of Moab. Level packed gravel clearings and wide turnarounds accommodating campervans, trailers, and RVs up to 38ft. 360-degree red rock mesa views with direct access to surrounding desert trails and dark night skies. 10 minutes to Arches and Canyonlands National Parks. Completely primitive dry camping — arrive self-contained with water and pack out all waste.",
-      "locationName": "Moab",
-      "generalArea": "Utah, USA",
-      "coordinates": [
-        38.5733,
-        -109.5498
-      ],
-      "photos": [
-        "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/67/-TravelTuesday_with_My_Public_Lands_%2824446462030%29.jpg/1280px--TravelTuesday_with_My_Public_Lands_%2824446462030%29.jpg",
-        "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/99/-TravelTuesday_with_My_Public_Lands_at_Canyon_Rims_Recreation_Area_SRMA_%2824115137893%29.jpg/1280px--TravelTuesday_with_My_Public_Lands_at_Canyon_Rims_Recreation_Area_SRMA_%2824115137893%29.jpg",
-        "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7d/Manti-La_Sal_National_Forest_%2827006934032%29.jpg/1280px-Manti-La_Sal_National_Forest_%2827006934032%29.jpg"
-      ],
-      "spaceType": "desert_oasis",
-      "environment": "desert",
-      "rigCompatibility": {
-        "maxLengthFt": 38,
-        "maxHeightFt": 13.5,
-        "maxWidthFt": 8.5,
-        "acceptedTypes": [
-          "class_a",
-          "class_b",
-          "class_c",
-          "travel_trailer",
-          "fifth_wheel",
-          "campervan",
-          "truck_camper"
-        ],
-        "accessType": "pull_through",
-        "surfaceType": "packed_gravel",
-        "isLevel": true,
-        "turnaroundSpace": "Wide circular gravel turnaround. Effortless pull-through, no tight backing required.",
-        "lowClearanceNotice": "High clearance open desert corridor. No low-hanging branches or wires.",
-        "trailerDisconnectRequired": false
-      },
-      "amenities": {
-        "electricity": "none",
-        "water": "none",
-        "sewer": "none",
-        "wifi": false,
-        "bathroom": false,
-        "shower": false,
-        "firePit": true,
-        "trash": false,
-        "shade": "open_sky",
-        "generatorsAllowed": true,
-        "generatorHours": "8:00 AM - 8:00 PM per BLM dispersed camping courtesy",
-        "petsAllowed": true,
-        "petRestrictions": "Keep pets leashed or under voice control due to desert wildlife and cacti",
-        "familyFriendly": true,
-        "quietSetting": true,
-        "offGridCapable": true
-      },
-      "proximity": {
-        "fuelNearbyMiles": 2.8,
-        "groceriesNearbyMiles": 3.5,
-        "rvDumpNearbyMiles": 4,
-        "attractionNote": "10 mins to Arches National Park entrance; 2 mins to Kane Creek trailhead"
-      },
-      "rules": {
-        "maxStayNights": 14,
-        "checkInWindow": "Anytime (First-Come, First-Served)",
-        "checkOutTime": "12:00 PM",
-        "quietHours": "10:00 PM - 6:00 AM",
-        "campfirePolicy": "Check local BLM fire restrictions; use existing fire rings when permitted",
-        "childrenAllowed": true,
-        "extraGuestsAllowed": true,
-        "hostInteraction": "none"
-      },
-      "gatekeeping": "any_member",
-      "rating": 4.9,
-      "reviewCount": 2,
-      "isFree": true,
-      "isFeatured": true,
-      "exactAddressSecret": "Spanish Valley BLM Dispersed, Grand County, UT 84532",
-      "arrivalGateCodeSecret": "Open Public BLM Access - No Gate Code Needed",
-      "status": "active",
-      "createdAt": "2024-01-15"
-    },
-    {
       "id": "spot-sedona-ridge",
       "hostId": "pipeline-import",
       "spotType": "public",
@@ -1648,42 +1561,6 @@
     }
   ],
   "reviews": [
-    {
-      "id": "rev-desert-1",
-      "spotId": "spot-moab-redrock",
-      "travelerId": "user-traveler-1",
-      "authorId": "user-traveler-1",
-      "authorRole": "traveler",
-      "ratingOverall": 5,
-      "categories": {
-        "communication": 5,
-        "accuracy": 5,
-        "hospitality": 5,
-        "safety": 5,
-        "cleanliness": 5
-      },
-      "wouldWelcomeAgain": true,
-      "comment": "Classic Moab BLM dispersed boondocking. Washboard dirt road on the way in, but our 28ft Class C handled it at 10-15 mph with zero issues. Direct satellite line-of-sight for our Starlink dish, 100% solar exposure all day, and mind-blowing dark night skies. Remember to pack out all trash and bring plenty of fresh water.",
-      "createdAt": "2026-05-18"
-    },
-    {
-      "id": "rev-desert-2",
-      "spotId": "spot-moab-redrock",
-      "travelerId": "user-host-3",
-      "authorId": "user-host-3",
-      "authorRole": "traveler",
-      "ratingOverall": 4.8,
-      "categories": {
-        "communication": 5,
-        "accuracy": 5,
-        "hospitality": 5,
-        "safety": 5,
-        "cleanliness": 4.5
-      },
-      "wouldWelcomeAgain": true,
-      "comment": "Unbelievable sandstone views right out the rear van doors. Hard-packed slickrock and red dirt turnouts. Plenty of space to turn around. As always on BLM land, zero hookups so arrive with full fresh tank and empty gray/black tanks. 14-day BLM limit is strictly enforced by rangers.",
-      "createdAt": "2026-04-02"
-    },
     {
       "id": "rev-sedona-1",
       "spotId": "spot-sedona-ridge",
