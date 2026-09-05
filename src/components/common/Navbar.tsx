@@ -344,18 +344,45 @@ export const Navbar: React.FC = () => {
                           </span>
                         </button>
 
-                        {/* Admin Traffic Hub shortcut if Admin Aziz */}
-                        {isUserAdmin && (
+                        {/* Admin Hub shortcut */}
+                        {isUserAdmin ? (
+                          <>
+                            <button
+                              onClick={() => {
+                                handleNav('admin');
+                                setUserDropdownOpen(false);
+                              }}
+                              className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold text-amber-800 hover:bg-amber-50 flex items-center justify-between transition-colors mt-0.5"
+                            >
+                              <span className="flex items-center gap-2">
+                                <ShieldCheck className="w-4 h-4 text-amber-600" />
+                                <span>Ranger Admin Hub</span>
+                              </span>
+                            </button>
+                            <button
+                              onClick={() => {
+                                setAnalyticsModalOpen(true);
+                                setUserDropdownOpen(false);
+                              }}
+                              className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold text-emerald-800 hover:bg-emerald-50 flex items-center justify-between transition-colors mt-0.5"
+                            >
+                              <span className="flex items-center gap-2">
+                                <BarChart3 className="w-4 h-4 text-emerald-600" />
+                                <span>Traffic & Data</span>
+                              </span>
+                            </button>
+                          </>
+                        ) : (
                           <button
                             onClick={() => {
-                              setAnalyticsModalOpen(true);
+                              handleNav('admin');
                               setUserDropdownOpen(false);
                             }}
-                            className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold text-emerald-800 hover:bg-emerald-50 flex items-center justify-between transition-colors mt-0.5"
+                            className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold text-dark-700 hover:bg-dark-50 flex items-center justify-between transition-colors mt-0.5"
                           >
                             <span className="flex items-center gap-2">
-                              <BarChart3 className="w-4 h-4 text-emerald-600" />
-                              <span>Traffic & Data</span>
+                              <ShieldCheck className="w-4 h-4 text-amber-600" />
+                              <span>Ranger Admin Portal</span>
                             </span>
                           </button>
                         )}

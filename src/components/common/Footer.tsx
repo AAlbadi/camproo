@@ -124,16 +124,15 @@ export const Footer: React.FC = () => {
                   Support & Inquiries
                 </button>
               </li>
-              {(isAdminAuthenticated || currentUser?.role === 'admin') && (
-                <li>
-                  <button
-                    onClick={() => { setCurrentView('admin'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                    className="hover:text-dark-900 hover:underline text-amber-700 font-bold"
-                  >
-                    Ranger Admin Hub (Aziz)
-                  </button>
-                </li>
-              )}
+              <li>
+                <button
+                  onClick={() => { setCurrentView('admin'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  className="hover:text-dark-900 hover:underline text-amber-700 dark:text-amber-500 font-bold flex items-center gap-1.5"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <span>Ranger Admin Hub (Aziz)</span>
+                </button>
+              </li>
             </ul>
           </div>
 

@@ -300,7 +300,94 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const [searchFilters, setSearchFilters] = useState<SearchFilterState>(DEFAULT_FILTERS);
-  const [currentView, setCurrentView] = useState<string>('home');
+  const [currentView, setCurrentViewInternal] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'home';
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const viewParam = searchParams.get('view')?.toLowerCase() || searchParams.get('v')?.toLowerCase();
+      if (viewParam) return viewParam;
+      if (searchParams.has('admin')) return 'admin';
+
+      const hash = window.location.hash.replace(/^#\/?/, '').toLowerCase();
+      if (hash === 'admin' || hash === '/admin') return 'admin';
+      if (hash) return hash;
+
+      const path = window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
+      if (path === 'admin') return 'admin';
+      if (path) return path;
+    } catch (e) {
+      // ignore
+    }
+    return 'home';
+  });
+
+  const setCurrentView = (view: string) => {
+    setCurrentViewInternal(view);
+    try {
+      const url = new URL(window.location.href);
+      if (view === 'home') {
+        url.searchParams.delete('view');
+        url.searchParams.delete('admin');
+        url.hash = '';
+        if (url.pathname === '/admin') {
+          url.pathname = '/';
+        }
+      } else {
+        url.searchParams.set('view', view);
+        url.hash = view;
+      }
+      window.history.pushState({ view }, '', url.toString());
+    } catch (e) {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    const handleUrlChange = () => {
+      try {
+        const searchParams = new URLSearchParams(window.location.search);
+        const viewParam = searchParams.get('view')?.toLowerCase() || searchParams.get('v')?.toLowerCase();
+        if (viewParam) {
+          setCurrentViewInternal(viewParam);
+          return;
+        }
+        if (searchParams.has('admin')) {
+          setCurrentViewInternal('admin');
+          return;
+        }
+
+        const hash = window.location.hash.replace(/^#\/?/, '').toLowerCase();
+        if (hash === 'admin' || hash === '/admin') {
+          setCurrentViewInternal('admin');
+          return;
+        }
+        if (hash) {
+          setCurrentViewInternal(hash);
+          return;
+        }
+
+        const path = window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
+        if (path === 'admin') {
+          setCurrentViewInternal('admin');
+          return;
+        }
+        if (path) {
+          setCurrentViewInternal(path);
+          return;
+        }
+        setCurrentViewInternal('home');
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    window.addEventListener('popstate', handleUrlChange);
+    window.addEventListener('hashchange', handleUrlChange);
+    return () => {
+      window.removeEventListener('popstate', handleUrlChange);
+      window.removeEventListener('hashchange', handleUrlChange);
+    };
+  }, []);
   const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);

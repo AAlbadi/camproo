@@ -45,7 +45,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onClose,
   initialMode = 'signin'
 }) => {
-  const { registerUser, switchUser, users, adminLogin, setIsAuthenticated, openSupportModal } = useApp();
+  const { registerUser, switchUser, users, adminLogin, setIsAuthenticated, openSupportModal, setCurrentView } = useApp();
   const { showToast } = useToast();
 
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>(initialMode);
@@ -107,6 +107,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         if (res.success) {
           setIsAuthenticated(true);
           localStorage.setItem('camproo_is_authenticated', 'true');
+          setCurrentView('admin');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
           showToast('Welcome back, Admin Aziz! Full access granted.', 'success');
           confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
           onClose();
@@ -126,6 +128,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       if (res.ok && data.success && data.user) {
         if (data.isAdmin) {
           await adminLogin(cleanPass, 'aziz');
+          setCurrentView('admin');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
           registerUser(data.user);
           switchUser(data.user.id);
@@ -160,6 +164,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       // Fallback for offline admin
       if (cleanId.toLowerCase() === 'aziz' && cleanPass === '94883443@Aa') {
         await adminLogin(cleanPass, 'aziz');
+        setCurrentView('admin');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         showToast('Welcome back, Admin Aziz!', 'success');
         confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
         onClose();
