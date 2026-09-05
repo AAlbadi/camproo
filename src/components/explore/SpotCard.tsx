@@ -16,8 +16,8 @@ import {
 import { Card } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
-import { getOptimizedImageUrl } from '../../lib/imageOptimizer';
 import { useApp } from '../../context/AppContext';
+import { getOptimizedImageUrl, getRawImageUrl, FALLBACK_CAMPING_PHOTO } from '../../lib/imageOptimizer';
 
 export interface RoadTripStopInfo {
   stopIndex: number;
@@ -138,8 +138,11 @@ export const SpotCard: React.FC<SpotCardProps> = ({
             onLoad={() => setImgLoaded(true)}
             onError={(e) => {
               const target = e.currentTarget;
-              if (!target.src.includes('real_bald_mountain')) {
-                target.src = '/images/real_bald_mountain.jpg';
+              const raw = getRawImageUrl(spot.photos[photoIdx] || spot.photos[0]);
+              if (target.src !== raw && raw !== FALLBACK_CAMPING_PHOTO) {
+                target.src = raw;
+              } else {
+                target.src = FALLBACK_CAMPING_PHOTO;
               }
               setImgLoaded(true);
             }}
@@ -166,7 +169,7 @@ export const SpotCard: React.FC<SpotCardProps> = ({
             <Badge variant="free" className="shadow-xs text-[9px] sm:text-[10px] px-1.5 py-0.2 sm:px-2 sm:py-0.5">
               FREE STAY
             </Badge>
-            {effectiveDistance !== undefined && (
+            {effectiveDistance !== undefined && effectiveDistance < 800 && (
               <span className="text-[9px] sm:text-[10px] font-extrabold bg-blue-600/90 text-white px-1.5 sm:px-2 py-0.2 rounded-full shadow-xs backdrop-blur-xs flex items-center gap-1">
                 {spot.mileMarker !== undefined ? (
                   <>🛣️ Mile {Math.round(spot.mileMarker)} · {effectiveDistance.toFixed(1)} mi off</>

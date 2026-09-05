@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="50%" stop-color="#334155"/>
+      <stop offset="85%" stop-color="#ea580c" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.9"/>
+    </linearGradient>
+    <linearGradient id="mountGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#475569"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="mountGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="groundGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#064e3b"/>
+      <stop offset="100%" stop-color="#022c22"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Sky -->
+  <rect width="800" height="500" fill="url(#skyGrad)"/>
+
+  <!-- Stars -->
+  <circle cx="120" cy="60" r="1.5" fill="#ffffff" opacity="0.8"/>
+  <circle cx="280" cy="45" r="1.2" fill="#ffffff" opacity="0.9"/>
+  <circle cx="420" cy="80" r="1.5" fill="#ffffff" opacity="0.7"/>
+  <circle cx="650" cy="50" r="1.8" fill="#ffffff" opacity="0.85"/>
+  <circle cx="720" cy="95" r="1.2" fill="#ffffff" opacity="0.6"/>
+  <circle cx="210" cy="110" r="1" fill="#ffffff" opacity="0.75"/>
+  <circle cx="550" cy="120" r="1.4" fill="#ffffff" opacity="0.8"/>
+
+  <!-- Distant Mountains -->
+  <polygon points="40,320 220,160 400,320" fill="url(#mountGrad1)" opacity="0.6"/>
+  <polygon points="280,330 460,130 660,330" fill="url(#mountGrad1)" opacity="0.5"/>
+  <polygon points="520,330 680,180 840,330" fill="url(#mountGrad1)" opacity="0.6"/>
+
+  <!-- Midground Mountains -->
+  <polygon points="-50,380 140,200 360,380" fill="url(#mountGrad2)"/>
+  <polygon points="200,380 430,170 680,380" fill="url(#mountGrad2)"/>
+  <polygon points="500,380 710,210 900,380" fill="url(#mountGrad2)"/>
+
+  <!-- Snow Caps -->
+  <polygon points="140,200 115,235 130,230 140,240 152,228 165,235" fill="#f8fafc" opacity="0.85"/>
+  <polygon points="430,170 395,215 415,208 430,222 445,205 465,215" fill="#f8fafc" opacity="0.85"/>
+
+  <!-- Ground -->
+  <path d="M0,360 Q200,340 400,355 T800,350 L800,500 L0,500 Z" fill="url(#groundGrad)"/>
+
+  <!-- Pine Trees Left -->
+  <polygon points="60,375 75,320 90,375" fill="#022c22"/>
+  <polygon points="65,355 75,310 85,355" fill="#064e3b"/>
+  <polygon points="90,385 110,315 130,385" fill="#022c22"/>
+  <polygon points="97,355 110,305 123,355" fill="#064e3b"/>
+  <polygon points="30,390 45,335 60,390" fill="#022c22"/>
+
+  <!-- Pine Trees Right -->
+  <polygon points="690,385 710,310 730,385" fill="#022c22"/>
+  <polygon points="698,350 710,300 722,350" fill="#064e3b"/>
+  <polygon points="725,395 745,325 765,395" fill="#022c22"/>
+  <polygon points="660,390 675,335 690,390" fill="#022c22"/>
+
+  <!-- Camping Tent -->
+  <polygon points="360,440 400,370 440,440" fill="#f97316"/>
+  <polygon points="400,370 440,440 430,440 400,385" fill="#ea580c"/>
+  <polygon points="385,440 400,395 415,440" fill="#1e293b"/>
+
+  <!-- Campfire Glow & Flame -->
+  <ellipse cx="490" cy="435" rx="35" ry="12" fill="#fbbf24" opacity="0.25"/>
+  <polygon points="482,438 490,418 498,438" fill="#f97316"/>
+  <polygon points="486,438 490,424 494,438" fill="#fef08a"/>
+</svg>

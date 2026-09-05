@@ -8,9 +8,17 @@ import { UberRouteDrawer } from './UberRouteDrawer';
 import { CategoryBar } from '../common/CategoryBar';
 import { Spot } from '../../types';
 import { RouteOrigin, RouteResult, DEFAULT_ORIGINS, calculateRoute, getGoogleMapsNavigationUrl, findSpotsAlongRoute, enrichSpotsWithRouteTiming, formatArrivalTime, formatDuration } from '../../lib/routeService';
-import { getOptimizedImageUrl } from '../../lib/imageOptimizer';
+import { getOptimizedImageUrl, getRawImageUrl, FALLBACK_CAMPING_PHOTO } from '../../lib/imageOptimizer';
 import { isSpotMatchingQuery, US_STATES, findCampingArea } from '../../lib/areaSearchService';
 import { AreaSelectPayload } from './MapSearchBar';
+
+export function cleanSpotTitle(title: string | undefined | null): string {
+  if (!title) return 'Scenic Campsite';
+  return title
+    .replace(/\bCamground\b/gi, 'Campground')
+    .replace(/\bCamprgound\b/gi, 'Campground')
+    .trim();
+}
 import {
   X,
   Navigation,
@@ -940,12 +948,21 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onRequestStay }) => {
                               : 'border-dark-200/80 hover:border-dark-300'
                           }`}
                         >
-                          <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-dark-950 shrink-0">
+                          <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-slate-100 dark:bg-dark-900 shrink-0 border border-dark-100/60 shadow-2xs">
                             <img
                               src={getOptimizedImageUrl(spot.photos[0], { width: 240, quality: 75 })}
-                              alt={spot.title}
+                              alt={cleanSpotTitle(spot.title)}
                               className="w-full h-full object-cover"
                               loading="lazy"
+                              onError={(e) => {
+                                const target = e.currentTarget;
+                                const raw = getRawImageUrl(spot.photos[0]);
+                                if (target.src !== raw && raw !== FALLBACK_CAMPING_PHOTO) {
+                                  target.src = raw;
+                                } else {
+                                  target.src = FALLBACK_CAMPING_PHOTO;
+                                }
+                              }}
                             />
                             {stopIdx ? (
                               <div className="absolute top-1 left-1 bg-gradient-to-r from-roo-500 to-amber-500 text-white px-1.5 py-0.5 rounded text-[8px] font-black leading-none">
@@ -973,8 +990,8 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onRequestStay }) => {
                                 </div>
                               </div>
 
-                              <h5 className="text-xs font-black text-dark-950 truncate leading-tight mb-1">
-                                {spot.title}
+                              <h5 className="text-xs font-black text-dark-950 truncate leading-tight mb-0.5">
+                                {cleanSpotTitle(spot.title)}
                               </h5>
 
                               {searchFilters.tripRoute && stopIdx && (spot as any).arrivalTimeFormatted ? (
@@ -986,7 +1003,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onRequestStay }) => {
                                 <p className="text-[10px] text-dark-600 truncate">
                                   <span className="font-bold text-forest-700">{agency?.toUpperCase() || 'PUBLIC LAND'}</span>
                                   <span> · Max {spot.rigCompatibility.maxLengthFt}ft</span>
-                                  {(spot as any).distanceMiles !== undefined && (
+                                  {(spot as any).distanceMiles !== undefined && (spot as any).distanceMiles < 800 && (
                                     <span className="text-blue-700 font-bold ml-1">
                                       · {((spot as any).distanceMiles < 1 ? '< 1' : (spot as any).distanceMiles.toFixed(1))} mi
                                     </span>
@@ -1278,17 +1295,20 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onRequestStay }) => {
                     {/* Thumbnail with overlay badges */}
                     <div
                       onClick={() => handleNavigateToDetails(routedSpot.id)}
-                      className="relative w-20 h-20 rounded-xl overflow-hidden bg-dark-950 shrink-0 cursor-pointer shadow-2xs group"
+                      className="relative w-20 h-20 rounded-xl overflow-hidden bg-slate-100 dark:bg-dark-900 shrink-0 cursor-pointer border border-dark-100/60 shadow-2xs group"
                       title="Click to view details"
                     >
                       <img
                         src={getOptimizedImageUrl(routedSpot.photos[0], { width: 160, quality: 75 })}
-                        alt={routedSpot.title}
+                        alt={cleanSpotTitle(routedSpot.title)}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                         onError={(e) => {
                           const target = e.currentTarget;
-                          if (!target.src.includes('real_bald_mountain')) {
-                            target.src = '/images/real_bald_mountain.jpg';
+                          const raw = getRawImageUrl(routedSpot.photos[0]);
+                          if (target.src !== raw && raw !== FALLBACK_CAMPING_PHOTO) {
+                            target.src = raw;
+                          } else {
+                            target.src = FALLBACK_CAMPING_PHOTO;
                           }
                         }}
                       />
@@ -1303,14 +1323,12 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onRequestStay }) => {
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1 mb-0.5">
-                        <div className="flex items-center gap-1 min-w-0">
-                          <span className="w-1.5 h-1.5 rounded-full bg-roo-500 animate-pulse shrink-0" />
-                          <span className="text-[9px] font-black uppercase tracking-wider text-roo-600 shrink-0">
-                            Selected
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="px-1.5 py-0.2 rounded bg-forest-50 text-forest-700 border border-forest-200/50 uppercase text-[9px] font-black shrink-0">
+                            {(routedSpot as any).agency || 'USFS'}
                           </span>
-                          <span className="text-dark-300">·</span>
-                          <span className="text-[10px] font-bold text-dark-500 truncate">
-                            {getSpotDisplayLocation(routedSpot)}
+                          <span className="truncate text-dark-500 font-medium text-[10px]">
+                            {routedSpot.locationName}
                           </span>
                         </div>
                         <button
@@ -1327,13 +1345,13 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onRequestStay }) => {
                         className="text-xs font-black text-dark-950 truncate leading-snug cursor-pointer hover:text-roo-600 transition-colors mb-1"
                         title={routedSpot.title}
                       >
-                        {routedSpot.title}
+                        {cleanSpotTitle(routedSpot.title)}
                       </h4>
 
                       <div className="flex items-center justify-between gap-1">
                         <div className="flex items-center gap-1 text-[10px] font-bold text-dark-600">
                           <span className="text-amber-500 font-black">★ {routedSpot.rating || 4.8}</span>
-                          {(routedSpot as any).distanceMiles !== undefined && (
+                          {(routedSpot as any).distanceMiles !== undefined && (routedSpot as any).distanceMiles < 800 && (
                             <>
                               <span className="text-dark-300">·</span>
                               <span className="text-blue-700 font-extrabold">
@@ -1490,16 +1508,19 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onRequestStay }) => {
 
                             <div className="flex flex-row items-center gap-2.5">
                               {/* Left Thumbnail with fixed dimensions */}
-                              <div className="relative w-20 h-20 sm:w-22 sm:h-22 rounded-xl overflow-hidden shrink-0 bg-dark-950 shadow-2xs">
+                              <div className="relative w-20 h-20 sm:w-22 sm:h-22 rounded-xl overflow-hidden shrink-0 bg-slate-100 dark:bg-dark-900 border border-dark-100/60 shadow-2xs">
                                 <img
                                   src={getOptimizedImageUrl(spot.photos[0], { width: 200, quality: 75 })}
-                                  alt={spot.title}
+                                  alt={cleanSpotTitle(spot.title)}
                                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                                   loading="lazy"
                                   onError={(e) => {
                                     const target = e.currentTarget;
-                                    if (!target.src.includes('real_bald_mountain')) {
-                                      target.src = '/images/real_bald_mountain.jpg';
+                                    const raw = getRawImageUrl(spot.photos[0]);
+                                    if (target.src !== raw && raw !== FALLBACK_CAMPING_PHOTO) {
+                                      target.src = raw;
+                                    } else {
+                                      target.src = FALLBACK_CAMPING_PHOTO;
                                     }
                                   }}
                                 />
@@ -1524,7 +1545,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onRequestStay }) => {
                                       </span>
                                     </div>
                                     <div className="flex items-center gap-1 shrink-0 ml-1">
-                                      {(spot as any).distanceMiles !== undefined && (
+                                      {(spot as any).distanceMiles !== undefined && (spot as any).distanceMiles < 800 && (
                                         <span className="text-blue-700 bg-blue-50 px-1.5 py-0.2 rounded font-extrabold text-[9px] border border-blue-200/50">
                                           📍 {((spot as any).distanceMiles < 1 ? '< 1' : (spot as any).distanceMiles.toFixed(1))} mi
                                         </span>
@@ -1537,7 +1558,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onRequestStay }) => {
                                   </div>
 
                                   <h5 className="text-xs font-black text-dark-950 truncate leading-tight mb-0.5 group-hover:text-roo-600 transition-colors">
-                                    {spot.title}
+                                    {cleanSpotTitle(spot.title)}
                                   </h5>
 
                                   <p className="text-[10px] text-dark-500 line-clamp-1">
@@ -1699,11 +1720,20 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onRequestStay }) => {
                   >
                     <div className="flex items-center gap-2.5">
                       {/* Compact Photo Thumbnail */}
-                      <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-dark-950 shrink-0 shadow-2xs">
+                      <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-slate-100 dark:bg-dark-900 border border-dark-100/60 shrink-0 shadow-2xs">
                         <img
                           src={getOptimizedImageUrl(routedSpot.photos[0], { width: 160, quality: 75 })}
-                          alt={routedSpot.title}
+                          alt={cleanSpotTitle(routedSpot.title)}
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            const raw = getRawImageUrl(routedSpot.photos[0]);
+                            if (target.src !== raw && raw !== FALLBACK_CAMPING_PHOTO) {
+                              target.src = raw;
+                            } else {
+                              target.src = FALLBACK_CAMPING_PHOTO;
+                            }
+                          }}
                         />
                         {searchFilters.tripRoute && (routedSpot as any)?.routeStopIndex ? (
                           <div className="absolute top-1 left-1 bg-gradient-to-r from-roo-500 to-amber-500 text-white px-1 py-0.2 rounded text-[8px] font-black leading-none">
@@ -1832,12 +1862,21 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onRequestStay }) => {
                       }}
                       className="p-2.5 rounded-2xl border border-dark-200/80 hover:border-forest-300 bg-white shadow-2xs flex gap-3 cursor-pointer active:scale-[0.99] transition-all"
                     >
-                      <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-dark-950 shrink-0">
+                      <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-slate-100 dark:bg-dark-900 border border-dark-100/60 shrink-0 shadow-2xs">
                         <img
                           src={getOptimizedImageUrl(spot.photos[0], { width: 240, quality: 75 })}
-                          alt={spot.title}
+                          alt={cleanSpotTitle(spot.title)}
                           className="w-full h-full object-cover"
                           loading="lazy"
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            const raw = getRawImageUrl(spot.photos[0]);
+                            if (target.src !== raw && raw !== FALLBACK_CAMPING_PHOTO) {
+                              target.src = raw;
+                            } else {
+                              target.src = FALLBACK_CAMPING_PHOTO;
+                            }
+                          }}
                         />
                         <div className="absolute top-1 left-1 bg-dark-950/80 text-white px-1.5 py-0.5 rounded text-[8px] font-black">
                           FREE
@@ -1849,7 +1888,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onRequestStay }) => {
                           <div className="flex items-center justify-between text-[10px] text-dark-500 font-bold mb-0.5">
                             <span className="truncate max-w-[140px]">{spot.locationName}</span>
                             <div className="flex items-center gap-1.5 shrink-0">
-                              {(spot as any).distanceMiles !== undefined && (
+                              {(spot as any).distanceMiles !== undefined && (spot as any).distanceMiles < 800 && (
                                 <span className="text-blue-700 bg-blue-50 px-1.5 py-0.2 rounded font-extrabold text-[9px] border border-blue-200/50">
                                   📍 {((spot as any).distanceMiles < 1 ? '< 1' : (spot as any).distanceMiles.toFixed(1))} mi
                                 </span>
@@ -1858,7 +1897,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onRequestStay }) => {
                             </div>
                           </div>
                           <h5 className="text-xs font-black text-dark-950 truncate leading-tight mb-1">
-                            {spot.title}
+                            {cleanSpotTitle(spot.title)}
                           </h5>
                           <p className="text-[10px] text-dark-600 line-clamp-1">
                             {spot.environment.toUpperCase()} · Max {spot.rigCompatibility.maxLengthFt}ft

@@ -971,30 +971,52 @@ export const LeafletInteractiveMap: React.FC<LeafletInteractiveMapProps> = (prop
           : '0 2px 8px rgba(0,0,0,0.08)';
         const border = isSelected ? '#FF5A1F' : isHovered ? '#0f172a' : 'rgba(0,0,0,0.08)';
 
-        markerPillContent = `
-          <div style="
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: ${isSelected ? '5px 10px' : '3px 8px'};
-            border-radius: 9999px;
-            background-color: ${bg};
-            color: ${color};
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            font-size: 11px;
-            font-weight: 700;
-            box-shadow: ${shadow};
-            border: 1px solid ${border};
-            white-space: nowrap;
-          ">
-            <span style="background: ${badgeBg}; color: #FFFFFF; padding: 1px 5px; border-radius: 9999px; font-weight: 800; font-size: 9.5px;">$0</span>
-            <span style="font-size: 10.5px; opacity: 0.95; font-weight: 600;">${spot.rigCompatibility.maxLengthFt}ft</span>
-          </div>
-        `;
+        const isCompact = currentZoom < 8 && !isSelected && !isHovered && !isRoadTripStop;
+
+        if (isCompact) {
+          markerPillContent = `
+            <div style="
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              width: 24px;
+              height: 24px;
+              border-radius: 9999px;
+              background-color: ${bg};
+              color: ${color};
+              box-shadow: ${shadow};
+              border: 1.5px solid ${border};
+            ">
+              <span style="font-size: 12px; line-height: 1;">⛺</span>
+            </div>
+          `;
+        } else {
+          markerPillContent = `
+            <div style="
+              display: inline-flex;
+              align-items: center;
+              gap: 5px;
+              padding: ${isSelected ? '5px 10px' : '3px 8px'};
+              border-radius: 9999px;
+              background-color: ${bg};
+              color: ${color};
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              font-size: 11px;
+              font-weight: 700;
+              box-shadow: ${shadow};
+              border: 1px solid ${border};
+              white-space: nowrap;
+            ">
+              <span style="background: ${badgeBg}; color: #FFFFFF; padding: 1px 5px; border-radius: 9999px; font-weight: 800; font-size: 9.5px;">$0</span>
+              <span style="font-size: 10.5px; opacity: 0.95; font-weight: 600;">${spot.rigCompatibility.maxLengthFt}ft</span>
+            </div>
+          `;
+        }
       }
 
       const scale = isSelected || isHovered ? 'scale(1.12)' : 'scale(1)';
       const markerZIndex = isHovered || isSelected ? 999 : (isRoadTripStop ? 600 + Math.min(Number(stopIdx), 200) : 1);
+      const isCompact = currentZoom < 8 && !isSelected && !isHovered && !isRoadTripStop;
 
       const customIcon = L.divIcon({
         className: 'custom-camproo-marker',
@@ -1004,8 +1026,8 @@ export const LeafletInteractiveMap: React.FC<LeafletInteractiveMapProps> = (prop
             ${markerPillContent}
           </div>
         `,
-        iconSize: isRoadTripStop ? [140, 36] : [88, 34],
-        iconAnchor: isRoadTripStop ? [70, 18] : [44, 17],
+        iconSize: isRoadTripStop ? [140, 36] : isCompact ? [28, 28] : [88, 34],
+        iconAnchor: isRoadTripStop ? [70, 18] : isCompact ? [14, 14] : [44, 17],
       });
 
       const existing = markersRef.current.get(spot.id);

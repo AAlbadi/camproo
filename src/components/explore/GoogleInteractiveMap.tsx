@@ -305,20 +305,6 @@ export const GoogleInteractiveMap: React.FC<GoogleInteractiveMapProps> = (props)
   if (loadError || !apiKey) {
     return (
       <div className="relative w-full h-full">
-        {loadError && (
-          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] max-w-lg w-[90%] bg-amber-500/95 backdrop-blur-md text-dark-950 px-4 py-2 rounded-2xl shadow-lg border border-amber-400 text-xs font-bold flex items-center justify-between gap-3 animate-fade-in">
-            <div className="flex items-center gap-2">
-              <span className="text-base">⚠️</span>
-              <span>Google Maps needs <strong>Maps JavaScript API</strong> enabled in Google Cloud. Using OpenStreetMap fallback.</span>
-            </div>
-            <button
-              onClick={() => setLoadError(null)}
-              className="px-2 py-0.5 rounded-lg bg-dark-950 text-white text-[10px] font-black uppercase hover:bg-dark-800"
-            >
-              Dismiss
-            </button>
-          </div>
-        )}
         <LeafletInteractiveMap {...props} />
       </div>
     );
