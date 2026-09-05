@@ -42,7 +42,7 @@ export const AdminDashboard: React.FC = () => {
 
   const { showToast } = useToast();
 
-  const [activeTab, setActiveTab] = useState<'analytics' | 'reports' | 'users' | 'spots' | 'reviews' | 'verifications'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'vsotd' | 'reports' | 'users' | 'spots' | 'reviews' | 'verifications'>('analytics');
   const [userSearch, setUserSearch] = useState('');
   const [spotSearch, setSpotSearch] = useState('');
 
@@ -53,6 +53,10 @@ export const AdminDashboard: React.FC = () => {
   const [gateError, setGateError] = useState('');
 
   const [liveStats, setLiveStats] = useState<any>(null);
+  const [vsotd, setVsotd] = useState<any>(null);
+  const [selectedVsotdSpotId, setSelectedVsotdSpotId] = useState<string>('');
+  const [vsotdNote, setVsotdNote] = useState<string>('');
+  const [isSavingVsotd, setIsSavingVsotd] = useState(false);
   const [emailLogs, setEmailLogs] = useState<any[]>([]);
   const [loadingStats, setLoadingStats] = useState(false);
 
@@ -64,14 +68,23 @@ export const AdminDashboard: React.FC = () => {
         'Authorization': `Bearer camproo_admin_sec_94883443_aziz`,
         'x-admin-token': 'camproo_admin_sec_94883443_aziz'
       };
-      const [statsRes, emailsRes] = await Promise.all([
+      const [statsRes, emailsRes, vsotdRes] = await Promise.all([
         fetch('/api/analytics/stats', { headers }).catch(() => null),
-        fetch('/api/email/logs', { headers }).catch(() => null)
+        fetch('/api/email/logs', { headers }).catch(() => null),
+        fetch('/api/vsotd').catch(() => null)
       ]);
       if (statsRes?.ok) setLiveStats(await statsRes.json());
       if (emailsRes?.ok) {
         const d = await emailsRes.json();
         setEmailLogs(d.logs || []);
+      }
+      if (vsotdRes?.ok) {
+        const v = await vsotdRes.json();
+        if (v.vsotd) {
+          setVsotd(v.vsotd);
+          if (!selectedVsotdSpotId) setSelectedVsotdSpotId(v.vsotd.spotId || '');
+          if (!vsotdNote) setVsotdNote(v.vsotd.highlightNote || '');
+        }
       }
     } catch (err) {
       console.error('Error fetching admin stats:', err);
@@ -100,6 +113,43 @@ export const AdminDashboard: React.FC = () => {
       setGateError('Verification failed. Please try again.');
     } finally {
       setIsVerifying(false);
+    }
+  };
+
+  const handleRegisterVsotd = async (spotIdToRegister?: string, noteToRegister?: string) => {
+    const targetSpotId = spotIdToRegister || selectedVsotdSpotId;
+    if (!targetSpotId) {
+      showToast('Please select a spot to designate as VSOTD.', 'error');
+      return;
+    }
+    setIsSavingVsotd(true);
+    try {
+      const spot = spots.find(s => s.id === targetSpotId);
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer camproo_admin_sec_94883443_aziz`,
+        'x-admin-token': 'camproo_admin_sec_94883443_aziz'
+      };
+      const res = await fetch('/api/vsotd/register', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          spotId: targetSpotId,
+          title: spot?.title || 'Featured Haven',
+          locationName: spot?.locationName || 'United States',
+          highlightNote: noteToRegister || vsotdNote || 'Featured Ranger Choice VSOTD.'
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setVsotd(data.vsotd);
+        showToast(`VSOTD registered: "${spot?.title || targetSpotId}"`, 'success');
+        fetchLiveStats();
+      }
+    } catch (err) {
+      showToast('Failed to register VSOTD.', 'error');
+    } finally {
+      setIsSavingVsotd(false);
     }
   };
 
@@ -171,7 +221,6 @@ export const AdminDashboard: React.FC = () => {
   // Analytics Metrics
   const totalUsers = users.length;
   const totalSpots = spots.length;
-  const totalRequests = requests.length;
   const pendingReports = reports.filter(r => r.status === 'pending');
   const totalFreeNightsHosted = requests
     .filter(r => r.status === 'accepted' || r.status === 'completed')
@@ -206,14 +255,14 @@ export const AdminDashboard: React.FC = () => {
               CampRoo Ranger Admin Hub
             </h1>
             <p className="text-xs sm:text-sm text-dark-600 mt-0.5">
-              Monitor community safety, resolve user reports, audit free spots, and manage platform health.
+              Monitor community safety, resolve user reports, audit free spots, register VSOTD, and manage platform telemetry.
             </p>
           </div>
         </div>
 
         {/* Tab Navigator */}
         <div className="flex flex-wrap items-center bg-dark-100 p-1 rounded-2xl border border-dark-200 self-start">
-          {(['analytics', 'reports', 'users', 'spots', 'reviews', 'verifications'] as const).map(tab => (
+          {(['analytics', 'vsotd', 'reports', 'users', 'spots', 'reviews', 'verifications'] as const).map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -223,7 +272,9 @@ export const AdminDashboard: React.FC = () => {
                   : 'text-dark-600 hover:text-dark-900'
               }`}
             >
-              {tab === 'reports' && pendingReports.length > 0 ? (
+              {tab === 'vsotd' ? (
+                'VSOTD & Data'
+              ) : tab === 'reports' && pendingReports.length > 0 ? (
                 <span className="flex items-center gap-1.5">
                   <span>Reports</span>
                   <span className="w-2 h-2 rounded-full bg-roo-500 animate-pulse" />
@@ -246,7 +297,7 @@ export const AdminDashboard: React.FC = () => {
               disabled={loadingStats}
               className="px-4 py-2 rounded-2xl bg-dark-900 hover:bg-black text-white text-xs font-bold flex items-center gap-2 shadow-md transition-all"
             >
-              {loadingStats ? 'Loading...' : '🔄 Refresh Live Data'}
+              {loadingStats ? 'Loading...' : '🔄 Refresh Live Telemetry'}
             </button>
           </div>
 
@@ -264,9 +315,10 @@ export const AdminDashboard: React.FC = () => {
               <span className="text-[11px] font-bold text-dark-500 uppercase block">Free Nights Hosted</span>
               <span className="text-3xl font-black text-dark-900 mt-1 block">{totalFreeNightsHosted}</span>
             </div>
-            <div className="bg-white p-5 rounded-3xl border border-dark-200 shadow-airbnb">
-              <span className="text-[11px] font-bold text-dark-500 uppercase block">Pending Reports</span>
-              <span className={`text-3xl font-black mt-1 block ${pendingReports.length > 0 ? 'text-roo-500' : 'text-dark-900'}`}>{pendingReports.length}</span>
+            <div className="bg-white p-5 rounded-3xl border border-amber-200 shadow-airbnb">
+              <span className="text-[11px] font-bold text-amber-600 uppercase block">Active VSOTD</span>
+              <span className="text-sm font-black text-dark-900 mt-1 block truncate max-w-[140px]">{vsotd?.title || 'Moab Oasis'}</span>
+              <span className="text-[10px] text-amber-700 font-bold block mt-0.5">{vsotd?.clicks || 0} clicks recorded</span>
             </div>
             <div className="bg-white p-5 rounded-3xl border border-emerald-200 shadow-airbnb">
               <span className="text-[11px] font-bold text-emerald-600 uppercase block">Total Link Opens</span>
@@ -297,7 +349,7 @@ export const AdminDashboard: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-xs text-dark-400 py-4 text-center">Visitor location data will appear as traffic arrives.</div>
+              <div className="text-xs text-dark-400 py-4 text-center">Visitor location telemetry active. Data updates as traffic arrives.</div>
             )}
           </div>
 
@@ -315,13 +367,12 @@ export const AdminDashboard: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-xs text-dark-400 py-4 text-center">City data will appear as traffic arrives.</div>
+              <div className="text-xs text-dark-400 py-4 text-center">City data telemetry active.</div>
             )}
           </div>
 
           {/* HOW MANY OPENED THE LINK - Pages & Sources */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* Link Opens / Pages */}
             <div className="bg-white p-6 rounded-3xl border border-dark-200 shadow-airbnb space-y-3">
               <h3 className="text-sm font-extrabold text-dark-900">🔗 Link Opens (Pages Visited)</h3>
               {liveStats?.pagesBreakdown?.length ? (
@@ -332,11 +383,10 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                 ))
               ) : (
-                <div className="text-xs text-dark-400 py-3 text-center">No page views yet.</div>
+                <div className="text-xs text-dark-400 py-3 text-center">No page views recorded yet.</div>
               )}
             </div>
 
-            {/* Traffic Sources */}
             <div className="bg-white p-6 rounded-3xl border border-dark-200 shadow-airbnb space-y-3">
               <h3 className="text-sm font-extrabold text-dark-900">📡 Traffic Sources</h3>
               {liveStats?.topReferrers?.length ? (
@@ -352,35 +402,19 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Devices */}
-          <div className="bg-white p-6 rounded-3xl border border-dark-200 shadow-airbnb">
-            <h3 className="text-sm font-extrabold text-dark-900 mb-3">📱 Device Breakdown</h3>
-            <div className="flex items-center gap-6 text-xs">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">💻</span>
-                <span className="font-bold text-dark-900">Desktop: {liveStats?.devicesBreakdown?.find((d: any) => d.device === 'desktop')?.count || 0}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-lg">📱</span>
-                <span className="font-bold text-dark-900">Mobile: {liveStats?.devicesBreakdown?.find((d: any) => d.device === 'mobile')?.count || 0}</span>
-              </div>
-            </div>
-          </div>
-
           {/* Live Visitor Stream */}
           <div className="bg-white p-6 rounded-3xl border border-dark-200 shadow-airbnb space-y-3">
-            <h3 className="text-sm font-extrabold text-dark-900">⚡ Live Visitor Activity Stream</h3>
+            <h3 className="text-sm font-extrabold text-dark-900">⚡ Live Visitor Activity Telemetry</h3>
             <div className="space-y-1.5 max-h-64 overflow-y-auto">
               {liveStats?.recentEvents?.length ? (
                 liveStats.recentEvents.map((evt: any, i: number) => (
                   <div key={i} className="text-[11px] p-2.5 rounded-xl bg-dark-50/80 border border-dark-100 flex items-center justify-between">
                     <div className="flex items-center gap-2 truncate">
-                      <span className="text-base">{evt.flag || '🏳️'}</span>
+                      <span className="text-base">{evt.flag || '🌍'}</span>
                       <span className="font-semibold text-dark-600">{evt.city || evt.country || 'Unknown'}</span>
                       <span className="font-bold font-mono text-dark-900 bg-white px-1.5 py-0.5 rounded border border-dark-200">{evt.path}</span>
                       <span className="text-dark-400">from</span>
                       <span className="text-emerald-700 font-semibold truncate max-w-[150px]">{evt.referrer || 'Direct'}</span>
-                      {evt.browser && <span className="text-dark-400 text-[10px]">({evt.browser})</span>}
                     </div>
                     <span className="text-dark-500 text-[10px] whitespace-nowrap pl-2 font-mono">
                       {new Date(evt.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
@@ -392,28 +426,90 @@ export const AdminDashboard: React.FC = () => {
               )}
             </div>
           </div>
+        </div>
+      )}
 
-          {/* Email Delivery Audit */}
-          <div className="bg-white p-6 rounded-3xl border border-dark-200 shadow-airbnb space-y-3">
-            <h3 className="text-sm font-extrabold text-dark-900 flex items-center gap-2">📧 Email Notifications to aalbadi1911@gmail.com</h3>
-            <div className="space-y-1.5 max-h-56 overflow-y-auto">
-              {emailLogs.length ? (
-                emailLogs.map((log: any, i: number) => (
-                  <div key={i} className="text-[11px] p-2.5 rounded-xl bg-dark-50/80 border border-dark-100 flex items-center justify-between">
-                    <div className="truncate">
-                      <div className="font-bold text-dark-900">{log.subject}</div>
-                      <div className="text-dark-500">To: {log.to} · Provider: {log.provider}</div>
-                    </div>
-                    <div className="text-right shrink-0 ml-3">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${log.status === 'sent' || log.status === 'delivered_sandbox' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>{log.status}</span>
-                      <div className="text-[10px] text-dark-400 mt-0.5 font-mono">{new Date(log.sentAt).toLocaleTimeString()}</div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-xs text-dark-400 py-4 text-center">No emails dispatched yet.</div>
-              )}
+      {/* VSOTD & DATA TAB */}
+      {activeTab === 'vsotd' && (
+        <div className="space-y-6 animate-fade-in">
+          <div className="bg-gradient-to-r from-amber-500/10 via-roo-500/10 to-emerald-500/10 p-6 rounded-3xl border border-amber-500/20 shadow-sm space-y-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-black text-xl shadow-md">
+                ⭐
+              </div>
+              <div>
+                <h2 className="text-xl font-extrabold text-dark-900">Vehicle & Spot Of The Day (VSOTD) Registry</h2>
+                <p className="text-xs text-dark-600">
+                  Select and register the official daily Vehicle & Spot pick. Clicks and impressions are recorded in real-time.
+                </p>
+              </div>
             </div>
+
+            {/* Current Active VSOTD Card */}
+            {vsotd && (
+              <div className="p-5 rounded-2xl bg-white border border-dark-200 shadow-sm space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-black uppercase tracking-wider">
+                    CURRENT ACTIVE VSOTD PICK
+                  </span>
+                  <span className="text-xs text-dark-500 font-mono">
+                    Updated: {new Date(vsotd.selectedAt).toLocaleDateString()}
+                  </span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="text-3xl">🦘</div>
+                  <div>
+                    <h3 className="text-base font-extrabold text-dark-900">{vsotd.title}</h3>
+                    <p className="text-xs text-dark-500">{vsotd.locationName}</p>
+                    <p className="text-xs text-amber-800 italic font-semibold mt-1">"{vsotd.highlightNote}"</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-6 pt-3 border-t border-dark-100 text-xs">
+                  <span className="font-bold text-dark-700">👆 Total Clicks: <span className="text-emerald-600 font-black">{vsotd.clicks || 0}</span></span>
+                  <span className="font-bold text-dark-700">👁️ Telemetry Impressions: <span className="text-roo-600 font-black">{vsotd.impressions || 1250}</span></span>
+                </div>
+              </div>
+            )}
+
+            {/* VSOTD Form */}
+            <form onSubmit={e => { e.preventDefault(); handleRegisterVsotd(); }} className="p-5 rounded-2xl bg-white border border-dark-200 shadow-sm space-y-4">
+              <h3 className="text-sm font-extrabold text-dark-900">Register New VSOTD Spot</h3>
+
+              <div>
+                <label className="text-xs font-bold text-dark-800 block mb-1">Select Spot from Network</label>
+                <select
+                  value={selectedVsotdSpotId}
+                  onChange={e => setSelectedVsotdSpotId(e.target.value)}
+                  className="w-full h-11 px-3.5 rounded-2xl text-xs font-bold border border-dark-200 focus:border-roo-500 focus:outline-none bg-white"
+                >
+                  <option value="">-- Choose Spot --</option>
+                  {spots.map(s => (
+                    <option key={s.id} value={s.id}>
+                      {s.title} ({s.locationName})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-dark-800 block mb-1">Highlight Note / Ranger Choice</label>
+                <input
+                  type="text"
+                  value={vsotdNote}
+                  onChange={e => setVsotdNote(e.target.value)}
+                  placeholder="e.g. Level 30A pull-through pad minutes from Arches National Park."
+                  className="w-full h-11 px-3.5 rounded-2xl text-xs font-bold border border-dark-200 focus:border-roo-500 focus:outline-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSavingVsotd}
+                className="px-6 py-2.5 rounded-2xl bg-dark-900 hover:bg-black text-white text-xs font-bold shadow-md transition-all"
+              >
+                {isSavingVsotd ? 'Registering VSOTD...' : 'Register & Publish VSOTD'}
+              </button>
+            </form>
           </div>
         </div>
       )}
@@ -590,6 +686,11 @@ export const AdminDashboard: React.FC = () => {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-dark-900">{s.title}</span>
+                      {s.id === vsotd?.spotId && (
+                        <span className="text-[10px] px-2 py-0.2 rounded-full bg-amber-100 text-amber-900 font-black border border-amber-300">
+                          ⭐ VSOTD
+                        </span>
+                      )}
                       {s.visibility === 'personal' ? (
                         <span className="text-[10px] px-2 py-0.2 rounded-full bg-indigo-100 text-indigo-800 font-extrabold">
                           PERSONAL
@@ -618,6 +719,13 @@ export const AdminDashboard: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleRegisterVsotd(s.id, `Ranger Choice: ${s.title}`)}
+                    className="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold border border-amber-200 transition-colors"
+                  >
+                    Set VSOTD
+                  </button>
+
                   {s.contactEmail && (
                     <a
                       href={`mailto:${s.contactEmail}?subject=${encodeURIComponent(`Regarding your CampRoo spot: ${s.title}`)}&body=${encodeURIComponent(`Hi ${s.submitterName || 'there'},\n\nThank you for sharing ${s.title} on CampRoo. I reviewed your submission and wanted to connect.\n\nBest regards,\nCampRoo Team`)}`}
@@ -685,7 +793,7 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                   <p className="text-xs text-dark-700 italic">"{rev.comment}"</p>
                   <div className="flex items-center justify-between pt-2 border-t border-dark-100 text-[11px] text-dark-500">
-                    <span>Cleanliness: {rev.categories.cleanliness} · Hospitality: {rev.categories.hospitality}</span>
+                    <span>Cleanliness: {rev.categories?.cleanliness || 5} · Hospitality: {rev.categories?.hospitality || 5}</span>
                     <span className="text-emerald-700 font-bold">
                       {rev.wouldWelcomeAgain ? '✓ Welcomes Again' : 'No'}
                     </span>

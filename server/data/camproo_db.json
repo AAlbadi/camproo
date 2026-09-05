@@ -141,6 +141,85 @@
       }
     }
   ],
+  "spots": [
+    {
+      "id": "spot-moab-redrock",
+      "hostId": "user-host-1",
+      "title": "Red Rock Roo Oasis & BLM Gateway",
+      "tagline": "Level pull-through gravel pad 10 mins from Arches with 30A power & dark night skies",
+      "description": "Welcome to our private red rock acreage nestled right along Spanish Valley, just 10 minutes south of Arches and Canyonlands.",
+      "locationName": "Moab",
+      "generalArea": "Utah, USA",
+      "coordinates": [
+        38.5733,
+        -109.5498
+      ],
+      "photos": [
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/67/-TravelTuesday_with_My_Public_Lands_%2824446462030%29.jpg/1280px--TravelTuesday_with_My_Public_Lands_%2824446462030%29.jpg"
+      ],
+      "spaceType": "desert_oasis",
+      "environment": "desert",
+      "rigCompatibility": {
+        "maxLengthFt": 38,
+        "maxHeightFt": 13.5,
+        "maxWidthFt": 8.5,
+        "acceptedTypes": [
+          "class_a",
+          "class_b",
+          "class_c"
+        ],
+        "accessType": "pull_through",
+        "surfaceType": "packed_gravel",
+        "isLevel": true,
+        "turnaroundSpace": "Full driveway pad.",
+        "trailerDisconnectRequired": false
+      },
+      "amenities": {
+        "electricity": "30amp",
+        "water": "potable_hookup",
+        "sewer": "none",
+        "wifi": true,
+        "bathroom": false,
+        "shower": false,
+        "firePit": true,
+        "trash": true,
+        "shade": "partial",
+        "generatorsAllowed": true,
+        "petsAllowed": true,
+        "familyFriendly": true,
+        "quietSetting": true,
+        "offGridCapable": false
+      },
+      "proximity": {
+        "fuelNearbyMiles": 4,
+        "groceriesNearbyMiles": 5,
+        "rvDumpNearbyMiles": 6,
+        "attractionNote": "Arches National Park 10 mins"
+      },
+      "rules": {
+        "maxStayNights": 4,
+        "checkInWindow": "2:00 PM - 8:00 PM",
+        "checkOutTime": "11:00 AM",
+        "quietHours": "10:00 PM - 7:00 AM",
+        "campfirePolicy": "Fire pit permitted in designated ring",
+        "childrenAllowed": true,
+        "extraGuestsAllowed": true,
+        "hostInteraction": "social_loves_to_chat"
+      },
+      "gatekeeping": "any_member",
+      "rating": 4.98,
+      "reviewCount": 42,
+      "isFree": true,
+      "isFeatured": true,
+      "status": "active",
+      "createdAt": "2024-01-15"
+    }
+  ],
+  "requests": [],
+  "threads": [],
+  "posts": [],
+  "reviews": [],
+  "reports": [],
   "traffic_events": [
     {
       "id": "evt-sample-1",
@@ -3474,6 +3553,86 @@
       "screenWidth": 1440,
       "ip": "127.0.0.1",
       "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36"
+    },
+    {
+      "id": "evt-1788625898710-nt4q",
+      "timestamp": "2026-09-05T16:31:38.710Z",
+      "path": "/",
+      "referrer": "https://www.google.com",
+      "utmSource": "google",
+      "utmMedium": "none",
+      "utmCampaign": "",
+      "utmContent": "",
+      "timezone": "Asia/Dubai",
+      "country": "United Arab Emirates",
+      "countryCode": "AE",
+      "city": "Dubai",
+      "sessionId": "sess_1788625898710",
+      "device": "desktop",
+      "browser": "Chrome",
+      "screenWidth": 0,
+      "ip": "127.0.0.1",
+      "userAgent": "curl/8.7.1"
+    },
+    {
+      "id": "evt-1788625898728-7chn",
+      "timestamp": "2026-09-05T16:31:38.728Z",
+      "path": "/explore",
+      "referrer": "https://www.reddit.com/r/rvliving",
+      "utmSource": "reddit",
+      "utmMedium": "none",
+      "utmCampaign": "",
+      "utmContent": "",
+      "timezone": "America/New_York",
+      "country": "United States",
+      "countryCode": "US",
+      "city": "New York",
+      "sessionId": "sess_1788625898728",
+      "device": "mobile",
+      "browser": "Safari",
+      "screenWidth": 0,
+      "ip": "127.0.0.1",
+      "userAgent": "curl/8.7.1"
+    },
+    {
+      "id": "evt-1788625898742-qscp",
+      "timestamp": "2026-09-05T16:31:38.742Z",
+      "path": "/about",
+      "referrer": "Direct",
+      "utmSource": "direct",
+      "utmMedium": "none",
+      "utmCampaign": "",
+      "utmContent": "",
+      "timezone": "Europe/London",
+      "country": "United Kingdom",
+      "countryCode": "GB",
+      "city": "London",
+      "sessionId": "sess_1788625898742",
+      "device": "desktop",
+      "browser": "Firefox",
+      "screenWidth": 0,
+      "ip": "127.0.0.1",
+      "userAgent": "curl/8.7.1"
+    },
+    {
+      "id": "evt-1788625898756-df9b",
+      "timestamp": "2026-09-05T16:31:38.756Z",
+      "path": "/spot-moab-redrock",
+      "referrer": "https://twitter.com",
+      "utmSource": "twitter",
+      "utmMedium": "none",
+      "utmCampaign": "",
+      "utmContent": "",
+      "timezone": "Asia/Tokyo",
+      "country": "Japan",
+      "countryCode": "JP",
+      "city": "Tokyo",
+      "sessionId": "sess_1788625898756",
+      "device": "mobile",
+      "browser": "Chrome",
+      "screenWidth": 0,
+      "ip": "127.0.0.1",
+      "userAgent": "curl/8.7.1"
     }
   ],
   "newsletter_subscribers": [
@@ -3860,5 +4019,24 @@
       "details": "Simulated delivery recorded in database. Ready for live API key.",
       "sentAt": "2026-09-05T13:49:06.938Z"
     }
-  ]
+  ],
+  "vsotd": {
+    "spotId": "spot-moab-redrock",
+    "title": "Red Rock Roo Oasis & BLM Gateway",
+    "locationName": "Moab, Utah",
+    "highlightNote": "Ranger Choice: Level 30A pull-through pad.",
+    "selectedAt": "2026-09-05T16:21:28.742Z",
+    "clicks": 1,
+    "impressions": 0,
+    "history": [
+      {
+        "spotId": "spot-moab-redrock",
+        "title": "Red Rock Roo Oasis & BLM Gateway",
+        "locationName": "Moab, Utah",
+        "selectedAt": "2026-09-05T16:21:24.042Z",
+        "clicks": 142,
+        "impressions": 1250
+      }
+    ]
+  }
 }

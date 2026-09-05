@@ -14,6 +14,7 @@ import { healthRouter } from "./routes/health.js";
 import { analyticsRouter } from "./routes/analytics.js";
 import { newsletterRouter } from "./routes/newsletter.js";
 import { supportRouter } from "./routes/support.js";
+import { vsotdRouter } from "./routes/vsotd.js";
 import { db } from "./services/db.js";
 import { requireAdminAuth } from "./services/adminAuth.js";
 
@@ -52,6 +53,7 @@ app.use("/api/reports", reportsRouter);
 app.use("/api/analytics", analyticsRouter);
 app.use("/api/newsletter", newsletterRouter);
 app.use("/api/support", supportRouter);
+app.use("/api/vsotd", vsotdRouter);
 
 // System status & Email logs for Admin modal (Strictly protected for admin aziz)
 app.get("/api/system/status", requireAdminAuth, (req, res) => {
