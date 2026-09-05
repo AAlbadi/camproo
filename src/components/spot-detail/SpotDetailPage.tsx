@@ -121,7 +121,7 @@ export const SpotDetailPage: React.FC = () => {
           This campsite listing has been permanently removed from CampRoo. Only verified public domain campsites are listed.
         </p>
         <Button
-          variant="primary"
+          variant="default"
           onClick={() => {
             setCurrentView('explore');
             window.scrollTo({ top: 0, behavior: 'smooth' });
