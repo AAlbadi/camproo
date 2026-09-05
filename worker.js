@@ -43,7 +43,7 @@ let vsotdState = {
   history: []
 };
 
-function recordEdgeVisitor(request, customPayload = {}) {
+async function recordEdgeVisitor(request, customPayload = {}, env = null) {
   try {
     const url = new URL(request.url);
     const ip = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '127.0.0.1';
@@ -98,15 +98,47 @@ function recordEdgeVisitor(request, customPayload = {}) {
     if (edgeEvents.length > 5000) {
       edgeEvents = edgeEvents.slice(-5000);
     }
+
+    if (env?.TELEMETRY_KV) {
+      try {
+        await env.TELEMETRY_KV.put(`evt:${event.id}`, JSON.stringify(event), { expirationTtl: 86400 * 30 });
+      } catch (kvErr) {
+        console.error('KV put error:', kvErr);
+      }
+    }
+
     return event;
   } catch (e) {
     return null;
   }
 }
 
-function computeEdgeStats() {
-  const totalViews = edgeEvents.length;
-  const uniqueSessions = new Set(edgeEvents.map(e => e.sessionId || e.ip)).size;
+async function computeEdgeStats(env = null) {
+  let events = [...edgeEvents];
+
+  if (env?.TELEMETRY_KV) {
+    try {
+      const list = await env.TELEMETRY_KV.list({ prefix: 'evt:', limit: 1000 });
+      if (list && list.keys && list.keys.length > 0) {
+        const fetched = await Promise.all(
+          list.keys.map(k => env.TELEMETRY_KV.get(k.name, 'json'))
+        );
+        const validFetched = fetched.filter(Boolean);
+        if (validFetched.length > 0) {
+          // Merge KV events with memory events, deduplicating by event ID
+          const eventMap = new Map();
+          validFetched.forEach(e => eventMap.set(e.id, e));
+          edgeEvents.forEach(e => eventMap.set(e.id, e));
+          events = Array.from(eventMap.values());
+        }
+      }
+    } catch (kvErr) {
+      console.error('KV list error:', kvErr);
+    }
+  }
+
+  const totalViews = events.length;
+  const uniqueSessions = new Set(events.map(e => e.sessionId || e.ip)).size;
 
   const referrers = {};
   const sources = {};
@@ -115,7 +147,7 @@ function computeEdgeStats() {
   const cities = {};
   const pages = {};
 
-  edgeEvents.forEach(e => {
+  events.forEach(e => {
     let refDomain = 'Direct / Bookmarked';
     if (e.referrer && e.referrer !== 'Direct' && e.referrer !== 'Direct Visit' && e.referrer.startsWith('http')) {
       try {
@@ -151,7 +183,7 @@ function computeEdgeStats() {
     country: data.country,
     flag: COUNTRY_FLAGS[code] || '🌍',
     count: data.count,
-    percentage: totalViews > 0 ? Math.round((data.count / totalViews) * 100) : 0
+    percentage: totalViews > 0 ? Number(((data.count / totalViews) * 100).toFixed(1)) : 0
   })).sort((a, b) => b.count - a.count);
 
   const citiesBreakdown = Object.values(cities)
@@ -170,12 +202,12 @@ function computeEdgeStats() {
     pagesBreakdown: Object.entries(pages).map(([path, count]) => ({ path, count })).sort((a, b) => b.count - a.count),
     countriesBreakdown,
     citiesBreakdown,
-    recentEvents: edgeEvents.slice(-50).reverse()
+    recentEvents: events.slice(-50).reverse()
   };
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const pathname = url.pathname;
 
@@ -197,7 +229,7 @@ export default {
     if (pathname === '/api/analytics/track' && request.method === 'POST') {
       try {
         const body = await request.json().catch(() => ({}));
-        const evt = recordEdgeVisitor(request, body);
+        const evt = await recordEdgeVisitor(request, body, env);
         return new Response(JSON.stringify({ success: true, eventId: evt?.id }), { headers: corsHeaders });
       } catch (e) {
         return new Response(JSON.stringify({ success: false, error: e.message }), { status: 500, headers: corsHeaders });
@@ -205,7 +237,7 @@ export default {
     }
 
     if (pathname === '/api/analytics/stats') {
-      const stats = computeEdgeStats();
+      const stats = await computeEdgeStats(env);
       return new Response(JSON.stringify({ success: true, ...stats }), { headers: corsHeaders });
     }
 
@@ -247,7 +279,11 @@ export default {
 
     // Record non-API page visits automatically at Cloudflare edge
     if (request.method === 'GET' && !pathname.includes('.')) {
-      recordEdgeVisitor(request, { path: pathname });
+      if (ctx?.waitUntil) {
+        ctx.waitUntil(recordEdgeVisitor(request, { path: pathname }, env));
+      } else {
+        recordEdgeVisitor(request, { path: pathname }, env);
+      }
     }
 
     // =========================================================================
