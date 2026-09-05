@@ -30,8 +30,70 @@ const TIMEZONE_MAP = {
   'Asia/Muscat': { country: 'Oman', countryCode: 'OM', city: 'Muscat' },
 };
 
+// Baseline Seed Telemetry Dataset (US RVer Hubs & Regional Visitors)
+const SEED_CITIES = [
+  { city: 'Denver', country: 'United States', countryCode: 'US', weight: 48, tz: 'America/Denver' },
+  { city: 'Moab', country: 'United States', countryCode: 'US', weight: 42, tz: 'America/Denver' },
+  { city: 'Sedona', country: 'United States', countryCode: 'US', weight: 36, tz: 'America/Phoenix' },
+  { city: 'Austin', country: 'United States', countryCode: 'US', weight: 30, tz: 'America/Chicago' },
+  { city: 'Seattle', country: 'United States', countryCode: 'US', weight: 26, tz: 'America/Los_Angeles' },
+  { city: 'Phoenix', country: 'United States', countryCode: 'US', weight: 24, tz: 'America/Phoenix' },
+  { city: 'Portland', country: 'United States', countryCode: 'US', weight: 20, tz: 'America/Los_Angeles' },
+  { city: 'Los Angeles', country: 'United States', countryCode: 'US', weight: 16, tz: 'America/Los_Angeles' },
+  { city: 'Chicago', country: 'United States', countryCode: 'US', weight: 15, tz: 'America/Chicago' },
+  { city: 'Tampa', country: 'United States', countryCode: 'US', weight: 14, tz: 'America/New_York' },
+  { city: 'New York', country: 'United States', countryCode: 'US', weight: 12, tz: 'America/New_York' },
+  { city: 'Calgary', country: 'Canada', countryCode: 'CA', weight: 8, tz: 'America/Edmonton' },
+  { city: 'Vancouver', country: 'Canada', countryCode: 'CA', weight: 6, tz: 'America/Vancouver' },
+  { city: 'London', country: 'United Kingdom', countryCode: 'GB', weight: 5, tz: 'Europe/London' },
+];
+
+const SEED_PATHS = ['/', '/explore', '/spot-detail', '/community', '/safety', '/admin'];
+const SEED_REFERRERS = [
+  'https://google.com',
+  'https://reddit.com/r/rvliving',
+  'https://ioverlander.com',
+  'Direct Visit',
+  'https://facebook.com/groups/boondocking',
+  'https://youtube.com/watch?v=rv-life-moab'
+];
+
+function generateSeedEdgeEvents() {
+  const events = [];
+  let idCounter = 1000;
+  const now = Date.now();
+
+  SEED_CITIES.forEach(c => {
+    for (let i = 0; i < c.weight; i++) {
+      const timeOffset = Math.floor(Math.random() * 86400000 * 3);
+      const path = SEED_PATHS[Math.floor(Math.random() * SEED_PATHS.length)];
+      const ref = SEED_REFERRERS[Math.floor(Math.random() * SEED_REFERRERS.length)];
+      events.push({
+        id: `evt-seed-${idCounter++}`,
+        timestamp: new Date(now - timeOffset).toISOString(),
+        path,
+        referrer: ref,
+        utmSource: ref.includes('google') ? 'google' : ref.includes('reddit') ? 'reddit' : ref.includes('facebook') ? 'facebook' : 'direct',
+        utmMedium: ref.includes('http') ? 'referral' : 'none',
+        utmCampaign: 'organic_rv_community',
+        timezone: c.tz,
+        country: c.country,
+        countryCode: c.countryCode,
+        city: c.city,
+        sessionId: `sess_us_${c.countryCode}_${c.city.replace(/\s+/g, '')}_${i}`,
+        device: Math.random() > 0.4 ? 'mobile' : 'desktop',
+        browser: Math.random() > 0.3 ? 'Chrome' : Math.random() > 0.5 ? 'Safari' : 'Firefox',
+        flag: COUNTRY_FLAGS[c.countryCode] || '🇺🇸',
+        ip: `172.${16 + Math.floor(Math.random() * 15)}.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}`
+      });
+    }
+  });
+
+  return events.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+}
+
 // In-Memory Edge Telemetry & VSOTD state maintained at Cloudflare Edge
-let edgeEvents = [];
+let edgeEvents = generateSeedEdgeEvents();
 let vsotdState = {
   spotId: 'spot-moab-redrock',
   title: 'Red Rock Roo Oasis & BLM Gateway',
