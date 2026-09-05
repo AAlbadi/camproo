@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useToast } from '../../context/ToastContext';
 import { getStoredTrafficStats } from '../../lib/tracker';
@@ -296,6 +296,21 @@ export const AdminDashboard: React.FC = () => {
     .filter(r => r.status === 'accepted' || r.status === 'completed')
     .reduce((acc, r) => acc + r.nights, 0);
 
+  const memberRegions = useMemo(() => {
+    const map: Record<string, number> = {};
+    users.forEach(u => {
+      const reg = u.homeRegion || 'United States';
+      map[reg] = (map[reg] || 0) + 1;
+    });
+    return Object.entries(map)
+      .map(([region, count]) => ({
+        region,
+        count,
+        percentage: users.length ? (count / users.length) * 100 : 0
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [users]);
+
   const filteredUsers = users.filter(u =>
     u.name.toLowerCase().includes(userSearch.toLowerCase()) ||
     u.email.toLowerCase().includes(userSearch.toLowerCase())
@@ -439,6 +454,36 @@ export const AdminDashboard: React.FC = () => {
               <span className="text-[11px] font-bold text-emerald-600 uppercase block">Total Link Opens</span>
               <span className="text-3xl font-black text-emerald-700 mt-1 block">{liveStats?.totalViews || 0}</span>
               <span className="text-[10px] text-dark-500 font-semibold block mt-0.5">{liveStats?.uniqueSessions || 0} unique visitors</span>
+            </div>
+          </div>
+
+          {/* REGISTERED MEMBER DEMOGRAPHICS */}
+          <div className="bg-gradient-to-br from-emerald-900 to-dark-900 p-6 rounded-3xl text-white shadow-airbnb space-y-4 border border-emerald-800/40">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-extrabold flex items-center gap-2">
+                <span>🏕️</span> Registered Member Demographics ({users.length} RVers)
+              </h3>
+              <span className="text-[11px] font-bold px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-full">
+                Community Directory
+              </span>
+            </div>
+            <p className="text-xs text-emerald-200/80">
+              Registered RV owners and host home bases across North America and global operations:
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {memberRegions.map((m, i) => (
+                <div key={i} className="p-3.5 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <span>🇺🇸</span> {m.region}
+                    </div>
+                    <div className="text-[10px] text-emerald-300 font-medium mt-0.5">
+                      {m.count} {m.count === 1 ? 'RVer' : 'RVers'} · {m.percentage.toFixed(0)}% of members
+                    </div>
+                  </div>
+                  <span className="text-lg font-black text-emerald-400 font-mono">{m.count}</span>
+                </div>
+              ))}
             </div>
           </div>
 
