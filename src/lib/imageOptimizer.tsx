@@ -17,6 +17,15 @@ export function getRawImageUrl(url: string | undefined | null): string {
   ) {
     return FALLBACK_CAMPING_PHOTO;
   }
+  if (url.startsWith('https://wsrv.nl/')) {
+    try {
+      const parsed = new URL(url);
+      const original = parsed.searchParams.get('url');
+      if (original) return decodeURIComponent(original);
+    } catch {
+      return FALLBACK_CAMPING_PHOTO;
+    }
+  }
   return url.split('?')[0];
 }
 

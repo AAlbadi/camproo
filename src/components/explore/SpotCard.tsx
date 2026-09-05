@@ -146,9 +146,7 @@ export const SpotCard: React.FC<SpotCardProps> = ({
               }
               setImgLoaded(true);
             }}
-            className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-[1.03] ${
-              imgLoaded ? 'opacity-100' : 'opacity-0'
-            }`}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />
 
           {/* Floating Heart Button with Liquid Glass */}
