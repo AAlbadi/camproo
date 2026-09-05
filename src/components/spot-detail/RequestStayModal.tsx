@@ -28,8 +28,21 @@ export const RequestStayModal: React.FC<RequestStayModalProps> = ({ spot, onClos
   const { currentUser, submitStayRequest } = useApp();
   const { showToast } = useToast();
 
-  const [arrivalDate, setArrivalDate] = useState('2026-09-15');
-  const [departureDate, setDepartureDate] = useState('2026-09-17');
+  const getInitialDates = () => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const dayAfter = new Date(today);
+    dayAfter.setDate(today.getDate() + 3);
+    return {
+      arrival: tomorrow.toISOString().split('T')[0],
+      departure: dayAfter.toISOString().split('T')[0],
+    };
+  };
+
+  const initialDates = getInitialDates();
+  const [arrivalDate, setArrivalDate] = useState(initialDates.arrival);
+  const [departureDate, setDepartureDate] = useState(initialDates.departure);
   const [showCalendar, setShowCalendar] = useState(false);
   const [dateFieldPicking, setDateFieldPicking] = useState<'arrival' | 'departure'>('arrival');
   const [guestCount, setGuestCount] = useState(2);

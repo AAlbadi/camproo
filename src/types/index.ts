@@ -256,6 +256,8 @@ export interface Review {
   createdAt: string;
   hostReply?: string;
   isModerated?: boolean;
+  status?: 'pending' | 'approved' | 'rejected';
+  updatedAt?: string;
   photos?: string[];
   rigType?: string;
   stayDate?: string;

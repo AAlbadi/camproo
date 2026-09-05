@@ -55,6 +55,8 @@ interface AppContextType {
   updateSpotStatus: (spotId: string, status: 'active' | 'paused') => void;
   addSpotPhotos: (spotId: string, photoUrls: string[]) => void;
   submitReview: (review: Omit<Review, 'id' | 'createdAt'>) => void;
+  updateReview: (reviewId: string, updates: Partial<Review>) => void;
+  deleteReview: (reviewId: string) => void;
   submitReport: (report: Omit<ReportItem, 'id' | 'createdAt' | 'status'>) => void;
   spotEditRequests: SpotEditRequest[];
   submitSpotEditRequest: (request: Omit<SpotEditRequest, 'id' | 'createdAt' | 'status'>) => void;
@@ -76,6 +78,15 @@ interface AppContextType {
   adminLogout: () => void;
   adminToggleSuspendUser: (userId: string) => void;
   adminToggleFeatureSpot: (spotId: string) => void;
+  adminApproveSpot: (spotId: string) => void;
+  adminApproveAllSpots: () => void;
+  adminRejectSpot: (spotId: string) => void;
+  adminApproveSpotEditRequest: (requestId: string) => void;
+  adminRejectSpotEditRequest: (requestId: string) => void;
+  adminApproveAllSpotEditRequests: () => void;
+  adminApproveReview: (reviewId: string) => void;
+  adminApproveAllReviews: () => void;
+  adminRejectReview: (reviewId: string) => void;
   adminResolveReport: (reportId: string, note?: string) => void;
   adminToggleVerifyUser: (userId: string, key: 'email' | 'phone' | 'idDocument' | 'rvOwnership') => void;
   // Geolocation & Target Map View
@@ -293,6 +304,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return [];
     }
   });
+
+  // Sync reviews to local storage
+  useEffect(() => {
+    try {
+      localStorage.setItem('camproo_reviews_v4', JSON.stringify(reviews));
+    } catch {}
+  }, [reviews]);
+
+  // Sync spot edit requests to local storage
+  useEffect(() => {
+    try {
+      localStorage.setItem('camproo_spot_edits', JSON.stringify(spotEditRequests));
+    } catch {}
+  }, [spotEditRequests]);
 
   // Support & Inquiries Modal state
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
@@ -1236,10 +1261,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const submitReview = (reviewData: Omit<Review, 'id' | 'createdAt'>) => {
+    const isAutoApproved = currentUser.role === 'admin' || reviewData.status === 'approved';
     const newReview: Review = {
       ...reviewData,
       id: `rev-${Date.now()}`,
       createdAt: new Date().toISOString().split('T')[0],
+      status: reviewData.status || (isAutoApproved ? 'approved' : 'pending'),
     };
     setReviews(prev => [newReview, ...prev]);
 
@@ -1277,6 +1304,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       reviewerName: currentUser.name,
       spotTitle: spot?.title || 'RV Spot',
     } as any).catch(() => {});
+  };
+
+  const updateReview = (reviewId: string, updates: Partial<Review>) => {
+    setReviews(prev =>
+      prev.map(r => {
+        if (r.id === reviewId) {
+          const updated = {
+            ...r,
+            ...updates,
+            updatedAt: new Date().toISOString().split('T')[0]
+          };
+          return updated;
+        }
+        return r;
+      })
+    );
+    api.updateReview(reviewId, updates).catch(() => {});
+  };
+
+  const deleteReview = (reviewId: string) => {
+    setReviews(prev => prev.filter(r => r.id !== reviewId));
+    api.deleteReview(reviewId).catch(() => {});
   };
 
   const submitSpotEditRequest = (requestData: Omit<SpotEditRequest, 'id' | 'createdAt' | 'status'>) => {
@@ -1397,6 +1446,99 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
+  const adminApproveSpot = (spotId: string) => {
+    setSpots(prev =>
+      prev.map(s => (s.id === spotId ? { ...s, reviewStatus: 'approved', status: 'active' } : s))
+    );
+    api.approveSpot(spotId).catch(() => {});
+  };
+
+  const adminApproveAllSpots = () => {
+    setSpots(prev =>
+      prev.map(s => (s.reviewStatus === 'pending_review' ? { ...s, reviewStatus: 'approved', status: 'active' } : s))
+    );
+  };
+
+  const adminRejectSpot = (spotId: string) => {
+    setSpots(prev =>
+      prev.map(s => (s.id === spotId ? { ...s, reviewStatus: 'personal', status: 'paused' } : s))
+    );
+    api.updateSpot(spotId, { reviewStatus: 'personal', status: 'paused' }).catch(() => {});
+  };
+
+  const adminApproveSpotEditRequest = (requestId: string) => {
+    const reqItem = spotEditRequests.find(r => r.id === requestId);
+    if (!reqItem) return;
+
+    if (reqItem.suggestedChanges) {
+      const changes = reqItem.suggestedChanges;
+      setSpots(prev =>
+        prev.map(s => {
+          if (s.id === reqItem.spotId) {
+            const updatedRig = changes.maxLengthFt
+              ? { ...s.rigCompatibility, maxLengthFt: changes.maxLengthFt }
+              : s.rigCompatibility;
+            const updatedCoords = changes.coordinates || s.coordinates;
+            let updatedDesc = s.description;
+            if (changes.roadCondition) {
+              updatedDesc = `${updatedDesc}\n\n[Road Condition Update]: ${changes.roadCondition}`;
+            }
+            if (changes.seasonalNotes) {
+              updatedDesc = `${updatedDesc}\n\n[Seasonal Notice]: ${changes.seasonalNotes}`;
+            }
+            if (changes.description) updatedDesc = changes.description;
+
+            return {
+              ...s,
+              title: changes.title || s.title,
+              description: updatedDesc,
+              coordinates: updatedCoords,
+              rigCompatibility: updatedRig,
+            };
+          }
+          return s;
+        })
+      );
+    }
+
+    setSpotEditRequests(prev =>
+      prev.map(r => (r.id === requestId ? { ...r, status: 'applied' } : r))
+    );
+    api.approveSpotEdit(requestId).catch(() => {});
+  };
+
+  const adminRejectSpotEditRequest = (requestId: string) => {
+    setSpotEditRequests(prev =>
+      prev.map(r => (r.id === requestId ? { ...r, status: 'rejected' } : r))
+    );
+    api.rejectSpotEdit(requestId).catch(() => {});
+  };
+
+  const adminApproveAllSpotEditRequests = () => {
+    const pending = spotEditRequests.filter(r => r.status === 'pending');
+    pending.forEach(r => adminApproveSpotEditRequest(r.id));
+  };
+
+  const adminApproveReview = (reviewId: string) => {
+    setReviews(prev =>
+      prev.map(r => (r.id === reviewId ? { ...r, status: 'approved', isModerated: true } : r))
+    );
+    api.approveReview(reviewId).catch(() => {});
+  };
+
+  const adminApproveAllReviews = () => {
+    setReviews(prev =>
+      prev.map(r => (r.status === 'pending' ? { ...r, status: 'approved', isModerated: true } : r))
+    );
+  };
+
+  const adminRejectReview = (reviewId: string) => {
+    setReviews(prev =>
+      prev.map(r => (r.id === reviewId ? { ...r, status: 'rejected' } : r))
+    );
+    api.updateReview(reviewId, { status: 'rejected' }).catch(() => {});
+  };
+
   const adminResolveReport = (reportId: string, note?: string) => {
     setReports(prev =>
       prev.map(r => (r.id === reportId ? { ...r, status: 'resolved', adminNotes: note || 'Resolved by Ranger admin' } : r))
@@ -1469,6 +1611,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateSpotStatus,
         addSpotPhotos,
         submitReview,
+        updateReview,
+        deleteReview,
         submitReport,
         spotEditRequests,
         submitSpotEditRequest,
@@ -1481,6 +1625,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         toggleSaveSpot,
         adminToggleSuspendUser,
         adminToggleFeatureSpot,
+        adminApproveSpot,
+        adminApproveAllSpots,
+        adminRejectSpot,
+        adminApproveSpotEditRequest,
+        adminRejectSpotEditRequest,
+        adminApproveAllSpotEditRequests,
+        adminApproveReview,
+        adminApproveAllReviews,
+        adminRejectReview,
         adminResolveReport,
         adminToggleVerifyUser,
         isAuthenticated,

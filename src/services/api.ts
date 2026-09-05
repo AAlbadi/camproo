@@ -159,6 +159,40 @@ export const api = {
       body: JSON.stringify(reviewData),
     });
   },
+  updateReview: async (id: string, updates: Partial<Review>): Promise<Review> => {
+    return request<Review>(`/reviews/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(updates),
+    });
+  },
+  approveReview: async (id: string): Promise<Review> => {
+    return request<Review>(`/reviews/${id}/approve`, {
+      method: "PATCH",
+    });
+  },
+  deleteReview: async (id: string): Promise<void> => {
+    await request(`/reviews/${id}`, { method: "DELETE" });
+  },
+
+  // Spot Approvals & Edits
+  approveSpot: async (id: string): Promise<Spot> => {
+    return request<Spot>(`/spots/${id}/approve`, {
+      method: "PATCH",
+    });
+  },
+  getSpotEdits: async (): Promise<any[]> => {
+    return request<any[]>("/spots/edits/all");
+  },
+  approveSpotEdit: async (editId: string): Promise<any> => {
+    return request<any>(`/spots/edits/${editId}/approve`, {
+      method: "PATCH",
+    });
+  },
+  rejectSpotEdit: async (editId: string): Promise<any> => {
+    return request<any>(`/spots/edits/${editId}/reject`, {
+      method: "PATCH",
+    });
+  },
 
   // Safety Reports
   getReports: async (): Promise<ReportItem[]> => {

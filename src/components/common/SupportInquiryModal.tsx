@@ -47,6 +47,16 @@ export const SupportInquiryModal: React.FC<SupportInquiryModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
+  React.useEffect(() => {
+    if (isOpen) {
+      if (currentUser?.name && !name) setName(currentUser.name);
+      if (currentUser?.email && !email) setEmail(currentUser.email);
+      if (defaultTopic) setTopic(defaultTopic);
+      if (defaultSubject) setSubject(defaultSubject);
+      setSubmitted(false);
+    }
+  }, [isOpen, defaultTopic, defaultSubject, currentUser]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 

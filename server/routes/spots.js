@@ -259,12 +259,40 @@ spotsRouter.post("/:id/photos", async (req, res) => {
   });
 });
 
+// PATCH /api/spots/:id/approve - Approve pending spot
+spotsRouter.patch("/:id/approve", (req, res) => {
+  try {
+    const spot = db.getSpotById(req.params.id);
+    if (!spot) return res.status(404).json({ success: false, message: "Spot not found" });
+    const updated = db.updateSpot(req.params.id, { reviewStatus: 'approved', status: 'active' });
+    res.json({ success: true, data: updated, message: "Spot approved successfully." });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// GET /api/spots/edits/all - List all spot edit requests
+spotsRouter.get("/edits/all", (req, res) => {
+  try {
+    const edits = db.getSpotEditRequests();
+    res.json({ success: true, data: edits });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // POST /api/spots/:id/edit-requests - Submit community spot edit suggestion
 spotsRouter.post("/:id/edit-requests", async (req, res) => {
   try {
     const { id } = req.params;
     const editData = req.body || {};
     const targetSpot = db.getSpotById(id);
+
+    const savedRequest = db.addSpotEditRequest({
+      spotId: id,
+      spotTitle: editData.spotTitle || targetSpot?.title || id,
+      ...editData
+    });
 
     sendSpotEditRequestAdminEmail({
       spotId: id,
@@ -279,8 +307,61 @@ spotsRouter.post("/:id/edit-requests", async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Edit request logged successfully for ranger review.",
-      data: editData,
+      data: savedRequest,
     });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// PATCH /api/spots/edits/:editId/approve - Approve and apply edit request
+spotsRouter.patch("/edits/:editId/approve", (req, res) => {
+  try {
+    const { editId } = req.params;
+    const edits = db.getSpotEditRequests();
+    const reqItem = edits.find(e => e.id === editId);
+    if (!reqItem) return res.status(404).json({ success: false, message: "Edit request not found" });
+
+    // Apply suggested changes to spot if spot exists
+    const spot = db.getSpotById(reqItem.spotId);
+    if (spot && reqItem.suggestedChanges) {
+      const changes = reqItem.suggestedChanges;
+      const spotUpdates = {};
+      if (changes.maxLengthFt) {
+        spotUpdates.rigCompatibility = {
+          ...spot.rigCompatibility,
+          maxLengthFt: changes.maxLengthFt
+        };
+      }
+      if (changes.coordinates && Array.isArray(changes.coordinates)) {
+        spotUpdates.coordinates = changes.coordinates;
+      }
+      if (changes.roadCondition) {
+        spotUpdates.description = `${spot.description}\n\n[Road Condition Update]: ${changes.roadCondition}`;
+      }
+      if (changes.seasonalNotes) {
+        spotUpdates.description = `${spot.description}\n\n[Seasonal Notice]: ${changes.seasonalNotes}`;
+      }
+      if (changes.title) spotUpdates.title = changes.title;
+      if (changes.description) spotUpdates.description = changes.description;
+
+      db.updateSpot(spot.id, spotUpdates);
+    }
+
+    const updatedReq = db.updateSpotEditRequest(editId, { status: 'applied', appliedAt: new Date().toISOString() });
+    res.json({ success: true, data: updatedReq, message: "Edit request approved and applied." });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// PATCH /api/spots/edits/:editId/reject - Reject edit request
+spotsRouter.patch("/edits/:editId/reject", (req, res) => {
+  try {
+    const { editId } = req.params;
+    const updatedReq = db.updateSpotEditRequest(editId, { status: 'rejected', rejectedAt: new Date().toISOString() });
+    if (!updatedReq) return res.status(404).json({ success: false, message: "Edit request not found" });
+    res.json({ success: true, data: updatedReq, message: "Edit request rejected." });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

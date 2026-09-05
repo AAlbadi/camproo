@@ -94,6 +94,7 @@ const initialSchema = {
   posts: [],
   reviews: [],
   reports: [],
+  spot_edits: [],
   traffic_events: [],
   newsletter_subscribers: [],
   email_logs: [],
@@ -130,6 +131,7 @@ class Database {
           posts: parsed.posts || initialSchema.posts,
           reviews: parsed.reviews || initialSchema.reviews,
           reports: parsed.reports || initialSchema.reports,
+          spot_edits: parsed.spot_edits || [],
           traffic_events: parsed.traffic_events || [],
           newsletter_subscribers: parsed.newsletter_subscribers || [],
           email_logs: parsed.email_logs || [],
@@ -404,6 +406,7 @@ class Database {
     const newReview = {
       id: reviewData.id || `rev-${Date.now()}`,
       createdAt: new Date().toISOString(),
+      status: reviewData.status || 'pending',
       ...reviewData,
     };
     this.data.reviews.unshift(newReview);
@@ -416,6 +419,83 @@ class Database {
     }
     this.save();
     return newReview;
+  }
+
+  updateReview(reviewId, updates) {
+    const idx = this.data.reviews.findIndex(r => r.id === reviewId);
+    if (idx === -1) return null;
+    this.data.reviews[idx] = {
+      ...this.data.reviews[idx],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    const spotId = this.data.reviews[idx].spotId;
+    if (spotId) {
+      const spot = this.data.spots.find(s => s.id === spotId);
+      if (spot) {
+        const spotRevs = this.data.reviews.filter(r => r.spotId === spot.id);
+        const avg = spotRevs.reduce((acc, r) => acc + (r.ratingOverall || r.rating || 5), 0) / spotRevs.length;
+        spot.rating = parseFloat(avg.toFixed(2));
+        spot.reviewCount = spotRevs.length;
+      }
+    }
+    this.save();
+    return this.data.reviews[idx];
+  }
+
+  deleteReview(reviewId) {
+    const idx = this.data.reviews.findIndex(r => r.id === reviewId);
+    if (idx === -1) return false;
+    const [deleted] = this.data.reviews.splice(idx, 1);
+    if (deleted?.spotId) {
+      const spot = this.data.spots.find(s => s.id === deleted.spotId);
+      if (spot) {
+        const spotRevs = this.data.reviews.filter(r => r.spotId === spot.id);
+        spot.reviewCount = spotRevs.length;
+        if (spotRevs.length > 0) {
+          const avg = spotRevs.reduce((acc, r) => acc + (r.ratingOverall || r.rating || 5), 0) / spotRevs.length;
+          spot.rating = parseFloat(avg.toFixed(2));
+        } else {
+          spot.rating = 5.0;
+        }
+      }
+    }
+    this.save();
+    return true;
+  }
+
+  approveReview(reviewId) {
+    return this.updateReview(reviewId, { status: 'approved', isModerated: true });
+  }
+
+  // Spot Edit Requests
+  getSpotEditRequests() {
+    return this.data.spot_edits || [];
+  }
+
+  addSpotEditRequest(editData) {
+    const newRequest = {
+      id: editData.id || `edit-req-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      status: 'pending',
+      ...editData,
+    };
+    if (!this.data.spot_edits) this.data.spot_edits = [];
+    this.data.spot_edits.unshift(newRequest);
+    this.save();
+    return newRequest;
+  }
+
+  updateSpotEditRequest(requestId, updates) {
+    if (!this.data.spot_edits) this.data.spot_edits = [];
+    const idx = this.data.spot_edits.findIndex(e => e.id === requestId);
+    if (idx === -1) return null;
+    this.data.spot_edits[idx] = {
+      ...this.data.spot_edits[idx],
+      ...updates
+    };
+    this.save();
+    return this.data.spot_edits[idx];
   }
 
   // Reports

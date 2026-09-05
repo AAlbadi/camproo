@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Review, User } from '../../types';
+import { useApp } from '../../context/AppContext';
 import {
   Star,
   ShieldCheck,
@@ -9,7 +10,9 @@ import {
   Calendar,
   PenLine,
   Image as ImageIcon,
-  X
+  X,
+  Edit2,
+  Clock
 } from 'lucide-react';
 import { Button } from '../ui/button';
 
@@ -17,13 +20,16 @@ interface ReviewsListProps {
   reviews: Review[];
   users: User[];
   onWriteReview?: () => void;
+  onEditReview?: (review: Review) => void;
 }
 
 export const ReviewsList: React.FC<ReviewsListProps> = ({
   reviews,
   users,
   onWriteReview,
+  onEditReview,
 }) => {
+  const { currentUser } = useApp();
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
   const averageRating = reviews.length > 0
@@ -185,11 +191,24 @@ export const ReviewsList: React.FC<ReviewsListProps> = ({
                           <Calendar className="w-3 h-3 text-muted-foreground" />
                           <span>{review.stayDate || review.createdAt}</span>
                         </span>
+
+                        {review.updatedAt && (
+                          <span className="text-[10px] text-muted-foreground italic font-normal">
+                            (edited)
+                          </span>
+                        )}
+
+                        {review.status === 'pending' && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/70 text-amber-900 dark:text-amber-200 text-[10px] font-bold border border-amber-300 dark:border-amber-700">
+                            <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                            <span>Under Review</span>
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
 
-                  {/* Rating Stars & Recommendation Badge */}
+                  {/* Rating Stars, Recommendation Badge & Edit Action */}
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-0.5">
                       {[1, 2, 3, 4, 5].map((star) => (
@@ -208,6 +227,18 @@ export const ReviewsList: React.FC<ReviewsListProps> = ({
                       <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 text-[10px] font-black border border-emerald-200 dark:border-emerald-800">
                         <ThumbsUp className="w-3 h-3 text-emerald-600" /> Recommends
                       </span>
+                    )}
+
+                    {onEditReview && (review.authorId === currentUser?.id || currentUser?.role === 'admin') && (
+                      <button
+                        type="button"
+                        onClick={() => onEditReview(review)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold text-foreground bg-secondary/80 hover:bg-secondary border border-border transition-colors shadow-xs ml-1"
+                        title="Edit this review"
+                      >
+                        <Edit2 className="w-3 h-3 text-emerald-600" />
+                        <span>Edit</span>
+                      </button>
                     )}
                   </div>
                 </div>

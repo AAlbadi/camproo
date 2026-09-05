@@ -61,6 +61,13 @@ export const HostOnboardingWizard: React.FC = () => {
   const [submitterPhone, setSubmitterPhone] = useState(currentUser?.phone || '');
   const [submitterNotes, setSubmitterNotes] = useState('');
 
+  // Sync with currentUser when logged in
+  React.useEffect(() => {
+    if (currentUser?.email && !submitterEmail) setSubmitterEmail(currentUser.email);
+    if (currentUser?.name && !submitterName) setSubmitterName(currentUser.name);
+    if (currentUser?.phone && !submitterPhone) setSubmitterPhone(currentUser.phone);
+  }, [currentUser]);
+
   // Spot Identity
   const [title, setTitle] = useState('');
   const [tagline, setTagline] = useState('');

@@ -30,6 +30,8 @@ interface WriteReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  initialReview?: Review | null;
+  isEditMode?: boolean;
 }
 
 const RATING_LABELS: Record<number, string> = {
@@ -45,8 +47,10 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
+  initialReview,
+  isEditMode = false,
 }) => {
-  const { currentUser, submitReview } = useApp();
+  const { currentUser, submitReview, updateReview } = useApp();
   const { showToast } = useToast();
 
   const [ratingOverall, setRatingOverall] = useState<number>(5);
@@ -75,6 +79,35 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
   const [photoUrlInput, setPhotoUrlInput] = useState('');
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Initialize or reset form based on edit mode and initialReview
+  React.useEffect(() => {
+    if (isOpen) {
+      if (isEditMode && initialReview) {
+        setRatingOverall(initialReview.ratingOverall || 5);
+        setCategories({
+          accuracy: initialReview.categories?.accuracy || 5,
+          roadAccess: initialReview.categories?.communication || 5,
+          cleanliness: initialReview.categories?.cleanliness || 5,
+          safety: initialReview.categories?.safety || 5,
+          hospitality: initialReview.categories?.hospitality || 5,
+        });
+        setComment(initialReview.comment || '');
+        setRigType(initialReview.rigType || (currentUser.rig?.type ? `${currentUser.rig.lengthFt}ft ${currentUser.rig.type.replace('_', ' ')}` : '25ft Campervan'));
+        setStayDate(initialReview.stayDate || initialReview.createdAt || new Date().toISOString().split('T')[0]);
+        setWouldWelcomeAgain(initialReview.wouldWelcomeAgain ?? true);
+        setAttachedPhotos(initialReview.photos || []);
+      } else {
+        setRatingOverall(5);
+        setCategories({ accuracy: 5, roadAccess: 5, cleanliness: 5, safety: 5, hospitality: 5 });
+        setComment('');
+        setRigType(currentUser.rig?.type ? `${currentUser.rig.lengthFt}ft ${currentUser.rig.type.replace('_', ' ')}` : '25ft Campervan');
+        setStayDate(new Date().toISOString().split('T')[0]);
+        setWouldWelcomeAgain(true);
+        setAttachedPhotos([]);
+      }
+    }
+  }, [isOpen, isEditMode, initialReview, currentUser]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -122,35 +155,54 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
     setIsSubmitting(true);
 
     try {
-      const reviewPayload: Omit<Review, 'id' | 'createdAt'> = {
-        spotId: spot.id,
-        travelerId: currentUser.id,
-        hostId: spot.hostId || 'public',
-        stayRequestId: `req-${Date.now()}`,
-        authorId: currentUser.id,
-        authorRole: 'traveler',
-        ratingOverall,
-        categories: {
-          accuracy: categories.accuracy,
-          communication: categories.hospitality,
-          hospitality: categories.hospitality,
-          safety: categories.safety,
-          cleanliness: categories.cleanliness,
-        },
-        wouldWelcomeAgain,
-        comment: comment.trim(),
-        photos: attachedPhotos,
-        rigType,
-        stayDate,
-      };
+      if (isEditMode && initialReview) {
+        updateReview(initialReview.id, {
+          ratingOverall,
+          categories: {
+            accuracy: categories.accuracy,
+            communication: categories.roadAccess,
+            hospitality: categories.hospitality,
+            safety: categories.safety,
+            cleanliness: categories.cleanliness,
+          },
+          wouldWelcomeAgain,
+          comment: comment.trim(),
+          photos: attachedPhotos,
+          rigType,
+          stayDate,
+        });
+        showToast('Review updated successfully!', 'success');
+      } else {
+        const reviewPayload: Omit<Review, 'id' | 'createdAt'> = {
+          spotId: spot.id,
+          travelerId: currentUser.id,
+          hostId: spot.hostId || 'public',
+          stayRequestId: `req-${Date.now()}`,
+          authorId: currentUser.id,
+          authorRole: 'traveler',
+          ratingOverall,
+          categories: {
+            accuracy: categories.accuracy,
+            communication: categories.roadAccess,
+            hospitality: categories.hospitality,
+            safety: categories.safety,
+            cleanliness: categories.cleanliness,
+          },
+          wouldWelcomeAgain,
+          comment: comment.trim(),
+          photos: attachedPhotos,
+          rigType,
+          stayDate,
+        };
 
-      submitReview(reviewPayload);
+        submitReview(reviewPayload);
+        showToast('Review submitted! Thank you for helping fellow RVers.', 'success');
+      }
 
-      showToast('Review submitted! Thank you for helping fellow RVers.', 'success');
       onClose();
       if (onSuccess) onSuccess();
     } catch (err) {
-      showToast('Failed to submit review. Please try again.', 'error');
+      showToast('Failed to save review. Please try again.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -164,13 +216,15 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
         <DialogHeader>
           <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider">
             <CheckCircle2 className="w-4 h-4" />
-            <span>Camper Community Field Report</span>
+            <span>{isEditMode ? 'Edit Existing Review' : 'Camper Community Field Report'}</span>
           </div>
           <DialogTitle className="text-xl font-black text-foreground">
-            Review {spot.title}
+            {isEditMode ? `Edit Review for ${spot.title}` : `Review ${spot.title}`}
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
-            Share authentic road conditions, leveling, cell reception, and photos to help the boondocking community.
+            {isEditMode
+              ? 'Update your ratings, road condition updates, or add newly taken campsite photos.'
+              : 'Share authentic road conditions, leveling, cell reception, and photos to help the boondocking community.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -446,12 +500,12 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
-                    Publishing...
+                    {isEditMode ? 'Saving Changes...' : 'Publishing...'}
                   </>
                 ) : (
                   <>
                     <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
-                    Submit Review & Photos
+                    {isEditMode ? 'Save Updated Review' : 'Submit Review & Photos'}
                   </>
                 )}
               </Button>

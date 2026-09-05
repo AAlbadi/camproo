@@ -35,3 +35,37 @@ reviewsRouter.post("/", async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 });
+
+// PUT update review
+reviewsRouter.put("/:id", (req, res) => {
+  try {
+    const updated = db.updateReview(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ success: false, message: "Review not found" });
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// PATCH approve review
+reviewsRouter.patch("/:id/approve", (req, res) => {
+  try {
+    const approved = db.approveReview(req.params.id);
+    if (!approved) return res.status(404).json({ success: false, message: "Review not found" });
+    res.json({ success: true, data: approved });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// DELETE review
+reviewsRouter.delete("/:id", (req, res) => {
+  try {
+    const success = db.deleteReview(req.params.id);
+    if (!success) return res.status(404).json({ success: false, message: "Review not found" });
+    res.json({ success: true, message: "Review deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useToast } from '../../context/ToastContext';
 import { getStoredTrafficStats } from '../../lib/tracker';
+import { Review, SpotEditRequest } from '../../types';
+import { WriteReviewModal } from '../spot-detail/WriteReviewModal';
 import {
   ShieldAlert,
   Users,
@@ -19,7 +21,13 @@ import {
   Unlock,
   BadgeCheck,
   MessageSquare,
-  Mail
+  Mail,
+  Edit,
+  Edit3,
+  Clock,
+  Check,
+  FileCheck2,
+  RotateCcw
 } from 'lucide-react';
 
 export const AdminDashboard: React.FC = () => {
@@ -34,6 +42,17 @@ export const AdminDashboard: React.FC = () => {
     adminResolveReport,
     adminToggleVerifyUser,
     deleteSpot,
+    adminApproveSpot,
+    adminApproveAllSpots,
+    adminRejectSpot,
+    spotEditRequests,
+    adminApproveSpotEditRequest,
+    adminRejectSpotEditRequest,
+    adminApproveAllSpotEditRequests,
+    adminApproveReview,
+    adminApproveAllReviews,
+    adminRejectReview,
+    deleteReview,
     setCurrentView,
     setSelectedSpotId,
     isAdminAuthenticated,
@@ -43,9 +62,13 @@ export const AdminDashboard: React.FC = () => {
 
   const { showToast } = useToast();
 
-  const [activeTab, setActiveTab] = useState<'analytics' | 'vsotd' | 'reports' | 'users' | 'spots' | 'reviews' | 'verifications'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'vsotd' | 'reports' | 'edits' | 'users' | 'spots' | 'reviews' | 'verifications'>('analytics');
   const [userSearch, setUserSearch] = useState('');
   const [spotSearch, setSpotSearch] = useState('');
+  const [spotStatusFilter, setSpotStatusFilter] = useState<'all' | 'pending' | 'approved' | 'featured'>('all');
+  const [editFilter, setEditFilter] = useState<'all' | 'pending' | 'applied' | 'rejected'>('all');
+  const [reviewFilter, setReviewFilter] = useState<'all' | 'pending' | 'approved'>('all');
+  const [adminEditingReview, setAdminEditingReview] = useState<Review | null>(null);
 
   // Admin gate form states
   const [adminUser, setAdminUser] = useState('aziz');
@@ -265,6 +288,10 @@ export const AdminDashboard: React.FC = () => {
   const totalUsers = users.length;
   const totalSpots = spots.length;
   const pendingReports = reports.filter(r => r.status === 'pending');
+  const pendingSpots = spots.filter(s => s.reviewStatus === 'pending_review');
+  const pendingEdits = spotEditRequests.filter(e => e.status === 'pending');
+  const pendingReviews = reviews.filter(r => r.status === 'pending');
+
   const totalFreeNightsHosted = requests
     .filter(r => r.status === 'accepted' || r.status === 'completed')
     .reduce((acc, r) => acc + r.nights, 0);
@@ -274,10 +301,28 @@ export const AdminDashboard: React.FC = () => {
     u.email.toLowerCase().includes(userSearch.toLowerCase())
   );
 
-  const filteredSpots = spots.filter(s =>
-    s.title.toLowerCase().includes(spotSearch.toLowerCase()) ||
-    s.locationName.toLowerCase().includes(spotSearch.toLowerCase())
-  );
+  const filteredSpots = spots.filter(s => {
+    const matchesSearch = s.title.toLowerCase().includes(spotSearch.toLowerCase()) ||
+      s.locationName.toLowerCase().includes(spotSearch.toLowerCase());
+    if (!matchesSearch) return false;
+    if (spotStatusFilter === 'pending') return s.reviewStatus === 'pending_review';
+    if (spotStatusFilter === 'approved') return s.reviewStatus === 'approved';
+    if (spotStatusFilter === 'featured') return s.isFeatured;
+    return true;
+  });
+
+  const filteredReviews = reviews.filter(r => {
+    if (reviewFilter === 'pending') return r.status === 'pending';
+    if (reviewFilter === 'approved') return r.status !== 'pending' && r.status !== 'rejected';
+    return true;
+  });
+
+  const filteredEdits = spotEditRequests.filter(e => {
+    if (editFilter === 'pending') return e.status === 'pending';
+    if (editFilter === 'applied') return e.status === 'applied';
+    if (editFilter === 'rejected') return e.status === 'rejected';
+    return true;
+  });
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in bg-white">
@@ -298,18 +343,18 @@ export const AdminDashboard: React.FC = () => {
               CampRoo Ranger Admin Hub
             </h1>
             <p className="text-xs sm:text-sm text-dark-600 mt-0.5">
-              Monitor community safety, resolve user reports, audit free spots, register VSOTD, and manage platform telemetry.
+              Monitor community safety, resolve user reports, audit free spots, approve edit requests and reviews, and manage platform telemetry.
             </p>
           </div>
         </div>
 
         {/* Tab Navigator */}
         <div className="flex flex-wrap items-center bg-dark-100 p-1 rounded-2xl border border-dark-200 self-start">
-          {(['analytics', 'vsotd', 'reports', 'users', 'spots', 'reviews', 'verifications'] as const).map(tab => (
+          {(['analytics', 'vsotd', 'spots', 'edits', 'reviews', 'reports', 'users', 'verifications'] as const).map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize transition-all flex items-center gap-1.5 ${
                 activeTab === tab
                   ? 'bg-dark-900 text-white shadow-xs'
                   : 'text-dark-600 hover:text-dark-900'
@@ -317,6 +362,33 @@ export const AdminDashboard: React.FC = () => {
             >
               {tab === 'vsotd' ? (
                 'VSOTD & Data'
+              ) : tab === 'spots' ? (
+                <>
+                  <span>Spots</span>
+                  {pendingSpots.length > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-white text-[10px] font-black animate-pulse">
+                      {pendingSpots.length}
+                    </span>
+                  )}
+                </>
+              ) : tab === 'edits' ? (
+                <>
+                  <span>Edit Requests</span>
+                  {pendingEdits.length > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-white text-[10px] font-black animate-pulse">
+                      {pendingEdits.length}
+                    </span>
+                  )}
+                </>
+              ) : tab === 'reviews' ? (
+                <>
+                  <span>Reviews</span>
+                  {pendingReviews.length > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-white text-[10px] font-black animate-pulse">
+                      {pendingReviews.length}
+                    </span>
+                  )}
+                </>
               ) : tab === 'reports' && pendingReports.length > 0 ? (
                 <span className="flex items-center gap-1.5">
                   <span>Reports</span>
@@ -707,144 +779,541 @@ export const AdminDashboard: React.FC = () => {
       {/* SPOTS TAB */}
       {activeTab === 'spots' && (
         <div className="space-y-4 animate-fade-in">
-          <div className="flex items-center justify-between gap-4">
-            <h2 className="text-xl font-extrabold text-dark-900">Listed Free Spots ({filteredSpots.length})</h2>
-            <div className="relative w-64">
-              <Search className="w-4 h-4 text-dark-400 absolute left-3 top-3" />
-              <input
-                type="text"
-                placeholder="Search spots..."
-                value={spotSearch}
-                onChange={e => setSpotSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 rounded-xl border border-dark-300 text-xs text-dark-900 focus:outline-none"
-              />
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-extrabold text-dark-900">Listed Free Spots ({filteredSpots.length})</h2>
+              <p className="text-xs text-dark-600 mt-0.5">Audit user submissions, verify peer havens, and approve public spots.</p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {pendingSpots.length > 0 && (
+                <button
+                  onClick={() => {
+                    adminApproveAllSpots();
+                    showToast(`Approved all ${pendingSpots.length} pending spots!`, 'success');
+                  }}
+                  className="px-4 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black flex items-center gap-1.5 shadow-md transition-all"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Approve All Pending Spots ({pendingSpots.length})</span>
+                </button>
+              )}
+
+              <div className="relative w-56">
+                <Search className="w-4 h-4 text-dark-400 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  placeholder="Search spots..."
+                  value={spotSearch}
+                  onChange={e => setSpotSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-dark-300 text-xs text-dark-900 focus:outline-none"
+                />
+              </div>
             </div>
           </div>
 
+          {/* Spot Filter Sub-nav */}
+          <div className="flex items-center gap-2 bg-dark-100 p-1 rounded-2xl border border-dark-200 self-start w-fit text-xs font-bold">
+            <button
+              onClick={() => setSpotStatusFilter('all')}
+              className={`px-3 py-1.5 rounded-xl transition-all ${spotStatusFilter === 'all' ? 'bg-dark-900 text-white' : 'text-dark-600 hover:text-dark-900'}`}
+            >
+              All ({spots.length})
+            </button>
+            <button
+              onClick={() => setSpotStatusFilter('pending')}
+              className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 ${spotStatusFilter === 'pending' ? 'bg-amber-600 text-white' : 'text-dark-600 hover:text-dark-900'}`}
+            >
+              <span>Pending Review</span>
+              {pendingSpots.length > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black">
+                  {pendingSpots.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setSpotStatusFilter('approved')}
+              className={`px-3 py-1.5 rounded-xl transition-all ${spotStatusFilter === 'approved' ? 'bg-emerald-600 text-white' : 'text-dark-600 hover:text-dark-900'}`}
+            >
+              Approved ({spots.filter(s => s.reviewStatus === 'approved').length})
+            </button>
+            <button
+              onClick={() => setSpotStatusFilter('featured')}
+              className={`px-3 py-1.5 rounded-xl transition-all ${spotStatusFilter === 'featured' ? 'bg-roo-600 text-white' : 'text-dark-600 hover:text-dark-900'}`}
+            >
+              Featured ({spots.filter(s => s.isFeatured).length})
+            </button>
+          </div>
+
           <div className="bg-white rounded-3xl border border-dark-200 shadow-airbnb overflow-hidden divide-y divide-dark-100">
-            {filteredSpots.map(s => (
-              <div key={s.id} className="p-4 sm:p-5 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <img src={s.photos[0]} alt={s.title} className="w-12 h-12 rounded-2xl object-cover" />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-dark-900">{s.title}</span>
-                      {s.id === vsotd?.spotId && (
-                        <span className="text-[10px] px-2 py-0.2 rounded-full bg-amber-100 text-amber-900 font-black border border-amber-300">
-                          ⭐ VSOTD
+            {filteredSpots.length === 0 ? (
+              <div className="p-12 text-center text-xs text-dark-500">
+                No spots match the selected filter.
+              </div>
+            ) : (
+              filteredSpots.map(s => (
+                <div key={s.id} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <img src={s.photos[0]} alt={s.title} className="w-12 h-12 rounded-2xl object-cover shrink-0" />
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-bold text-dark-900">{s.title}</span>
+                        {s.id === vsotd?.spotId && (
+                          <span className="text-[10px] px-2 py-0.2 rounded-full bg-amber-100 text-amber-900 font-black border border-amber-300">
+                            ⭐ VSOTD
+                          </span>
+                        )}
+                        {s.visibility === 'personal' ? (
+                          <span className="text-[10px] px-2 py-0.2 rounded-full bg-indigo-100 text-indigo-800 font-extrabold">
+                            PERSONAL
+                          </span>
+                        ) : s.reviewStatus === 'pending_review' ? (
+                          <span className="text-[10px] px-2 py-0.2 rounded-full bg-amber-100 text-amber-900 font-black border border-amber-300 animate-pulse">
+                            PENDING REVIEW
+                          </span>
+                        ) : (
+                          <span className="text-[10px] px-2 py-0.2 rounded-full bg-emerald-100 text-emerald-800 font-bold">
+                            APPROVED
+                          </span>
+                        )}
+                        {s.isFeatured && (
+                          <span className="text-[10px] px-2 py-0.2 rounded-full bg-roo-100 text-roo-800 font-extrabold">
+                            FEATURED
+                          </span>
+                        )}
+                        <span className="text-[10px] px-2 py-0.2 rounded-full bg-dark-100 text-dark-700 font-bold">
+                          FREE
                         </span>
-                      )}
-                      {s.visibility === 'personal' ? (
-                        <span className="text-[10px] px-2 py-0.2 rounded-full bg-indigo-100 text-indigo-800 font-extrabold">
-                          PERSONAL
+                      </div>
+                      <div className="text-[11px] text-dark-600 mt-0.5">
+                        {s.locationName}, {s.generalArea} · Up to {s.rigCompatibility.maxLengthFt}ft
+                        {s.contactEmail && (
+                          <span className="ml-2 text-dark-500">· Submitter: <span className="font-semibold text-dark-800">{s.submitterName || 'Host'}</span> ({s.contactEmail})</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    {s.reviewStatus === 'pending_review' && (
+                      <>
+                        <button
+                          onClick={() => {
+                            adminApproveSpot(s.id);
+                            showToast(`Spot "${s.title}" approved & published to community!`, 'success');
+                          }}
+                          className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black flex items-center gap-1 shadow-sm transition-all"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Approve Spot</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            adminRejectSpot(s.id);
+                            showToast(`Spot "${s.title}" rejected/archived.`, 'info');
+                          }}
+                          className="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold border border-rose-200 transition-all"
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
+
+                    <button
+                      onClick={() => handleRegisterVsotd(s.id, `Ranger Choice: ${s.title}`)}
+                      className="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold border border-amber-200 transition-colors"
+                    >
+                      Set VSOTD
+                    </button>
+
+                    {s.contactEmail && (
+                      <a
+                        href={`mailto:${s.contactEmail}?subject=${encodeURIComponent(`Regarding your CampRoo spot: ${s.title}`)}&body=${encodeURIComponent(`Hi ${s.submitterName || 'there'},\n\nThank you for sharing ${s.title} on CampRoo. I reviewed your submission and wanted to connect.\n\nBest regards,\nCampRoo Team`)}`}
+                        className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center gap-1 border border-emerald-200 transition-colors"
+                        title={`Email ${s.submitterName || 'Submitter'} at ${s.contactEmail}`}
+                      >
+                        <Mail className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Email Host</span>
+                      </a>
+                    )}
+                    <button
+                      onClick={() => {
+                        adminToggleFeatureSpot(s.id);
+                        showToast(s.isFeatured ? 'Spot removed from featured.' : 'Spot marked as featured!', 'success');
+                      }}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold ${
+                        s.isFeatured ? 'bg-dark-100 text-dark-800' : 'bg-roo-50 text-roo-600'
+                      }`}
+                    >
+                      {s.isFeatured ? 'Unfeature' : 'Feature'}
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setSelectedSpotId(s.id);
+                        setCurrentView('spot-detail');
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-dark-900 text-white text-xs font-bold"
+                    >
+                      Inspect
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        if (window.confirm(`Are you sure you want to remove "${s.title}"?`)) {
+                          deleteSpot(s.id);
+                          showToast(`Spot "${s.title}" removed.`, 'info');
+                        }
+                      }}
+                      className="p-1.5 rounded-xl text-dark-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                      title="Remove Spot"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* EDIT REQUESTS TAB */}
+      {activeTab === 'edits' && (
+        <div className="space-y-4 animate-fade-in">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-extrabold text-dark-900">Spot Edit Requests ({filteredEdits.length})</h2>
+              <p className="text-xs text-dark-600 mt-0.5">Crowdsourced corrections, road updates, and GPS adjustments from RVers.</p>
+            </div>
+
+            {pendingEdits.length > 0 && (
+              <button
+                onClick={() => {
+                  adminApproveAllSpotEditRequests();
+                  showToast(`Approved and applied all ${pendingEdits.length} pending edit requests!`, 'success');
+                }}
+                className="px-4 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black flex items-center gap-1.5 shadow-md transition-all self-start"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Approve All Pending Edits ({pendingEdits.length})</span>
+              </button>
+            )}
+          </div>
+
+          {/* Filter Sub-nav */}
+          <div className="flex items-center gap-2 bg-dark-100 p-1 rounded-2xl border border-dark-200 self-start w-fit text-xs font-bold">
+            <button
+              onClick={() => setEditFilter('all')}
+              className={`px-3 py-1.5 rounded-xl transition-all ${editFilter === 'all' ? 'bg-dark-900 text-white' : 'text-dark-600 hover:text-dark-900'}`}
+            >
+              All ({spotEditRequests.length})
+            </button>
+            <button
+              onClick={() => setEditFilter('pending')}
+              className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 ${editFilter === 'pending' ? 'bg-amber-600 text-white' : 'text-dark-600 hover:text-dark-900'}`}
+            >
+              <span>Pending</span>
+              {pendingEdits.length > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black">
+                  {pendingEdits.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setEditFilter('applied')}
+              className={`px-3 py-1.5 rounded-xl transition-all ${editFilter === 'applied' ? 'bg-emerald-600 text-white' : 'text-dark-600 hover:text-dark-900'}`}
+            >
+              Applied ({spotEditRequests.filter(e => e.status === 'applied').length})
+            </button>
+            <button
+              onClick={() => setEditFilter('rejected')}
+              className={`px-3 py-1.5 rounded-xl transition-all ${editFilter === 'rejected' ? 'bg-rose-600 text-white' : 'text-dark-600 hover:text-dark-900'}`}
+            >
+              Rejected ({spotEditRequests.filter(e => e.status === 'rejected').length})
+            </button>
+          </div>
+
+          {filteredEdits.length === 0 ? (
+            <div className="bg-white p-12 rounded-3xl border border-dark-200 text-center space-y-2 shadow-xs">
+              <FileCheck2 className="w-8 h-8 text-dark-400 mx-auto" />
+              <p className="text-xs font-bold text-dark-700">No edit requests in this category.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredEdits.map(reqItem => {
+                const targetSpot = spots.find(s => s.id === reqItem.spotId);
+                return (
+                  <div key={reqItem.id} className="p-5 sm:p-6 rounded-3xl bg-white border border-dark-200 shadow-sm space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                          reqItem.status === 'pending'
+                            ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                            : reqItem.status === 'applied'
+                            ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                            : 'bg-rose-100 text-rose-900 border border-rose-300'
+                        }`}>
+                          {reqItem.status}
                         </span>
-                      ) : s.reviewStatus === 'pending_review' ? (
-                        <span className="text-[10px] px-2 py-0.2 rounded-full bg-amber-100 text-amber-800 font-extrabold">
-                          PENDING REVIEW
+                        <span className="text-xs font-bold text-dark-500">
+                          Category: <strong className="text-dark-900 capitalize">{reqItem.editType.replace('_', ' ')}</strong>
                         </span>
-                      ) : null}
-                      {s.isFeatured && (
-                        <span className="text-[10px] px-2 py-0.2 rounded-full bg-roo-100 text-roo-800 font-extrabold">
-                          FEATURED
-                        </span>
-                      )}
-                      <span className="text-[10px] px-2 py-0.2 rounded-full bg-emerald-100 text-emerald-800 font-bold">
-                        FREE
+                      </div>
+                      <span className="text-[11px] text-dark-400 font-mono">
+                        {new Date(reqItem.createdAt).toLocaleDateString()}
                       </span>
                     </div>
-                    <div className="text-[11px] text-dark-600">
-                      {s.locationName}, {s.generalArea} · Up to {s.rigCompatibility.maxLengthFt}ft
-                      {s.contactEmail && (
-                        <span className="ml-2 text-dark-500">· Submitter: <span className="font-semibold text-dark-800">{s.submitterName || 'Host'}</span> ({s.contactEmail})</span>
+
+                    <div>
+                      <h3 className="text-base font-extrabold text-dark-900">
+                        {reqItem.spotTitle || targetSpot?.title || 'RV Campsite'}
+                      </h3>
+                      <p className="text-xs text-dark-600 mt-0.5">
+                        Suggested by: <strong className="text-dark-800">{reqItem.submitterName}</strong> {reqItem.submitterEmail ? `(${reqItem.submitterEmail})` : ''}
+                      </p>
+                    </div>
+
+                    {/* Notes */}
+                    <div className="p-3.5 rounded-2xl bg-dark-50 border border-dark-100 text-xs text-dark-700">
+                      <strong className="block text-dark-900 mb-0.5">RVer Note:</strong>
+                      "{reqItem.notes}"
+                    </div>
+
+                    {/* Suggested Changes vs Current */}
+                    {reqItem.suggestedChanges && (
+                      <div className="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200/80 text-xs space-y-1.5">
+                        <span className="font-extrabold text-amber-950 block">Suggested Field Changes:</span>
+                        {reqItem.suggestedChanges.maxLengthFt !== undefined && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-dark-600">Max RV Length:</span>
+                            <span className="font-mono font-bold text-dark-900">
+                              {targetSpot ? `${targetSpot.rigCompatibility.maxLengthFt}ft → ` : ''}
+                              <strong className="text-emerald-700">{reqItem.suggestedChanges.maxLengthFt}ft</strong>
+                            </span>
+                          </div>
+                        )}
+                        {reqItem.suggestedChanges.coordinates && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-dark-600">GPS Coordinates:</span>
+                            <span className="font-mono font-bold text-dark-900">
+                              {targetSpot ? `[${targetSpot.coordinates[0].toFixed(4)}, ${targetSpot.coordinates[1].toFixed(4)}] → ` : ''}
+                              <strong className="text-emerald-700">[{reqItem.suggestedChanges.coordinates[0].toFixed(4)}, {reqItem.suggestedChanges.coordinates[1].toFixed(4)}]</strong>
+                            </span>
+                          </div>
+                        )}
+                        {reqItem.suggestedChanges.roadCondition && (
+                          <div>
+                            <span className="text-dark-600 block">Road Condition Note:</span>
+                            <span className="font-bold text-dark-900 mt-0.5 block italic">"{reqItem.suggestedChanges.roadCondition}"</span>
+                          </div>
+                        )}
+                        {reqItem.suggestedChanges.seasonalNotes && (
+                          <div>
+                            <span className="text-dark-600 block">Seasonal Notice:</span>
+                            <span className="font-bold text-dark-900 mt-0.5 block italic">"{reqItem.suggestedChanges.seasonalNotes}"</span>
+                          </div>
+                        )}
+                        {reqItem.suggestedChanges.description && (
+                          <div>
+                            <span className="text-dark-600 block">Description / Amenities:</span>
+                            <span className="font-bold text-dark-900 mt-0.5 block italic">"{reqItem.suggestedChanges.description}"</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-dark-100">
+                      <button
+                        onClick={() => {
+                          setSelectedSpotId(reqItem.spotId);
+                          setCurrentView('spot-detail');
+                        }}
+                        className="px-3.5 py-1.5 rounded-xl bg-dark-100 hover:bg-dark-200 text-dark-900 text-xs font-bold transition-colors"
+                      >
+                        Inspect Listing
+                      </button>
+
+                      {reqItem.status === 'pending' && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              adminRejectSpotEditRequest(reqItem.id);
+                              showToast('Edit request marked as rejected.', 'info');
+                            }}
+                            className="px-3.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold border border-rose-200 transition-colors"
+                          >
+                            Reject
+                          </button>
+                          <button
+                            onClick={() => {
+                              adminApproveSpotEditRequest(reqItem.id);
+                              showToast('Edit request approved and applied to listing!', 'success');
+                            }}
+                            className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black shadow-xs flex items-center gap-1.5 transition-colors"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            <span>Approve & Apply</span>
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleRegisterVsotd(s.id, `Ranger Choice: ${s.title}`)}
-                    className="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold border border-amber-200 transition-colors"
-                  >
-                    Set VSOTD
-                  </button>
-
-                  {s.contactEmail && (
-                    <a
-                      href={`mailto:${s.contactEmail}?subject=${encodeURIComponent(`Regarding your CampRoo spot: ${s.title}`)}&body=${encodeURIComponent(`Hi ${s.submitterName || 'there'},\n\nThank you for sharing ${s.title} on CampRoo. I reviewed your submission and wanted to connect.\n\nBest regards,\nCampRoo Team`)}`}
-                      className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center gap-1 border border-emerald-200 transition-colors"
-                      title={`Email ${s.submitterName || 'Submitter'} at ${s.contactEmail}`}
-                    >
-                      <Mail className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>Email Host</span>
-                    </a>
-                  )}
-                  <button
-                    onClick={() => {
-                      adminToggleFeatureSpot(s.id);
-                      showToast(s.isFeatured ? 'Spot removed from featured.' : 'Spot marked as featured!', 'success');
-                    }}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold ${
-                      s.isFeatured ? 'bg-dark-100 text-dark-800' : 'bg-roo-50 text-roo-600'
-                    }`}
-                  >
-                    {s.isFeatured ? 'Unfeature' : 'Feature'}
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setSelectedSpotId(s.id);
-                      setCurrentView('spot-detail');
-                    }}
-                    className="px-3 py-1.5 rounded-xl bg-dark-900 text-white text-xs font-bold"
-                  >
-                    Inspect
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      if (window.confirm(`Are you sure you want to remove "${s.title}"?`)) {
-                        deleteSpot(s.id);
-                        showToast(`Spot "${s.title}" removed.`, 'info');
-                      }
-                    }}
-                    className="p-1.5 rounded-xl text-dark-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                    title="Remove Spot"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
       {/* REVIEWS TAB */}
       {activeTab === 'reviews' && (
         <div className="space-y-4 animate-fade-in">
-          <h2 className="text-xl font-extrabold text-dark-900">Community Reviews Moderation ({reviews.length})</h2>
-          <div className="space-y-3">
-            {reviews.map(rev => {
-              const author = users.find(u => u.id === rev.authorId);
-              const spot = spots.find(s => s.id === rev.spotId);
-              return (
-                <div key={rev.id} className="p-5 rounded-3xl bg-white border border-dark-200 shadow-sm space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-dark-900">{author?.name} for "{spot?.title || 'Spot'}"</span>
-                    <span className="text-amber-500 font-bold">★ {rev.ratingOverall}</span>
-                  </div>
-                  <p className="text-xs text-dark-700 italic">"{rev.comment}"</p>
-                  <div className="flex items-center justify-between pt-2 border-t border-dark-100 text-[11px] text-dark-500">
-                    <span>Cleanliness: {rev.categories?.cleanliness || 5} · Hospitality: {rev.categories?.hospitality || 5}</span>
-                    <span className="text-emerald-700 font-bold">
-                      {rev.wouldWelcomeAgain ? '✓ Welcomes Again' : 'No'}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-extrabold text-dark-900">Community Reviews Moderation ({filteredReviews.length})</h2>
+              <p className="text-xs text-dark-600 mt-0.5">Moderate traveler reviews, approve submissions, and maintain rating integrity.</p>
+            </div>
+
+            {pendingReviews.length > 0 && (
+              <button
+                onClick={() => {
+                  adminApproveAllReviews();
+                  showToast(`Approved all ${pendingReviews.length} pending reviews!`, 'success');
+                }}
+                className="px-4 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black flex items-center gap-1.5 shadow-md transition-all self-start"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Approve All Pending Reviews ({pendingReviews.length})</span>
+              </button>
+            )}
           </div>
+
+          {/* Filter Sub-nav */}
+          <div className="flex items-center gap-2 bg-dark-100 p-1 rounded-2xl border border-dark-200 self-start w-fit text-xs font-bold">
+            <button
+              onClick={() => setReviewFilter('all')}
+              className={`px-3 py-1.5 rounded-xl transition-all ${reviewFilter === 'all' ? 'bg-dark-900 text-white' : 'text-dark-600 hover:text-dark-900'}`}
+            >
+              All ({reviews.length})
+            </button>
+            <button
+              onClick={() => setReviewFilter('pending')}
+              className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 ${reviewFilter === 'pending' ? 'bg-amber-600 text-white' : 'text-dark-600 hover:text-dark-900'}`}
+            >
+              <span>Pending Moderation</span>
+              {pendingReviews.length > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black">
+                  {pendingReviews.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setReviewFilter('approved')}
+              className={`px-3 py-1.5 rounded-xl transition-all ${reviewFilter === 'approved' ? 'bg-emerald-600 text-white' : 'text-dark-600 hover:text-dark-900'}`}
+            >
+              Approved ({reviews.filter(r => r.status !== 'pending' && r.status !== 'rejected').length})
+            </button>
+          </div>
+
+          {filteredReviews.length === 0 ? (
+            <div className="bg-white p-12 rounded-3xl border border-dark-200 text-center text-xs text-dark-500">
+              No reviews match the selected filter.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredReviews.map(rev => {
+                const author = users.find(u => u.id === rev.authorId);
+                const spot = spots.find(s => s.id === rev.spotId);
+                const isPending = rev.status === 'pending';
+
+                return (
+                  <div key={rev.id} className="p-5 rounded-3xl bg-white border border-dark-200 shadow-sm space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-dark-900">{author?.name || 'RVer'}</span>
+                        <span className="text-dark-400">for</span>
+                        <button
+                          onClick={() => {
+                            if (spot?.id) {
+                              setSelectedSpotId(spot.id);
+                              setCurrentView('spot-detail');
+                            }
+                          }}
+                          className="font-bold text-emerald-800 hover:underline"
+                        >
+                          "{spot?.title || 'Spot'}"
+                        </button>
+                        {isPending ? (
+                          <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-black border border-amber-300 animate-pulse">
+                            PENDING APPROVAL
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-[10px] font-bold">
+                            APPROVED
+                          </span>
+                        )}
+                        {rev.updatedAt && (
+                          <span className="text-[10px] text-dark-400 italic">(edited)</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-amber-500 font-bold">★ {rev.ratingOverall}</span>
+                        <span className="text-[11px] text-dark-400">{rev.createdAt}</span>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-dark-700 italic leading-relaxed">"{rev.comment}"</p>
+
+                    {rev.photos && rev.photos.length > 0 && (
+                      <div className="flex items-center gap-2 pt-1">
+                        {rev.photos.map((p, pIdx) => (
+                          <img key={pIdx} src={p} alt="Review attachment" className="w-12 h-12 rounded-xl object-cover border border-dark-200" />
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="flex flex-wrap items-center justify-between pt-2 border-t border-dark-100 text-[11px] text-dark-500 gap-3">
+                      <span>Cleanliness: {rev.categories?.cleanliness || 5} · Safety: {rev.categories?.safety || 5} · Road: {rev.categories?.communication || 5}</span>
+                      <div className="flex items-center gap-2">
+                        {isPending && (
+                          <button
+                            onClick={() => {
+                              adminApproveReview(rev.id);
+                              showToast('Review approved and published!', 'success');
+                            }}
+                            className="px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1 shadow-xs transition-colors"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            <span>Approve</span>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setAdminEditingReview(rev)}
+                          className="px-2.5 py-1 rounded-xl bg-dark-100 hover:bg-dark-200 text-dark-900 text-xs font-bold flex items-center gap-1 transition-colors"
+                        >
+                          <Edit className="w-3 h-3 text-dark-700" />
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (window.confirm('Are you sure you want to delete this review?')) {
+                              deleteReview(rev.id);
+                              showToast('Review deleted.', 'info');
+                            }
+                          }}
+                          className="px-2.5 py-1 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
@@ -896,6 +1365,17 @@ export const AdminDashboard: React.FC = () => {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Admin Review Edit Modal */}
+      {adminEditingReview && (
+        <WriteReviewModal
+          spot={spots.find(s => s.id === adminEditingReview.spotId) || spots[0]}
+          isOpen={Boolean(adminEditingReview)}
+          onClose={() => setAdminEditingReview(null)}
+          initialReview={adminEditingReview}
+          isEditMode={true}
+        />
       )}
     </div>
   );

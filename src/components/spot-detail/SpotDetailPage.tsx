@@ -15,7 +15,7 @@ import { Card } from '../ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody } from '../ui/dialog';
 import { InteractiveMap } from '../explore/InteractiveMap';
 import { getOptimizedImageUrl } from '../../lib/imageOptimizer';
-import { isPublicSpot, getSpotAgencyInfo } from '../../types';
+import { isPublicSpot, getSpotAgencyInfo, Review } from '../../types';
 import {
   Star,
   ShieldCheck,
@@ -65,7 +65,13 @@ export const SpotDetailPage: React.FC = () => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [showAddPhotoModal, setShowAddPhotoModal] = useState(false);
   const [showWriteReviewModal, setShowWriteReviewModal] = useState(false);
+  const [editingReview, setEditingReview] = useState<Review | null>(null);
   const [showRequestEditModal, setShowRequestEditModal] = useState(false);
+
+  const handleOpenNewReviewModal = () => {
+    setEditingReview(null);
+    setShowWriteReviewModal(true);
+  };
 
   // Photo upload modal state
   const [uploadMode, setUploadMode] = useState<'file' | 'url'>('file');
@@ -83,7 +89,9 @@ export const SpotDetailPage: React.FC = () => {
   const spot = spots.find(s => s.id === selectedSpotId);
   const isSaved = spot ? isSpotSaved(spot.id) : false;
   const host = spot ? users.find(u => u.id === spot.hostId) : undefined;
-  const spotReviews = spot ? reviews.filter(r => r.spotId === spot.id) : [];
+  const spotReviews = spot
+    ? reviews.filter(r => r.spotId === spot.id && r.status !== 'rejected' && (r.status !== 'pending' || r.authorId === currentUser.id || currentUser.role === 'admin'))
+    : [];
   const isPublic = spot ? isPublicSpot(spot, users) : true;
   const agencyInfo = spot ? getSpotAgencyInfo(spot) : { agency: 'Public Land', shortName: 'Public', isFederal: true };
 
@@ -260,7 +268,7 @@ export const SpotDetailPage: React.FC = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowWriteReviewModal(true)}
+              onClick={handleOpenNewReviewModal}
               className="text-xs font-bold gap-1.5 hidden sm:inline-flex bg-background hover:bg-secondary/60"
             >
               <PenLine className="w-3.5 h-3.5 text-emerald-600" />
@@ -731,7 +739,14 @@ export const SpotDetailPage: React.FC = () => {
             <ReviewsList
               reviews={spotReviews}
               users={users}
-              onWriteReview={() => setShowWriteReviewModal(true)}
+              onWriteReview={() => {
+                setEditingReview(null);
+                setShowWriteReviewModal(true);
+              }}
+              onEditReview={(rev) => {
+                setEditingReview(rev);
+                setShowWriteReviewModal(true);
+              }}
             />
           </div>
 
@@ -873,7 +888,7 @@ export const SpotDetailPage: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowWriteReviewModal(true)}
+                  onClick={handleOpenNewReviewModal}
                   className="w-full text-xs font-bold gap-1 text-emerald-800 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50"
                 >
                   <PenLine className="w-3.5 h-3.5" />
@@ -958,7 +973,7 @@ export const SpotDetailPage: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowWriteReviewModal(true)}
+                  onClick={handleOpenNewReviewModal}
                   className="w-full text-xs font-bold gap-1 text-emerald-800 dark:text-emerald-400"
                 >
                   <PenLine className="w-3.5 h-3.5" />
@@ -979,11 +994,16 @@ export const SpotDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Write Review Modal */}
+      {/* Write / Edit Review Modal */}
       <WriteReviewModal
         spot={spot}
         isOpen={showWriteReviewModal}
-        onClose={() => setShowWriteReviewModal(false)}
+        onClose={() => {
+          setShowWriteReviewModal(false);
+          setEditingReview(null);
+        }}
+        initialReview={editingReview}
+        isEditMode={Boolean(editingReview)}
       />
 
       {/* Request Edit Modal */}
@@ -1273,7 +1293,7 @@ export const SpotDetailPage: React.FC = () => {
 
         <div className="flex items-center gap-2 shrink-0">
           <button
-            onClick={() => setShowWriteReviewModal(true)}
+            onClick={handleOpenNewReviewModal}
             className="p-2.5 rounded-2xl bg-secondary hover:bg-secondary/80 border border-border text-foreground active:scale-95 transition-transform"
             title="Write a Review"
           >
