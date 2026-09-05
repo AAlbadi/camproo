@@ -94,6 +94,21 @@ export const SpotDetailPage: React.FC = () => {
     setTimeout(() => setCopiedGps(false), 2500);
   };
 
+  React.useEffect(() => {
+    if (spot && typeof window !== 'undefined') {
+      try {
+        const searchParams = new URLSearchParams(window.location.search);
+        if (!searchParams.has('spot')) {
+          const url = new URL(window.location.href);
+          url.searchParams.set('spot', spot.id);
+          url.searchParams.set('view', 'spot-detail');
+          url.hash = 'spot-detail';
+          window.history.replaceState({ view: 'spot-detail', spot: spot.id }, '', url.toString());
+        }
+      } catch (e) {}
+    }
+  }, [spot]);
+
   const handlePhotoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -253,7 +268,8 @@ export const SpotDetailPage: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => {
-                navigator.clipboard?.writeText(window.location.href);
+                const shareUrl = `${window.location.origin}${window.location.pathname}?view=spot-detail&spot=${spot.id}`;
+                navigator.clipboard?.writeText(shareUrl);
                 showToast('Spot link copied to clipboard!', 'success');
               }}
               className="flex items-center gap-1.5 text-xs bg-background"
@@ -817,7 +833,8 @@ export const SpotDetailPage: React.FC = () => {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    navigator.clipboard?.writeText(window.location.href);
+                    const shareUrl = `${window.location.origin}${window.location.pathname}?view=spot-detail&spot=${spot.id}`;
+                    navigator.clipboard?.writeText(shareUrl);
                     showToast('Spot link copied to clipboard!', 'success');
                   }}
                   className="w-full text-xs font-bold gap-1.5"

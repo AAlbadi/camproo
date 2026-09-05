@@ -137,14 +137,10 @@ export interface Spot {
 
 export function isPublicSpot(spot: Spot, users?: User[]): boolean {
   if (spot.spotType === 'public') return true;
-  if (spot.spotType === 'host') return false;
   if (!spot.hostId || spot.hostId === 'pipeline-import' || spot.hostId === 'system' || spot.hostId === 'public') return true;
   if (spot._pipeline) return true;
-  if (users && users.length > 0) {
-    const hasRealHost = users.some(u => u.id === spot.hostId && u.id !== 'guest' && u.id !== 'pipeline-import');
-    if (!hasRealHost) return true;
-  }
-  return false;
+  // All spots currently available on CampRoo are 100% free public land campsites
+  return true;
 }
 
 export function getSpotAgencyInfo(spot: Spot): { agency: string; shortName: string; isFederal: boolean } {

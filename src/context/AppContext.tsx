@@ -167,6 +167,8 @@ function getSanitizedUserSpots(): Spot[] {
       seenIds.add(spot.id);
       validSpots.push({
         ...spot,
+        spotType: 'public',
+        hostId: 'pipeline-import',
         photos: cleanPhotos,
       });
     }
@@ -265,8 +267,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   const [reviews, setReviews] = useState<Review[]>(() => {
-    const saved = localStorage.getItem('camproo_reviews');
-    return saved ? JSON.parse(saved) : INITIAL_REVIEWS;
+    try {
+      const saved = localStorage.getItem('camproo_reviews_v4');
+      if (saved) return JSON.parse(saved);
+      localStorage.removeItem('camproo_reviews');
+    } catch {}
+    return INITIAL_REVIEWS;
   });
 
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>(() => {
@@ -300,10 +306,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const [searchFilters, setSearchFilters] = useState<SearchFilterState>(DEFAULT_FILTERS);
+  const [selectedSpotId, setSelectedSpotIdInternal] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      return searchParams.get('spot') || searchParams.get('id') || searchParams.get('spotId') || null;
+    } catch (e) {
+      return null;
+    }
+  });
+
   const [currentView, setCurrentViewInternal] = useState<string>(() => {
     if (typeof window === 'undefined') return 'home';
     try {
       const searchParams = new URLSearchParams(window.location.search);
+      const spotParam = searchParams.get('spot') || searchParams.get('id') || searchParams.get('spotId');
+      if (spotParam) return 'spot-detail';
       const viewParam = searchParams.get('view')?.toLowerCase() || searchParams.get('v')?.toLowerCase();
       if (viewParam) return viewParam;
       if (searchParams.has('admin')) return 'admin';
@@ -321,12 +339,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return 'home';
   });
 
+  const setSelectedSpotId = (id: string | null) => {
+    setSelectedSpotIdInternal(id);
+    try {
+      const url = new URL(window.location.href);
+      if (id) {
+        url.searchParams.set('spot', id);
+        url.searchParams.set('view', 'spot-detail');
+        url.hash = 'spot-detail';
+        setCurrentViewInternal('spot-detail');
+      } else {
+        url.searchParams.delete('spot');
+      }
+      window.history.pushState({ view: id ? 'spot-detail' : currentView, spot: id }, '', url.toString());
+    } catch (e) {
+      // ignore
+    }
+  };
+
   const setCurrentView = (view: string) => {
     setCurrentViewInternal(view);
     try {
       const url = new URL(window.location.href);
       if (view === 'home') {
         url.searchParams.delete('view');
+        url.searchParams.delete('spot');
+        url.searchParams.delete('id');
+        url.searchParams.delete('spotId');
         url.searchParams.delete('admin');
         url.hash = '';
         if (url.pathname === '/admin') {
@@ -334,9 +373,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       } else {
         url.searchParams.set('view', view);
+        if (view !== 'spot-detail') {
+          url.searchParams.delete('spot');
+          url.searchParams.delete('id');
+          url.searchParams.delete('spotId');
+        } else if (selectedSpotId) {
+          url.searchParams.set('spot', selectedSpotId);
+        }
         url.hash = view;
       }
-      window.history.pushState({ view }, '', url.toString());
+      window.history.pushState({ view, spot: selectedSpotId }, '', url.toString());
     } catch (e) {
       // ignore
     }
@@ -346,6 +392,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const handleUrlChange = () => {
       try {
         const searchParams = new URLSearchParams(window.location.search);
+        const spotParam = searchParams.get('spot') || searchParams.get('id') || searchParams.get('spotId');
+        if (spotParam) {
+          setSelectedSpotIdInternal(spotParam);
+          setCurrentViewInternal('spot-detail');
+          return;
+        }
         const viewParam = searchParams.get('view')?.toLowerCase() || searchParams.get('v')?.toLowerCase();
         if (viewParam) {
           setCurrentViewInternal(viewParam);
@@ -388,7 +440,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       window.removeEventListener('hashchange', handleUrlChange);
     };
   }, []);
-  const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isLocating, setIsLocating] = useState(false);
@@ -1369,12 +1420,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
+  const synchronizedSpots = spots.map(spot => {
+    const spotRevs = reviews.filter(r => r.spotId === spot.id);
+    if (spotRevs.length === 0) {
+      return {
+        ...spot,
+        reviewCount: 0,
+        rating: spot.rating > 0 ? spot.rating : 5.0,
+      };
+    }
+    const avg = spotRevs.reduce((sum, r) => sum + (r.ratingOverall || (r as any).rating || 5), 0) / spotRevs.length;
+    return {
+      ...spot,
+      reviewCount: spotRevs.length,
+      rating: Number(avg.toFixed(2)),
+    };
+  });
+
   return (
     <AppContext.Provider
       value={{
         currentUser,
         users,
-        spots,
+        spots: synchronizedSpots,
         requests,
         threads,
         reviews,
