@@ -703,30 +703,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     let isMounted = true;
     
-    // Asynchronously load curated spots from public data (9,777 verified nationwide public land spots)
-    fetch('/data/curatedFreeSpots.json')
-      .then(r => r.ok ? r.json() : null)
-      .then(curated => {
-        if (isMounted && curated && Array.isArray(curated)) {
-          setSpots(prev => {
-            const map = new Map<string, Spot>();
-            prev.forEach(s => map.set(s.id, s));
-            (curated as Spot[]).forEach(s => {
-              if (!map.has(s.id)) {
-                const cleanPhotos = (s.photos || []).filter(
-                  p => typeof p === 'string' && !p.includes('unsplash.com') && !p.includes('pexels.com')
-                );
-                map.set(s.id, {
-                  ...s,
-                  photos: cleanPhotos.length > 0 ? cleanPhotos : ['/images/real_bald_mountain.jpg']
-                });
-              }
-            });
-            return Array.from(map.values());
+    // Asynchronously load curated spots from public data in chunks (<15MB each to respect Cloudflare asset limit)
+    Promise.all([
+      fetch('/data/curatedFreeSpots_part1.json').then(r => r.ok ? r.json() : []).catch(() => []),
+      fetch('/data/curatedFreeSpots_part2.json').then(r => r.ok ? r.json() : []).catch(() => [])
+    ]).then(([part1, part2]) => {
+      const curated = [...part1, ...part2];
+      if (isMounted && curated.length > 0) {
+        setSpots(prev => {
+          const map = new Map<string, Spot>();
+          prev.forEach(s => map.set(s.id, s));
+          (curated as Spot[]).forEach(s => {
+            if (!map.has(s.id)) {
+              const cleanPhotos = (s.photos || []).filter(
+                p => typeof p === 'string' && !p.includes('unsplash.com') && !p.includes('pexels.com')
+              );
+              map.set(s.id, {
+                ...s,
+                photos: cleanPhotos.length > 0 ? cleanPhotos : ['/images/real_bald_mountain.jpg']
+              });
+            }
           });
-        }
-      })
-      .catch(() => {});
+          return Array.from(map.values());
+        });
+      }
+    }).catch(() => {});
 
     // Fetch live spots from Supabase
     fetchSupabaseSpots({ limit: 1000 }).then(supabaseSpots => {
