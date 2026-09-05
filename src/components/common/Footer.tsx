@@ -59,8 +59,8 @@ export const Footer: React.FC = () => {
               />
             </div>
             <p className="text-sm text-dark-600 max-w-md leading-relaxed mt-2 font-normal">
-              CampRoo is a 100% free peer-to-peer community for RV owners and hosts. Travelers discover unique,
-              welcoming spots, connect with trusted hosts, and keep roaming across scenic American highways.
+              CampRoo is a 100% free community for American RVers, vanlifers, and boondockers to discover verified
+              free public land campsites, BLM lands, and USFS dispersed camping across scenic American highways.
             </p>
             <div className="flex flex-wrap items-center gap-3 pt-1">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-dark-200 text-xs font-bold text-roo-500 shadow-xs">

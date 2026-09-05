@@ -245,8 +245,8 @@ export interface Review {
   id: string;
   spotId?: string;
   travelerId: string;
-  hostId: string;
-  stayRequestId: string;
+  hostId?: string;
+  stayRequestId?: string;
   authorId: string;
   authorRole: 'traveler' | 'host';
   ratingOverall: number;

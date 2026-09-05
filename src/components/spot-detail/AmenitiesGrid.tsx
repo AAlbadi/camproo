@@ -27,7 +27,7 @@ export const AmenitiesGrid: React.FC<AmenitiesGridProps> = ({ amenities, proximi
     <div className="bg-white rounded-3xl p-6 sm:p-8 border border-cream-200 shadow-soft space-y-6">
       <div className="pb-4 border-b border-cream-100">
         <h3 className="text-lg font-extrabold text-forest-950">Amenities & Hookups</h3>
-        <p className="text-xs text-cream-900/60 font-medium">Provided by the host for roaming guests</p>
+        <p className="text-xs text-cream-900/60 font-medium">Dispersed public campsite specs & boondocking features</p>
       </div>
 
       {/* Hookup Icons Grid */}
