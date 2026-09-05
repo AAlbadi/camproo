@@ -22,7 +22,7 @@ export const RigCompatibilityTable: React.FC<RigCompatibilityTableProps> = ({
           </div>
           <div>
             <h3 className="text-lg font-extrabold text-forest-950">RV Compatibility & Dimensions</h3>
-            <p className="text-xs text-cream-900/60 font-medium">Verify your vehicle dimensions before requesting</p>
+            <p className="text-xs text-cream-900/60 font-medium">Verify your vehicle dimensions before arrival</p>
           </div>
         </div>
 

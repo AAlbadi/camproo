@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { db } from "../db.js";
+import { sendCommunityPostAdminEmail, sendCommunityCommentAdminEmail } from "../services/emailService.js";
 
 export const postsRouter = Router();
 
@@ -11,9 +12,17 @@ postsRouter.get("/", (req, res) => {
 });
 
 // POST create post
-postsRouter.post("/", (req, res) => {
+postsRouter.post("/", async (req, res) => {
   try {
     const newPost = db.addPost(req.body);
+    
+    sendCommunityPostAdminEmail({
+      authorName: req.body.authorName || 'Anonymous',
+      title: req.body.title || 'Untitled',
+      category: req.body.category || 'General',
+      content: req.body.content || 'N/A'
+    }).catch(err => console.error('[Email Error]', err));
+
     res.status(201).json({ success: true, data: newPost });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -32,5 +41,14 @@ postsRouter.post("/:id/upvote", (req, res) => {
 postsRouter.post("/:id/comments", (req, res) => {
   const comment = db.addCommentToPost(req.params.id, req.body);
   if (!comment) return res.status(404).json({ success: false, message: "Post not found" });
+
+  const parentPost = db.getPosts().find(p => p.id === req.params.id);
+  sendCommunityCommentAdminEmail({
+    postId: req.params.id,
+    postTitle: parentPost?.title || 'Community Topic',
+    authorName: req.body.authorName || 'RVer',
+    commentText: req.body.content || req.body.text || 'N/A'
+  }).catch(err => console.error('[Comment Email Error]', err));
+
   res.status(201).json({ success: true, data: comment });
 });

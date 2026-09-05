@@ -46,7 +46,7 @@ export const HeroSection: React.FC = () => {
             </p>
 
             {/* CTA Buttons with shadcn Button */}
-            <div className="flex flex-wrap items-center gap-4 pt-2">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-2">
               <Button
                 size="lg"
                 onClick={() => {
@@ -61,6 +61,24 @@ export const HeroSection: React.FC = () => {
 
               <Button
                 variant="outline"
+                size="lg"
+                onClick={() => {
+                  const el = document.getElementById('home-map-section');
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth' });
+                  } else {
+                    setCurrentView('explore');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }}
+                className="gap-2 text-base font-bold bg-white/80 hover:bg-white shadow-xs"
+              >
+                <Compass className="w-4 h-4 text-roo-500" />
+                <span>Live Map & Routes</span>
+              </Button>
+
+              <Button
+                variant="ghost"
                 size="lg"
                 onClick={() => {
                   setCurrentView('host-onboarding');
@@ -99,8 +117,8 @@ export const HeroSection: React.FC = () => {
             <TiltCard maxTilt={10} glareOpacity={0.22}>
               <div className="relative rounded-4xl overflow-hidden shadow-airbnb-hover border border-dark-200 group">
                 <img
-                  src="/images/hero_rv_camp.jpg"
-                  alt="CampRoo red rock campervan spot in Moab Utah"
+                  src="/images/real_rv_camping_hero.jpg"
+                  alt="CampRoo authentic camper trailer spot on public lands"
                   className="w-full h-[460px] sm:h-[500px] object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />

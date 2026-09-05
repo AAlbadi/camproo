@@ -17,7 +17,7 @@ export const INITIAL_COMMUNITY_POSTS: CommunityPost[] = [
         id: 'c-1',
         authorId: 'user-host-1',
         authorName: 'Caleb Jenkins',
-        authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+        authorAvatar: 'https://ui-avatars.com/api/?name=Caleb+Jenkins&background=ea580c&color=fff&bold=true',
         authorRig: '35ft Fifth Wheel',
         content: 'Hey Alex! Took our 35ft fifth wheel across the Hogsback last fall. Just take it slow in low gear and soak in the drop-offs on both sides — it is magnificent. You are welcome to pull into our Red Rock Roo pad in Moab for a cold water fill-up and 30A plug once you roll in!',
         createdAt: '2026-09-01T17:05:00Z'
@@ -26,7 +26,7 @@ export const INITIAL_COMMUNITY_POSTS: CommunityPost[] = [
         id: 'c-2',
         authorId: 'user-host-4',
         authorName: 'Dave Miller',
-        authorAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80',
+        authorAvatar: 'https://ui-avatars.com/api/?name=Dave+Miller&background=4f46e5&color=fff&bold=true',
         authorRig: '26ft Airstream',
         content: 'One of the top 5 drives in the USA! Fill up diesel in Escalante before heading over Boulder Mountain. Safe roaming!',
         createdAt: '2026-09-01T19:30:00Z'
@@ -49,7 +49,7 @@ export const INITIAL_COMMUNITY_POSTS: CommunityPost[] = [
         id: 'c-3',
         authorId: 'user-host-3',
         authorName: 'Clara Bennett',
-        authorAvatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80',
+        authorAvatar: 'https://ui-avatars.com/api/?name=Clara+Bennett&background=db2777&color=fff&bold=true',
         authorRig: 'Sprinter 144',
         content: 'Great reminder Marcus! We also recommend guests use a surge protector with EMS before plugging into host pedestals. Protects both the rig and the host home electrical panel.',
         createdAt: '2026-08-25T13:40:00Z'

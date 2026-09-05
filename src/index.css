@@ -157,6 +157,7 @@
   background-color: hsl(var(--muted)) !important;
   border-radius: var(--radius) !important;
   outline: none;
+  touch-action: pan-x pan-y pinch-zoom !important;
 }
 
 .leaflet-popup-content-wrapper {
@@ -182,3 +183,44 @@
   background: transparent !important;
   border: none !important;
 }
+
+/* Mobile & Touch Performance Enhancements */
+@layer utilities {
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+  
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .gpu-accelerate {
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
+
+/* Smooth Tap Response */
+button, a, input, select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Fast Marker Pill Animation */
+.marker-pill {
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease;
+}
+

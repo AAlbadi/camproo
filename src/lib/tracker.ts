@@ -96,6 +96,12 @@ export async function trackPageView(path = window.location.pathname) {
     const attr = parseTrafficAttribution();
     const sessionId = getOrCreateSessionId();
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const ua = navigator.userAgent;
+    let browser = 'Unknown';
+    if (ua.includes('Firefox')) browser = 'Firefox';
+    else if (ua.includes('Edg')) browser = 'Edge';
+    else if (ua.includes('Chrome')) browser = 'Chrome';
+    else if (ua.includes('Safari')) browser = 'Safari';
 
     await fetch('/api/analytics/track', {
       method: 'POST',
@@ -107,8 +113,11 @@ export async function trackPageView(path = window.location.pathname) {
         utm_medium: attr.medium,
         utm_campaign: attr.campaign,
         utm_content: attr.content,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        language: navigator.language || 'en',
         sessionId,
         device: isMobile ? 'mobile' : 'desktop',
+        browser,
         screenWidth: window.innerWidth
       })
     });

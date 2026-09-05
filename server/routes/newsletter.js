@@ -1,32 +1,71 @@
 import { Router } from "express";
+import { db } from "../services/db.js";
+import { requireAdminAuth } from "../services/adminAuth.js";
+import { sendNewsletterSubscriberAdminEmail, sendNewsletterConfirmationEmail } from "../services/emailService.js";
 
 export const newsletterRouter = Router();
 
-let subscribers = [];
-
-newsletterRouter.post("/subscribe", (req, res) => {
-  const { email, name = "" } = req.body;
+// Public subscribe endpoint
+newsletterRouter.post("/subscribe", async (req, res) => {
+  const { email, name = "", source = "footer", trafficSource = "direct" } = req.body || {};
   if (!email || !email.includes("@")) {
     return res.status(400).json({ error: "Valid email address is required" });
   }
-  const existing = subscribers.find(s => s.email.toLowerCase() === email.toLowerCase());
-  if (existing) {
-    return res.json({ success: true, message: "Already subscribed!", isNew: false });
+
+  try {
+    const { subscriber, isNew } = db.addSubscriber({
+      email,
+      name,
+      source,
+      trafficSource
+    });
+
+    if (isNew) {
+      sendNewsletterSubscriberAdminEmail({
+        subscriberEmail: email,
+        subscriberName: name,
+        source,
+        trafficSource
+      }).catch(err => console.error('[Email Error]', err));
+      
+      sendNewsletterConfirmationEmail({
+        to: email,
+        name
+      }).catch(err => console.error('[Email Error]', err));
+    }
+
+    res.json({
+      success: true,
+      message: isNew ? "Subscribed to CampRoo weekly road digest!" : "Already subscribed!",
+      isNew,
+      subscriber
+    });
+  } catch (err) {
+    console.error("[Newsletter Subscribe Error]", err);
+    res.status(500).json({ success: false, error: "Failed to save subscriber" });
   }
-  const subscriber = {
-    id: `sub-${Date.now()}`,
-    email,
-    name,
-    subscribedAt: new Date().toISOString(),
-  };
-  subscribers.push(subscriber);
-  res.json({ success: true, message: "Subscribed to CampRoo newsletter!", isNew: true });
 });
 
-newsletterRouter.get("/", (req, res) => {
-  res.json({ count: subscribers.length, subscribers });
+// Admin-only: list subscribers
+newsletterRouter.get("/subscribers", requireAdminAuth, (req, res) => {
+  try {
+    const subscribers = db.getSubscribers();
+    res.json({
+      success: true,
+      count: subscribers.length,
+      subscribers
+    });
+  } catch (err) {
+    console.error("[Newsletter List Error]", err);
+    res.status(500).json({ success: false, error: "Failed to fetch subscribers" });
+  }
 });
 
-newsletterRouter.get("/subscribers", (req, res) => {
-  res.json({ count: subscribers.length, subscribers });
+newsletterRouter.get("/", requireAdminAuth, (req, res) => {
+  const subscribers = db.getSubscribers();
+  res.json({
+    success: true,
+    count: subscribers.length,
+    subscribers
+  });
 });

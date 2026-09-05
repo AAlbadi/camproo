@@ -27,7 +27,7 @@ const supabase = createClient(url, key, {
 });
 
 async function main() {
-  const datasetPath = path.resolve(__dirname, '../src/data/imported/freeCampingSpots.json');
+  const datasetPath = path.resolve(__dirname, '../src/data/imported/curatedFreeSpots.json');
   console.log(`Reading spots from ${datasetPath}...`);
   const rawData = JSON.parse(fs.readFileSync(datasetPath, 'utf8'));
   console.log(`Total spots in file: ${rawData.length}`);

@@ -13,7 +13,7 @@ export const HostCTASection: React.FC = () => {
         <div className="relative rounded-4xl bg-dark-900 overflow-hidden text-white p-8 sm:p-14 lg:p-20 shadow-2xl">
           {/* Background image overlay */}
           <img
-            src="/images/meadow_spot.jpg"
+            src="/images/real_bald_mountain.jpg"
             alt="CampRoo host acreage"
             className="absolute inset-0 w-full h-full object-cover opacity-25 mix-blend-overlay"
           />

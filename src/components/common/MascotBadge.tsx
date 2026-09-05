@@ -18,10 +18,10 @@ export const MascotBadge: React.FC<MascotBadgeProps> = ({
   // Variant 1: Official Horizontal Logo (Roo Mascot + Campervan + CampRoo + Tagline)
   if (variant === 'horizontal') {
     const heights = {
-      sm: 'h-8 sm:h-9',
-      md: 'h-10 sm:h-12',
-      lg: 'h-14 sm:h-16',
-      xl: 'h-20 sm:h-24',
+      sm: 'h-8 sm:h-9 md:h-10',
+      md: 'h-10 sm:h-11 md:h-12 lg:h-[50px]',
+      lg: 'h-14 sm:h-16 md:h-20',
+      xl: 'h-20 sm:h-24 md:h-28',
     };
 
     return (

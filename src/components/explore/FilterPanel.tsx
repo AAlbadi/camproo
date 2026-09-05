@@ -1,55 +1,64 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
-import { RVType, RV_TYPE_LABELS, EnvironmentType } from '../../types';
+import { US_STATES, countSpotsByState } from '../../lib/areaSearchService';
 import {
   SlidersHorizontal,
   RotateCcw,
-  Zap,
+  Trees,
+  Mountain,
   Droplet,
-  Wifi,
   Flame,
-  VolumeX,
-  Dog,
+  Trash2,
+  Home,
   Compass,
   Sparkles,
-  Users,
+  MapPin,
+  Waves,
   Sun,
   ShieldCheck
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { Slider } from '../ui/slider';
 import { Separator } from '../ui/separator';
 
 interface FilterPanelProps {
   className?: string;
+  onClose?: () => void;
 }
 
-export const FilterPanel: React.FC<FilterPanelProps> = ({ className = '' }) => {
-  const { searchFilters, setSearchFilters, resetFilters } = useApp();
+export const FilterPanel: React.FC<FilterPanelProps> = ({ className = '', onClose }) => {
+  const { spots, searchFilters, setSearchFilters, resetFilters } = useApp();
 
-  const environments: { key: EnvironmentType; label: string; icon: string }[] = [
-    { key: 'desert', label: 'Desert', icon: '🏜️' },
-    { key: 'farm', label: 'Farm', icon: '🚜' },
-    { key: 'mountain', label: 'Mountain', icon: '⛰️' },
-    { key: 'forest', label: 'Forest', icon: '🌲' },
-    { key: 'coastal', label: 'Coastal', icon: '🌊' },
-    { key: 'vineyard', label: 'Vineyard', icon: '🍇' },
-    { key: 'rural', label: 'Rural', icon: '🌾' },
-    { key: 'residential', label: 'Quiet Driveway', icon: '🏡' },
+  const stateCounts = useMemo(() => countSpotsByState(spots), [spots]);
+
+  // Real environments from dataset
+  const environments = [
+    { key: 'forest', label: 'Forest', icon: '🌲', count: 4939 },
+    { key: 'lakeside', label: 'Lakeside & River', icon: '🏞️', count: 3861 },
+    { key: 'mountain', label: 'Mountain Vistas', icon: '⛰️', count: 445 },
+    { key: 'desert', label: 'Desert Oasis', icon: '🏜️', count: 383 },
+    { key: 'beach', label: 'Beach & Coastal', icon: '🏖️', count: 86 },
+    { key: 'meadow', label: 'Open Meadow', icon: '🌼', count: 63 },
   ];
 
-  const toggleEnvironment = (env: EnvironmentType) => {
-    setSearchFilters(prev => {
-      const exists = prev.environments.includes(env);
+  const toggleEnvironment = (envKey: string) => {
+    setSearchFilters((prev) => {
+      const exists = prev.environments.includes(envKey);
       return {
         ...prev,
         environments: exists
-          ? prev.environments.filter(e => e !== env)
-          : [...prev.environments, env],
+          ? prev.environments.filter((e) => e !== envKey)
+          : [...prev.environments, envKey],
       };
     });
   };
+
+  // Top states by count for quick selection
+  const topStates = useMemo(() => {
+    return Object.entries(stateCounts)
+      .sort((a, b) => b[1] - a[1])
+      .filter(([abbr]) => US_STATES[abbr]);
+  }, [stateCounts]);
 
   return (
     <aside className={`bg-card rounded-3xl p-5 border border-border shadow-sm space-y-5 select-none ${className}`}>
@@ -57,7 +66,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ className = '' }) => {
       <div className="flex items-center justify-between pb-2">
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="w-4 h-4 text-primary" />
-          <h3 className="font-black text-sm text-foreground">Outdoor Filters</h3>
+          <h3 className="font-black text-sm text-foreground">Useful Camp Filters</h3>
         </div>
         <Button
           variant="ghost"
@@ -74,7 +83,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ className = '' }) => {
       <div className="p-3 rounded-2xl bg-secondary/80 border border-border flex items-center justify-between text-xs">
         <span className="font-bold text-foreground flex items-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5 text-primary" />
-          $0 USD Peer Roaming
+          $0 Free Dispersed Camping
         </span>
         <Badge variant="free">
           100% FREE
@@ -83,135 +92,132 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ className = '' }) => {
 
       <Separator />
 
-      {/* RV Length Slider (shadcn Slider) */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs font-bold text-foreground">
-          <span>Minimum Rig Clearance</span>
-          <Badge variant="secondary" className="font-mono text-xs">
-            {searchFilters.maxLengthFt} ft
-          </Badge>
-        </div>
-        <Slider
-          min={20}
-          max={45}
-          step={1}
-          value={searchFilters.maxLengthFt}
-          onChange={val => setSearchFilters(prev => ({ ...prev, maxLengthFt: val }))}
-        />
-        <div className="flex justify-between text-[10px] text-muted-foreground font-semibold">
-          <span>20 ft (Vans)</span>
-          <span>32 ft (Class C)</span>
-          <span>45 ft (Class A)</span>
-        </div>
-      </div>
-
-      <Separator />
-
-      {/* RV Type Select */}
-      <div className="space-y-1.5">
-        <label className="text-xs font-bold text-foreground block">Accepted Vehicle Class</label>
-        <select
-          value={searchFilters.rvType}
-          onChange={e => setSearchFilters(prev => ({ ...prev, rvType: e.target.value as RVType | 'any' }))}
-          className="w-full p-2.5 rounded-xl bg-background border border-input text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-        >
-          <option value="any">Any RV Type · All Allowed</option>
-          {Object.entries(RV_TYPE_LABELS).map(([key, label]) => (
-            <option key={key} value={key}>{label}</option>
-          ))}
-        </select>
-      </div>
-
-      <Separator />
-
-      {/* Hookups & Utilities */}
+      {/* 1. Public Land Agency Filter (USFS vs BLM) */}
       <div className="space-y-2.5">
-        <label className="text-[11px] font-black text-muted-foreground block uppercase tracking-wider">Hookups & Utilities</label>
+        <label className="text-[11px] font-black text-muted-foreground block uppercase tracking-wider">
+          Public Land Agency
+        </label>
+        <div className="grid grid-cols-3 gap-2">
+          <button
+            type="button"
+            onClick={() => setSearchFilters((prev) => ({ ...prev, landManager: 'all' }))}
+            className={`px-3 py-2 rounded-2xl text-xs font-black transition-all flex flex-col items-center gap-1 border ${
+              searchFilters.landManager === 'all'
+                ? 'bg-dark-900 text-white border-dark-900 shadow-xs'
+                : 'bg-muted/60 text-foreground border-transparent hover:bg-muted'
+            }`}
+          >
+            <Compass className="w-4 h-4 text-roo-400" />
+            <span>All Agencies</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSearchFilters((prev) => ({ ...prev, landManager: 'USFS' }))}
+            className={`px-3 py-2 rounded-2xl text-xs font-black transition-all flex flex-col items-center gap-1 border ${
+              searchFilters.landManager === 'USFS'
+                ? 'bg-emerald-700 text-white border-emerald-800 shadow-xs'
+                : 'bg-emerald-50/70 text-emerald-950 border-emerald-200/60 hover:bg-emerald-100'
+            }`}
+          >
+            <Trees className="w-4 h-4 text-emerald-600" />
+            <span>USFS Forest</span>
+            <span className="text-[9px] font-bold opacity-80">9,313 spots</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSearchFilters((prev) => ({ ...prev, landManager: 'BLM' }))}
+            className={`px-3 py-2 rounded-2xl text-xs font-black transition-all flex flex-col items-center gap-1 border ${
+              searchFilters.landManager === 'BLM'
+                ? 'bg-amber-700 text-white border-amber-800 shadow-xs'
+                : 'bg-amber-50/70 text-amber-950 border-amber-200/60 hover:bg-amber-100'
+            }`}
+          >
+            <Mountain className="w-4 h-4 text-amber-600" />
+            <span>BLM Public</span>
+            <span className="text-[9px] font-bold opacity-80">464 spots</span>
+          </button>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* 2. Verified Real Amenities */}
+      <div className="space-y-2.5">
+        <label className="text-[11px] font-black text-muted-foreground block uppercase tracking-wider">
+          Verified Camp Amenities (In Dataset)
+        </label>
         <div className="space-y-2 text-xs">
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <input
-              type="checkbox"
-              checked={searchFilters.electricRequired === '30amp'}
-              onChange={e => setSearchFilters(prev => ({
-                ...prev,
-                electricRequired: e.target.checked ? '30amp' : 'any'
-              }))}
-              className="rounded-md accent-primary w-4 h-4 cursor-pointer"
-            />
-            <span className="text-foreground group-hover:text-primary font-semibold flex items-center gap-1.5 transition-colors">
-              <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-              Electricity (30A / 50A Pedestal)
+          <label className="flex items-center justify-between p-2 rounded-xl hover:bg-muted/50 cursor-pointer group transition-colors">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={searchFilters.bathroomRequired}
+                onChange={(e) => setSearchFilters((prev) => ({ ...prev, bathroomRequired: e.target.checked }))}
+                className="rounded-md accent-primary w-4 h-4 cursor-pointer"
+              />
+              <span className="text-foreground group-hover:text-primary font-semibold flex items-center gap-1.5 transition-colors">
+                <Home className="w-3.5 h-3.5 text-blue-600" />
+                Restroom / Vault Toilet
+              </span>
+            </div>
+            <span className="text-[10px] font-black text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+              354 spots
             </span>
           </label>
 
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <input
-              type="checkbox"
-              checked={searchFilters.waterRequired}
-              onChange={e => setSearchFilters(prev => ({ ...prev, waterRequired: e.target.checked }))}
-              className="rounded-md accent-primary w-4 h-4 cursor-pointer"
-            />
-            <span className="text-foreground group-hover:text-primary font-semibold flex items-center gap-1.5 transition-colors">
-              <Droplet className="w-3.5 h-3.5 text-blue-500 fill-blue-500" />
-              Potable Water Hookup
+          <label className="flex items-center justify-between p-2 rounded-xl hover:bg-muted/50 cursor-pointer group transition-colors">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={searchFilters.waterRequired}
+                onChange={(e) => setSearchFilters((prev) => ({ ...prev, waterRequired: e.target.checked }))}
+                className="rounded-md accent-primary w-4 h-4 cursor-pointer"
+              />
+              <span className="text-foreground group-hover:text-primary font-semibold flex items-center gap-1.5 transition-colors">
+                <Droplet className="w-3.5 h-3.5 text-blue-500 fill-blue-500" />
+                Potable Drinking Water Spigot
+              </span>
+            </div>
+            <span className="text-[10px] font-black text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+              329 spots
             </span>
           </label>
 
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <input
-              type="checkbox"
-              checked={searchFilters.sewerRequired}
-              onChange={e => setSearchFilters(prev => ({ ...prev, sewerRequired: e.target.checked }))}
-              className="rounded-md accent-primary w-4 h-4 cursor-pointer"
-            />
-            <span className="text-foreground group-hover:text-primary font-semibold flex items-center gap-1.5 transition-colors">
-              <Compass className="w-3.5 h-3.5 text-emerald-600" />
-              Sewer / Dump Station
+          <label className="flex items-center justify-between p-2 rounded-xl hover:bg-muted/50 cursor-pointer group transition-colors">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={searchFilters.firePitRequired}
+                onChange={(e) => setSearchFilters((prev) => ({ ...prev, firePitRequired: e.target.checked }))}
+                className="rounded-md accent-primary w-4 h-4 cursor-pointer"
+              />
+              <span className="text-foreground group-hover:text-primary font-semibold flex items-center gap-1.5 transition-colors">
+                <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500" />
+                Campfire Pit / Metal Ring
+              </span>
+            </div>
+            <span className="text-[10px] font-black text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+              278 spots
             </span>
           </label>
 
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <input
-              type="checkbox"
-              checked={searchFilters.wifiRequired}
-              onChange={e => setSearchFilters(prev => ({ ...prev, wifiRequired: e.target.checked }))}
-              className="rounded-md accent-primary w-4 h-4 cursor-pointer"
-            />
-            <span className="text-foreground group-hover:text-primary font-semibold flex items-center gap-1.5 transition-colors">
-              <Wifi className="w-3.5 h-3.5 text-forest-700" />
-              High-Speed Wi-Fi / Starlink
-            </span>
-          </label>
-        </div>
-      </div>
-
-      <Separator />
-
-      {/* Driveway & Surface Specs */}
-      <div className="space-y-2.5">
-        <label className="text-[11px] font-black text-muted-foreground block uppercase tracking-wider">Driveway & Surface</label>
-        <div className="space-y-2 text-xs">
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <input
-              type="checkbox"
-              checked={searchFilters.pullThroughOnly}
-              onChange={e => setSearchFilters(prev => ({ ...prev, pullThroughOnly: e.target.checked }))}
-              className="rounded-md accent-primary w-4 h-4 cursor-pointer"
-            />
-            <span className="text-foreground group-hover:text-primary font-semibold transition-colors">
-              Pull-Through Driveway Only
-            </span>
-          </label>
-
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <input
-              type="checkbox"
-              checked={searchFilters.levelGroundOnly}
-              onChange={e => setSearchFilters(prev => ({ ...prev, levelGroundOnly: e.target.checked }))}
-              className="rounded-md accent-primary w-4 h-4 cursor-pointer"
-            />
-            <span className="text-foreground group-hover:text-primary font-semibold transition-colors">
-              Level Ground Guaranteed (&lt; 0.5°)
+          <label className="flex items-center justify-between p-2 rounded-xl hover:bg-muted/50 cursor-pointer group transition-colors">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={searchFilters.trashRequired}
+                onChange={(e) => setSearchFilters((prev) => ({ ...prev, trashRequired: e.target.checked }))}
+                className="rounded-md accent-primary w-4 h-4 cursor-pointer"
+              />
+              <span className="text-foreground group-hover:text-primary font-semibold flex items-center gap-1.5 transition-colors">
+                <Trash2 className="w-3.5 h-3.5 text-emerald-600" />
+                Trash Disposal on Site
+              </span>
+            </div>
+            <span className="text-[10px] font-black text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+              163 spots
             </span>
           </label>
         </div>
@@ -219,73 +225,121 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ className = '' }) => {
 
       <Separator />
 
-      {/* Atmosphere & Policies */}
+      {/* 3. Landscape & Setting */}
       <div className="space-y-2.5">
-        <label className="text-[11px] font-black text-muted-foreground block uppercase tracking-wider">Atmosphere & Policies</label>
-        <div className="space-y-2 text-xs">
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <input
-              type="checkbox"
-              checked={searchFilters.petsAllowed}
-              onChange={e => setSearchFilters(prev => ({ ...prev, petsAllowed: e.target.checked }))}
-              className="rounded-md accent-primary w-4 h-4 cursor-pointer"
-            />
-            <span className="text-foreground group-hover:text-primary font-semibold flex items-center gap-1.5 transition-colors">
-              <Dog className="w-3.5 h-3.5 text-amber-700" /> Pets Allowed
-            </span>
-          </label>
-
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <input
-              type="checkbox"
-              checked={searchFilters.campfireAllowed}
-              onChange={e => setSearchFilters(prev => ({ ...prev, campfireAllowed: e.target.checked }))}
-              className="rounded-md accent-primary w-4 h-4 cursor-pointer"
-            />
-            <span className="text-foreground group-hover:text-primary font-semibold flex items-center gap-1.5 transition-colors">
-              <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500" /> Campfires Allowed
-            </span>
-          </label>
-
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <input
-              type="checkbox"
-              checked={searchFilters.quietOnly}
-              onChange={e => setSearchFilters(prev => ({ ...prev, quietOnly: e.target.checked }))}
-              className="rounded-md accent-primary w-4 h-4 cursor-pointer"
-            />
-            <span className="text-foreground group-hover:text-primary font-semibold flex items-center gap-1.5 transition-colors">
-              <VolumeX className="w-3.5 h-3.5 text-forest-700" /> Quiet Setting Only
-            </span>
-          </label>
-        </div>
-      </div>
-
-      <Separator />
-
-      {/* Environments */}
-      <div className="space-y-2.5">
-        <label className="text-[11px] font-black text-muted-foreground block uppercase tracking-wider">Setting & Environment</label>
-        <div className="flex flex-wrap gap-1.5">
-          {environments.map(env => {
+        <label className="text-[11px] font-black text-muted-foreground block uppercase tracking-wider">
+          Landscape & Setting
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {environments.map((env) => {
             const isSelected = searchFilters.environments.includes(env.key);
             return (
               <button
                 type="button"
                 key={env.key}
                 onClick={() => toggleEnvironment(env.key)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1 ${
+                className={`px-3 py-1.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-1.5 border ${
                   isSelected
-                    ? 'bg-primary text-primary-foreground shadow-xs'
-                    : 'bg-muted/70 text-foreground hover:bg-muted'
+                    ? 'bg-primary text-primary-foreground border-primary shadow-xs'
+                    : 'bg-muted/70 text-foreground border-transparent hover:bg-muted'
                 }`}
               >
                 <span>{env.icon}</span>
                 <span>{env.label}</span>
+                <span className={`text-[10px] font-black opacity-75 ${isSelected ? 'text-white' : 'text-muted-foreground'}`}>
+                  ({env.count})
+                </span>
               </button>
             );
           })}
         </div>
+      </div>
+
+      <Separator />
+
+      {/* 4. Filter by US State */}
+      <div className="space-y-2.5">
+        <div className="flex items-center justify-between">
+          <label className="text-[11px] font-black text-muted-foreground block uppercase tracking-wider">
+            Filter by US State
+          </label>
+          {searchFilters.stateCode && searchFilters.stateCode !== 'all' && (
+            <button
+              onClick={() => setSearchFilters((prev) => ({ ...prev, stateCode: 'all' }))}
+              className="text-[10px] font-extrabold text-roo-500 hover:underline"
+            >
+              Clear State
+            </button>
+          )}
+        </div>
+
+        {/* Top State Quick Chips */}
+        <div className="flex flex-wrap gap-1.5 pb-1">
+          {topStates.slice(0, 8).map(([abbr, count]) => {
+            const isSelected = searchFilters.stateCode === abbr;
+            return (
+              <button
+                type="button"
+                key={abbr}
+                onClick={() =>
+                  setSearchFilters((prev) => ({
+                    ...prev,
+                    stateCode: isSelected ? 'all' : abbr,
+                  }))
+                }
+                className={`px-2.5 py-1 rounded-xl text-[11px] font-black transition-all border ${
+                  isSelected
+                    ? 'bg-roo-500 text-white border-roo-500 shadow-xs'
+                    : 'bg-muted/60 hover:bg-muted text-foreground border-transparent'
+                }`}
+              >
+                {abbr} ({count.toLocaleString()})
+              </button>
+            );
+          })}
+        </div>
+
+        <select
+          value={searchFilters.stateCode || 'all'}
+          onChange={(e) => setSearchFilters((prev) => ({ ...prev, stateCode: e.target.value }))}
+          className="w-full p-2.5 rounded-2xl bg-background border border-input text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer"
+        >
+          <option value="all">All 42 Represented States · Nationwide (9,780 havens)</option>
+          {topStates.map(([abbr, count]) => {
+            const state = US_STATES[abbr];
+            return (
+              <option key={abbr} value={abbr}>
+                {state?.name || abbr} ({count.toLocaleString()} camps)
+              </option>
+            );
+          })}
+        </select>
+      </div>
+
+      <Separator />
+
+      {/* 5. Featured & Handpicked Havens */}
+      <div className="space-y-2.5">
+        <label className="text-[11px] font-black text-muted-foreground block uppercase tracking-wider">
+          Curated & Verified
+        </label>
+        <label className="flex items-center justify-between p-2.5 rounded-2xl bg-amber-50/70 border border-amber-200/60 hover:bg-amber-100/70 cursor-pointer group transition-colors">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={Boolean(searchFilters.featuredOnly)}
+              onChange={(e) => setSearchFilters((prev) => ({ ...prev, featuredOnly: e.target.checked }))}
+              className="rounded-md accent-amber-600 w-4 h-4 cursor-pointer"
+            />
+            <span className="text-amber-950 font-bold text-xs flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-amber-600 fill-amber-600" />
+              CampRoo Featured Gems Only
+            </span>
+          </div>
+          <span className="text-[10px] font-black text-amber-800 bg-amber-200/60 px-2 py-0.5 rounded-full">
+            185 spots
+          </span>
+        </label>
       </div>
     </aside>
   );

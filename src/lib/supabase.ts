@@ -174,3 +174,40 @@ export async function deleteSupabaseSpot(spotId: string): Promise<boolean> {
   }
   return true;
 }
+
+/**
+ * Add photos to a spot in Supabase
+ */
+export async function updateSupabaseSpotPhotos(spotId: string, newPhotos: string[]): Promise<boolean> {
+  if (!supabase || !newPhotos || newPhotos.length === 0) return false;
+  try {
+    const { data: existing, error: fetchErr } = await supabase
+      .from('spots')
+      .select('photos')
+      .eq('id', spotId)
+      .single();
+
+    if (fetchErr) {
+      console.warn('Could not fetch existing spot photos for update:', fetchErr.message);
+      return false;
+    }
+
+    const currentPhotos = existing?.photos || [];
+    const merged = [...newPhotos, ...currentPhotos];
+
+    const { error: updateErr } = await supabase
+      .from('spots')
+      .update({ photos: merged })
+      .eq('id', spotId);
+
+    if (updateErr) {
+      console.error('Error updating spot photos in Supabase:', updateErr.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('Failed to update photos in Supabase:', err);
+    return false;
+  }
+}
+

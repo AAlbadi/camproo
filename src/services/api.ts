@@ -41,6 +41,19 @@ export const api = {
       body: JSON.stringify(spotData),
     });
   },
+  submitSpot: async (payload: {
+    spot: Partial<Spot>;
+    submitterName?: string;
+    submitterEmail?: string;
+    submitterPhone?: string;
+    visibility?: 'public' | 'personal';
+    notes?: string;
+  }): Promise<{ success: boolean; data: Spot; emailSent: boolean; message: string }> => {
+    return request<{ success: boolean; data: Spot; emailSent: boolean; message: string }>("/spots/submit", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
   updateSpot: async (id: string, updates: Partial<Spot>): Promise<Spot> => {
     return request<Spot>(`/spots/${id}`, {
       method: "PUT",

@@ -12,7 +12,9 @@ import {
   Star,
   Eye,
   PauseCircle,
-  PlayCircle
+  PlayCircle,
+  Globe,
+  Lock
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -36,8 +38,15 @@ export const HostDashboardPage: React.FC = () => {
   const [responseAction, setResponseAction] = useState<'accepted' | 'declined'>('accepted');
   const [hostResponseNote, setHostResponseNote] = useState('');
 
+  const [spotFilter, setSpotFilter] = useState<'all' | 'public' | 'personal'>('all');
+
   // Spots hosted by current user
   const mySpots = spots.filter(s => s.hostId === currentUser.id);
+  const filteredMySpots = mySpots.filter(s => {
+    if (spotFilter === 'public') return s.visibility !== 'personal';
+    if (spotFilter === 'personal') return s.visibility === 'personal';
+    return true;
+  });
 
   // Requests for this host's spots
   const incomingRequests = requests.filter(r => r.hostId === currentUser.id);
@@ -138,7 +147,7 @@ export const HostDashboardPage: React.FC = () => {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-cream-100">
                     <div className="flex items-center gap-3">
                       <img
-                        src={traveler?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'}
+                        src={traveler?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(traveler?.name || 'RVer')}&background=0284c7&color=fff&bold=true`}
                         alt={traveler?.name}
                         className="w-12 h-12 rounded-2xl object-cover"
                       />
@@ -215,23 +224,89 @@ export const HostDashboardPage: React.FC = () => {
 
       {/* My Listed Spots */}
       <div className="space-y-4">
-        <h2 className="text-xl font-extrabold text-forest-950">My Shared Spots ({mySpots.length})</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {mySpots.map(spot => (
-            <div
-              key={spot.id}
-              className="bg-white rounded-3xl overflow-hidden border border-cream-200 shadow-soft flex flex-col justify-between"
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-extrabold text-forest-950">My Spots ({mySpots.length})</h2>
+            <p className="text-xs text-cream-900/60 mt-0.5">Manage your public peer listings and private saved spots.</p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex bg-cream-100 p-1 rounded-2xl text-xs font-bold text-cream-900 border border-cream-200">
+              <button
+                onClick={() => setSpotFilter('all')}
+                className={`px-3 py-1 rounded-xl transition-all ${spotFilter === 'all' ? 'bg-forest-900 text-white shadow-xs' : 'text-cream-700 hover:text-forest-950'}`}
+              >
+                All ({mySpots.length})
+              </button>
+              <button
+                onClick={() => setSpotFilter('public')}
+                className={`px-3 py-1 rounded-xl transition-all ${spotFilter === 'public' ? 'bg-forest-900 text-white shadow-xs' : 'text-cream-700 hover:text-forest-950'}`}
+              >
+                🌐 Public ({mySpots.filter(s => s.visibility !== 'personal').length})
+              </button>
+              <button
+                onClick={() => setSpotFilter('personal')}
+                className={`px-3 py-1 rounded-xl transition-all ${spotFilter === 'personal' ? 'bg-indigo-600 text-white shadow-xs' : 'text-cream-700 hover:text-forest-950'}`}
+              >
+                🔒 Personal ({mySpots.filter(s => s.visibility === 'personal').length})
+              </button>
+            </div>
+
+            <button
+              onClick={() => {
+                setCurrentView('host-onboarding');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="px-3.5 py-1.5 rounded-xl bg-forest-900 hover:bg-forest-800 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm"
             >
-              <div className="relative aspect-[16/9] overflow-hidden bg-cream-200">
-                <img src={spot.photos[0]} alt={spot.title} className="w-full h-full object-cover" />
-                <div className="absolute top-3 left-3 bg-forest-900 text-cream-50 px-2.5 py-1 rounded-xl text-xs font-black">
-                  100% FREE
+              <PlusCircle className="w-3.5 h-3.5" />
+              <span>Share Spot</span>
+            </button>
+          </div>
+        </div>
+
+        {filteredMySpots.length === 0 ? (
+          <div className="p-10 rounded-3xl bg-white border border-cream-200 text-center space-y-3">
+            <p className="text-xs text-cream-900/70">No spots found matching this filter.</p>
+            <button
+              onClick={() => {
+                setCurrentView('host-onboarding');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="px-4 py-2 rounded-xl bg-forest-900 text-white text-xs font-bold"
+            >
+              + Add a Spot Now
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {filteredMySpots.map(spot => (
+              <div
+                key={spot.id}
+                className="bg-white rounded-3xl overflow-hidden border border-cream-200 shadow-soft flex flex-col justify-between"
+              >
+                <div className="relative aspect-[16/9] overflow-hidden bg-cream-200">
+                  <img src={spot.photos[0] || '/images/real_rv_camping_hero.jpg'} alt={spot.title} className="w-full h-full object-cover" />
+                  <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                    {spot.visibility === 'personal' ? (
+                      <span className="bg-indigo-600 text-white px-2.5 py-1 rounded-xl text-xs font-black flex items-center gap-1 shadow-sm">
+                        <Lock className="w-3 h-3" /> PERSONAL SPOT
+                      </span>
+                    ) : spot.reviewStatus === 'pending_review' ? (
+                      <span className="bg-amber-600 text-white px-2.5 py-1 rounded-xl text-xs font-black flex items-center gap-1 shadow-sm">
+                        <Clock className="w-3 h-3" /> UNDER REVIEW
+                      </span>
+                    ) : (
+                      <span className="bg-forest-900 text-cream-50 px-2.5 py-1 rounded-xl text-xs font-black shadow-sm">
+                        100% FREE
+                      </span>
+                    )}
+                  </div>
+                  <div className="absolute top-3 right-3 bg-white/90 px-2 py-0.5 rounded-xl text-xs font-bold flex items-center gap-1">
+                    <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                    <span>{spot.rating}</span>
+                  </div>
                 </div>
-                <div className="absolute top-3 right-3 bg-white/90 px-2 py-0.5 rounded-xl text-xs font-bold flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                  <span>{spot.rating}</span>
-                </div>
-              </div>
 
               <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
                 <div>
@@ -283,7 +358,8 @@ export const HostDashboardPage: React.FC = () => {
             </div>
           ))}
         </div>
-      </div>
+      )}
+    </div>
 
       {/* Response Note Modal */}
       {responseModalReqId && (

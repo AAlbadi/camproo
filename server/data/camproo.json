@@ -6,7 +6,7 @@
       "role": "traveler",
       "email": "alex.sam@roamlife.com",
       "phone": "+1 (555) 234-8901",
-      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+      "avatar": "https://ui-avatars.com/api/?name=Alex%20%26%20Sam%20Rivera&background=0284c7&color=fff&bold=true",
       "bio": "Full-time rovers traveling in our 28ft Class C with our Australian Shepherd, Jasper. We love off-the-beaten-path astronomy spots, quiet gravel driveways, and swapping trail stories with fellow RVers.",
       "homeRegion": "Colorado Springs, CO",
       "yearsRVing": 6,
@@ -34,7 +34,7 @@
       "role": "host",
       "email": "caleb.sarah@moabredrock.org",
       "phone": "+1 (435) 259-8812",
-      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
+      "avatar": "https://ui-avatars.com/api/?name=Caleb%20%26%20Sarah%20Jenkins&background=0284c7&color=fff&bold=true",
       "bio": "Avid desert and red rock overland enthusiasts. We have an expansive 10-acre parcel bordering BLM land south of Moab with dedicated 30A power, high-speed Starlink, and pure well water. Nothing makes us happier than sharing our quiet canyon vistas with fellow roaming RVers.",
       "homeRegion": "Moab, UT",
       "yearsRVing": 9,
@@ -62,7 +62,7 @@
       "role": "host",
       "email": "marcus.vance@sedonapines.net",
       "phone": "+1 (555) 762-3490",
-      "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
+      "avatar": "https://ui-avatars.com/api/?name=Marcus%20%26%20Linda%20Vance&background=0284c7&color=fff&bold=true",
       "bio": "Retired landscape photographer and former Class A driver. We opened our flat 5-acre ponderosa parcel outside Sedona so fellow travelers can enjoy sunset views over red rocks without crowded commercial parks.",
       "homeRegion": "Sedona, AZ",
       "yearsRVing": 16,
@@ -90,7 +90,7 @@
       "role": "host",
       "email": "clara.ben@bendranch.org",
       "phone": "+1 (555) 912-3841",
-      "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80",
+      "avatar": "https://ui-avatars.com/api/?name=Clara%20%26%20Ben%20Bennett&background=0284c7&color=fff&bold=true",
       "bio": "Organic berry farmers and Sprinter vanlifers. We have a peaceful level meadow with mountain stream access, fire pit, and 30A power hookup. Dogs welcome on leash!",
       "homeRegion": "Bend, OR",
       "yearsRVing": 5,
@@ -118,7 +118,7 @@
       "role": "host",
       "email": "dave@coastalroam.com",
       "phone": "+1 (555) 438-1902",
-      "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80",
+      "avatar": "https://ui-avatars.com/api/?name=Captain%20Dave%20Miller&background=0284c7&color=fff&bold=true",
       "bio": "Former commercial tugboat captain, full-time Airstream enthusiast for 12 years. Park on our coastal bluff in Maine overlooking the harbor. Watch lobster boats head out at dawn.",
       "homeRegion": "Bar Harbor, ME",
       "yearsRVing": 12,
@@ -146,7 +146,7 @@
       "role": "admin",
       "email": "ranger@camproo.community",
       "phone": "+1 (800) 555-ROAM",
-      "avatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&q=80",
+      "avatar": "https://ui-avatars.com/api/?name=CampRoo%20Ranger%20Team&background=0284c7&color=fff&bold=true",
       "bio": "Official CampRoo Community Team. Ensuring trust, hospitality, and safe roaming for RVers worldwide.",
       "homeRegion": "Global Headquarters",
       "yearsRVing": 20,
@@ -647,9 +647,58 @@
       "tripsCompleted": 0,
       "spotsHosted": 0,
       "joinedYear": 2026
+    },
+    {
+      "id": "user-1788616146497",
+      "joinedDate": "2026-09-05",
+      "memberNumber": 2028,
+      "name": "Jordan Rivers",
+      "email": "jordan.rivers@rvadventures.com",
+      "role": "traveler",
+      "homeRegion": "Bend, OR",
+      "rig": {
+        "type": "class_b",
+        "lengthFt": 21,
+        "makeModel": "Storyteller Stealth",
+        "year": 2024
+      },
+      "newsletterOptIn": true
     }
   ],
   "spots": [
+    {
+      "id": "spot-1788616084260",
+      "rating": 5,
+      "reviewCount": 0,
+      "activeStatus": "live",
+      "photos": [
+        "/images/real_bald_mountain.jpg"
+      ],
+      "title": "Bozeman Pine Creek Ranch",
+      "locationName": "Bozeman",
+      "generalArea": "Montana",
+      "coordinates": [
+        45.6793,
+        -111.0447
+      ],
+      "rigCompatibility": {
+        "maxLengthFt": 40,
+        "accessType": "pull_through",
+        "surfaceType": "packed_gravel"
+      },
+      "amenities": {
+        "electricity": "30amp",
+        "water": "potable",
+        "wifi": true
+      },
+      "visibility": "public",
+      "reviewStatus": "pending_review",
+      "submitterName": "Marcus Montana",
+      "contactEmail": "marcus@montanaranch.com",
+      "contactPhone": "+1 (406) 555-0192",
+      "createdAt": "2026-09-05",
+      "status": "active"
+    },
     {
       "id": "spot-moab-redrock",
       "hostId": "user-host-1",
@@ -663,10 +712,9 @@
         -109.5498
       ],
       "photos": [
-        "/images/desert_spot.jpg",
-        "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1000&q=80",
-        "https://images.unsplash.com/photo-1510312305653-8ed496efae75?auto=format&fit=crop&w=1000&q=80"
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/67/-TravelTuesday_with_My_Public_Lands_%2824446462030%29.jpg/1280px--TravelTuesday_with_My_Public_Lands_%2824446462030%29.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/99/-TravelTuesday_with_My_Public_Lands_at_Canyon_Rims_Recreation_Area_SRMA_%2824115137893%29.jpg/1280px--TravelTuesday_with_My_Public_Lands_at_Canyon_Rims_Recreation_Area_SRMA_%2824115137893%29.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7d/Manti-La_Sal_National_Forest_%2827006934032%29.jpg/1280px-Manti-La_Sal_National_Forest_%2827006934032%29.jpg"
       ],
       "spaceType": "desert_oasis",
       "environment": "desert",
@@ -748,9 +796,9 @@
         -111.761
       ],
       "photos": [
-        "https://images.unsplash.com/photo-1516214104703-d870798883c5?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80",
-        "https://images.unsplash.com/photo-1470246973918-29a93221c455?auto=format&fit=crop&w=1000&q=80"
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/16/Sedona_Red_Rocks_from_I-17.jpg/1280px-Sedona_Red_Rocks_from_I-17.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/58/Red_Rocks_Surrounding_Honanki_in_Sedona_%288694044604%29.jpg/1280px-Red_Rocks_Surrounding_Honanki_in_Sedona_%288694044604%29.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f7/Red_Rocks_of_Sedona_%288694042412%29.jpg/1280px-Red_Rocks_of_Sedona_%288694042412%29.jpg"
       ],
       "spaceType": "acreage",
       "environment": "mountain",
@@ -831,9 +879,9 @@
         -121.3153
       ],
       "photos": [
-        "/images/meadow_spot.jpg",
-        "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1510312305653-8ed496efae75?auto=format&fit=crop&w=1000&q=80"
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/36/Bend%2C_Oregon_%281291721050%29.jpg/1280px-Bend%2C_Oregon_%281291721050%29.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1c/Bend%2C_Oregon_%281291721992%29.jpg/1280px-Bend%2C_Oregon_%281291721992%29.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5e/Trailer_Camping_ET5A7516_%2829804296456%29.jpg/1920px-Trailer_Camping_ET5A7516_%2829804296456%29.jpg"
       ],
       "spaceType": "farm",
       "environment": "forest",
@@ -914,9 +962,9 @@
         -68.2039
       ],
       "photos": [
-        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=1000&q=80",
-        "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?auto=format&fit=crop&w=1000&q=80"
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d4/Acadia_National_Park%2C_Maine_%288cd03391-75a7-403f-8d64-42aa07408dfb%29.jpg/1280px-Acadia_National_Park%2C_Maine_%288cd03391-75a7-403f-8d64-42aa07408dfb%29.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e9/Acadia_National_Park%2C_Maine_%28a84afa37-b94d-49d1-9be8-bb2d45115784%29.jpg/1280px-Acadia_National_Park%2C_Maine_%28a84afa37-b94d-49d1-9be8-bb2d45115784%29.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/20/Acadia_National_Park%2C_Maine_%285e76e4c7-b65c-4cd0-9a0b-9d0082e50fa8%29.jpg/1280px-Acadia_National_Park%2C_Maine_%285e76e4c7-b65c-4cd0-9a0b-9d0082e50fa8%29.jpg"
       ],
       "spaceType": "backyard",
       "environment": "coastal",
@@ -996,8 +1044,9 @@
         -120.1833
       ],
       "photos": [
-        "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1470246973918-29a93221c455?auto=format&fit=crop&w=1000&q=80"
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3b/Zephyr_Cove%2C_Lake_Tahoe%2C_NV_8-10_%2816347314744%29.jpg/1280px-Zephyr_Cove%2C_Lake_Tahoe%2C_NV_8-10_%2816347314744%29.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7c/Sand_Harbor%2C_Lake_Tahoe_9-10_%2816723600734%29.jpg/1280px-Sand_Harbor%2C_Lake_Tahoe_9-10_%2816723600734%29.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d0/Sand_Harbor%2C_Lake_Tahoe%2C_NV_9-10_%2819870063538%29.jpg/1280px-Sand_Harbor%2C_Lake_Tahoe%2C_NV_9-10_%2819870063538%29.jpg"
       ],
       "spaceType": "forest_clearing",
       "environment": "mountain",
@@ -1075,8 +1124,9 @@
         -98.8719
       ],
       "photos": [
-        "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80"
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/95/Hill_Country_State_Natural_Area.jpg/1280px-Hill_Country_State_Natural_Area.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ef/Overlook_View_Hill_Country_SNA_Texas_2023.jpg/1280px-Overlook_View_Hill_Country_SNA_Texas_2023.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/33/Hill_Country_SNA_Texas_2023.jpg/1280px-Hill_Country_SNA_Texas_2023.jpg"
       ],
       "spaceType": "vineyard",
       "environment": "vineyard",
@@ -1157,9 +1207,9 @@
         -116.3131
       ],
       "photos": [
-        "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1000&q=80",
-        "https://images.unsplash.com/photo-1510312305653-8ed496efae75?auto=format&fit=crop&w=1000&q=80"
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ef/Rock_formations_along_Geology_Tour_Road_at_sunset_%2851146471142%29.jpg/1280px-Rock_formations_along_Geology_Tour_Road_at_sunset_%2851146471142%29.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7a/Mojave_Trails_National_Monument_%2832916495864%29.jpg/1920px-Mojave_Trails_National_Monument_%2832916495864%29.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Mojave_Trails_National_Monument_%2833759434335%29.jpg/1920px-Mojave_Trails_National_Monument_%2833759434335%29.jpg"
       ],
       "spaceType": "desert_oasis",
       "environment": "desert",
@@ -1239,8 +1289,9 @@
         -83.5102
       ],
       "photos": [
-        "https://images.unsplash.com/photo-1511497584788-87676104235f?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1000&q=80"
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/08/View_of_fields%2C_mountains_and_mist_in_Cades_Cove_looking_SW._-_Great_Smoky_Mountains_National_Park_Roads_and_Bridges%2C_Cades_Cove_Road_and_Laurel_Creek_Road%2C_From_Townsend_Wye_HAER_TENN%2C78-GAT.V%2C6D-18.tif/lossy-page1-1280px-thumbnail.tif.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8a/Outbuilding_on_the_Ephraim_Bales_Place_in_the_Smoky_Mountains.jpg/1280px-Outbuilding_on_the_Ephraim_Bales_Place_in_the_Smoky_Mountains.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/46/Blesner_Creek_Autumn_Sunset_-_Fall_Colors_at_Superior_National_Forest%2C_Minnesota_%2836763922793%29.jpg/1280px-Blesner_Creek_Autumn_Sunset_-_Fall_Colors_at_Superior_National_Forest%2C_Minnesota_%2836763922793%29.jpg"
       ],
       "spaceType": "acreage",
       "environment": "mountain",
@@ -1310,6 +1361,52 @@
     }
   ],
   "requests": [
+    {
+      "id": "req-1788616090877",
+      "status": "accepted",
+      "createdAt": "2026-09-05T13:48:10.877Z",
+      "travelerId": "user-traveler-1",
+      "hostId": "user-host-1",
+      "spotId": "spot-1",
+      "travelerName": "Alex Explorer",
+      "travelerEmail": "alex@nomadventures.org",
+      "spotTitle": "Sedona Red Rock Vista",
+      "spotLocation": "Sedona, Arizona",
+      "arrivalDate": "2026-10-01",
+      "departureDate": "2026-10-03",
+      "nights": 2,
+      "guestCount": 2,
+      "travelerRig": {
+        "type": "class_c",
+        "lengthFt": 28,
+        "description": "28ft Class C"
+      },
+      "personalNote": "Looking forward to exploring Sedona trails!",
+      "hostResponseNote": "Welcome Alex! Driveway is cleared and 30A power is tested."
+    },
+    {
+      "id": "req-1788613676863",
+      "status": "pending",
+      "createdAt": "2026-09-05T13:07:56.863Z",
+      "spotId": "spot-1",
+      "travelerId": "user-traveler-1",
+      "hostId": "user-host-1",
+      "arrivalDate": "2026-09-15",
+      "departureDate": "2026-09-17",
+      "nights": 2,
+      "guestCount": 2,
+      "travelerRig": {
+        "type": "class_c",
+        "lengthFt": 28,
+        "description": "28ft Class C"
+      },
+      "personalNote": "Love your spot!",
+      "arrivalTimeEst": "4:00 PM",
+      "travelerName": "Alex Rover",
+      "travelerEmail": "alex@test.com",
+      "spotTitle": "Desert Roo Pad",
+      "spotLocation": "Moab, UT"
+    },
     {
       "id": "req-moab-1",
       "spotId": "spot-moab-redrock",
@@ -1432,6 +1529,24 @@
   ],
   "posts": [
     {
+      "id": "post-1788616135539",
+      "upvotes": 0,
+      "upvotedBy": [],
+      "comments": [
+        {
+          "id": "comment-1788616140685",
+          "createdAt": "Just now",
+          "authorName": "Dave TruckCamper",
+          "content": "Drove it two weeks ago! Guardrails are sturdy and pavement is smooth. Just take it slow through the S-curves."
+        }
+      ],
+      "createdAt": "Just now",
+      "authorName": "Elena Roamer",
+      "title": "Clearances on Utah Highway 12 with 34ft trailer?",
+      "category": "route_tips",
+      "content": "Has anyone navigated the Hogback section near Boulder Mountain recently? Checking for narrow shoulders."
+    },
+    {
       "id": "post-1788516318235",
       "upvotes": 0,
       "upvotedBy": [],
@@ -1463,7 +1578,7 @@
           "id": "c-1",
           "authorId": "user-host-1",
           "authorName": "Caleb Jenkins",
-          "authorAvatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
+          "authorAvatar": "https://ui-avatars.com/api/?name=Caleb%20Jenkins&background=0284c7&color=fff&bold=true",
           "authorRig": "35ft Fifth Wheel",
           "content": "Hey Alex! Took our 35ft fifth wheel across the Hogsback last fall. Just take it slow in low gear and soak in the drop-offs on both sides — it is magnificent. You are welcome to pull into our Red Rock Roo pad in Moab for a cold water fill-up and 30A plug once you roll in!",
           "createdAt": "2026-09-01T17:05:00Z"
@@ -1472,7 +1587,7 @@
           "id": "c-2",
           "authorId": "user-host-4",
           "authorName": "Dave Miller",
-          "authorAvatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80",
+          "authorAvatar": "https://ui-avatars.com/api/?name=Dave%20Miller&background=0284c7&color=fff&bold=true",
           "authorRig": "26ft Airstream",
           "content": "One of the top 5 drives in the USA! Fill up diesel in Escalante before heading over Boulder Mountain. Safe roaming!",
           "createdAt": "2026-09-01T19:30:00Z"
@@ -1499,7 +1614,7 @@
           "id": "c-3",
           "authorId": "user-host-3",
           "authorName": "Clara Bennett",
-          "authorAvatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
+          "authorAvatar": "https://ui-avatars.com/api/?name=Clara%20Bennett&background=0284c7&color=fff&bold=true",
           "authorRig": "Sprinter 144",
           "content": "Great reminder Marcus! We also recommend guests use a surge protector with EMS before plugging into host pedestals. Protects both the rig and the host home electrical panel.",
           "createdAt": "2026-08-25T13:40:00Z"
@@ -1539,6 +1654,44 @@
     }
   ],
   "reviews": [
+    {
+      "id": "rev-1788616100706",
+      "createdAt": "Just now",
+      "spotId": "spot-1",
+      "spotTitle": "Sedona Red Rock Vista",
+      "reviewerName": "Alex Explorer",
+      "ratingOverall": 5,
+      "categories": {
+        "communication": 5,
+        "accuracy": 5,
+        "hospitality": 5,
+        "safety": 5,
+        "cleanliness": 5
+      },
+      "wouldWelcomeAgain": true,
+      "comment": "Unbelievable sunsets and generous hosts. Clean gravel pad and super quiet night."
+    },
+    {
+      "id": "rev-1788613676872",
+      "createdAt": "Just now",
+      "spotId": "spot-1",
+      "travelerId": "user-traveler-1",
+      "hostId": "user-host-1",
+      "authorId": "user-traveler-1",
+      "authorRole": "traveler",
+      "ratingOverall": 4.8,
+      "categories": {
+        "communication": 5,
+        "accuracy": 5,
+        "hospitality": 5,
+        "safety": 4,
+        "cleanliness": 5
+      },
+      "wouldWelcomeAgain": true,
+      "comment": "Amazing spot!",
+      "reviewerName": "Alex Rover",
+      "spotTitle": "Desert Roo Pad"
+    },
     {
       "id": "rev-desert-1",
       "spotId": "spot-moab-redrock",
@@ -1623,6 +1776,29 @@
   ],
   "reports": [
     {
+      "id": "report-1788616105730",
+      "status": "pending",
+      "createdAt": "2026-09-05T13:48:25.730Z",
+      "reporterName": "Concerned Camper",
+      "reporterEmail": "camper@safeoutdoors.org",
+      "targetType": "spot",
+      "targetName": "Overgrown BLM Road",
+      "reason": "Safety hazard",
+      "details": "Fallen oak tree blocking the access spur right before the cattle guard."
+    },
+    {
+      "id": "report-1788613676882",
+      "status": "pending",
+      "createdAt": "2026-09-05T13:07:56.882Z",
+      "reporterId": "user-traveler-1",
+      "reportedTargetType": "spot",
+      "targetId": "spot-1",
+      "targetName": "Suspicious Spot",
+      "reason": "Safety concern",
+      "details": "Test report details",
+      "reporterName": "Alex Rover"
+    },
+    {
       "id": "rep-1",
       "reporterId": "user-traveler-1",
       "reportedTargetType": "spot",
@@ -1647,5 +1823,5 @@
       "adminNotes": "Investigating account history and outbound messaging logs."
     }
   ],
-  "updatedAt": "2026-09-04T11:10:40.493Z"
+  "updatedAt": "2026-09-05T13:49:06.507Z"
 }

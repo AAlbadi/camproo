@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { db } from "../db.js";
+import { sendNewReviewAdminEmail } from "../services/emailService.js";
 
 export const reviewsRouter = Router();
 
@@ -11,9 +12,24 @@ reviewsRouter.get("/", (req, res) => {
 });
 
 // POST add review
-reviewsRouter.post("/", (req, res) => {
+reviewsRouter.post("/", async (req, res) => {
   try {
     const newReview = db.addReview(req.body);
+
+    const reviewer = (req.body.authorId || req.body.travelerId)
+      ? db.getUserById(req.body.authorId || req.body.travelerId)
+      : null;
+    const spot = req.body.spotId ? db.getSpotById(req.body.spotId) : null;
+
+    sendNewReviewAdminEmail({
+      reviewerName: req.body.reviewerName || reviewer?.name || 'CampRoo Roamer',
+      spotTitle: req.body.spotTitle || spot?.title || 'RV Spot',
+      ratingOverall: req.body.ratingOverall || 0,
+      categories: req.body.categories || {},
+      wouldWelcomeAgain: req.body.wouldWelcomeAgain !== undefined ? req.body.wouldWelcomeAgain : true,
+      comment: req.body.comment || 'N/A'
+    }).catch(err => console.error('[Email Error]', err));
+
     res.status(201).json({ success: true, data: newReview });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

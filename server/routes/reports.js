@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { db } from "../db.js";
+import { sendSafetyReportAdminEmail } from "../services/emailService.js";
 
 export const reportsRouter = Router();
 
@@ -10,9 +11,24 @@ reportsRouter.get("/", (req, res) => {
 });
 
 // POST file report
-reportsRouter.post("/", (req, res) => {
+reportsRouter.post("/", async (req, res) => {
   try {
     const report = db.addReport(req.body);
+
+    const reporter = req.body.reporterId ? db.getUserById(req.body.reporterId) : null;
+    const targetType = req.body.targetType || req.body.reportedTargetType || 'Unknown';
+    const reporterName = req.body.reporterName || reporter?.name || 'Anonymous';
+    const reporterEmail = req.body.reporterEmail || reporter?.email || '';
+
+    sendSafetyReportAdminEmail({
+      reporterName,
+      reporterEmail,
+      targetType,
+      targetName: req.body.targetName || 'Unknown',
+      reason: req.body.reason || 'Unknown',
+      details: req.body.details || 'N/A'
+    }).catch(err => console.error('[Email Error]', err));
+
     res.status(201).json({ success: true, data: report });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

@@ -1,7 +1,123 @@
 import { Router } from "express";
 import { db } from "../db.js";
+import {
+  sendSpotSubmissionReviewEmail,
+  sendSpotSubmitterConfirmationEmail,
+  sendSpotEditRequestAdminEmail,
+  sendNewSpotPhotoAdminEmail
+} from "../services/emailService.js";
 
 export const spotsRouter = Router();
+
+// POST submit spot with review email dispatch to admin
+spotsRouter.post("/submit", async (req, res) => {
+  try {
+    const {
+      spot,
+      submitterName = "CampRoo Member",
+      submitterEmail = "",
+      submitterPhone = "",
+      visibility = "public",
+      notes = ""
+    } = req.body;
+
+    if (!spot) {
+      return res.status(400).json({ success: false, message: "Missing spot payload" });
+    }
+
+    const effectiveEmail = submitterEmail || spot.contactEmail || "unknown@camproo.com";
+
+    // Assign spot id if not present
+    const spotToSave = {
+      ...spot,
+      id: spot.id || `spot-${Date.now()}`,
+      visibility: visibility || "public",
+      reviewStatus: visibility === "personal" ? "personal" : "pending_review",
+      submitterName,
+      contactEmail: effectiveEmail,
+      contactPhone: submitterPhone,
+      createdAt: spot.createdAt || new Date().toISOString().split("T")[0],
+      status: spot.status || "active",
+    };
+
+    // Save in memory / database
+    const savedSpot = db.addSpot(spotToSave);
+
+    // Send email notification to owner (aalbadi1911@gmail.com)
+    let emailResult = { success: false };
+    try {
+      emailResult = await sendSpotSubmissionReviewEmail({
+        spot: savedSpot,
+        submitterName,
+        submitterEmail: effectiveEmail,
+        submitterPhone,
+        visibility,
+        notes
+      });
+    } catch (mailErr) {
+      console.error("[CampRoo] Failed to send spot review email:", mailErr);
+    }
+
+    // Send confirmation receipt to submitter if distinct email provided
+    if (effectiveEmail && effectiveEmail !== "aalbadi1911@gmail.com" && effectiveEmail.includes("@")) {
+      sendSpotSubmitterConfirmationEmail({
+        to: effectiveEmail,
+        name: submitterName,
+        spotTitle: savedSpot.title
+      }).catch(() => {});
+    }
+
+    res.status(201).json({
+      success: true,
+      data: savedSpot,
+      emailSent: Boolean(emailResult?.success),
+      message: visibility === "personal"
+        ? "Personal spot saved successfully to your private map."
+        : "Spot submitted successfully! Details sent to our verification team for review."
+    });
+  } catch (err) {
+    console.error("[CampRoo] Error submitting spot:", err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// GET saved spots for a user
+spotsRouter.get("/saved/:userId", (req, res) => {
+  try {
+    const savedSpotIds = db.getSavedSpots(req.params.userId);
+    res.json({ success: true, savedSpotIds });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// POST save/like a spot
+spotsRouter.post("/save", (req, res) => {
+  try {
+    const { userId, spotId } = req.body;
+    if (!userId || !spotId) {
+      return res.status(400).json({ success: false, message: "userId and spotId required" });
+    }
+    const savedSpotIds = db.saveSpot(userId, spotId);
+    res.json({ success: true, savedSpotIds });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// POST unsave/unlike a spot
+spotsRouter.post("/unsave", (req, res) => {
+  try {
+    const { userId, spotId } = req.body;
+    if (!userId || !spotId) {
+      return res.status(400).json({ success: false, message: "userId and spotId required" });
+    }
+    const savedSpotIds = db.unsaveSpot(userId, spotId);
+    res.json({ success: true, savedSpotIds });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
 
 // GET all spots with query filters
 spotsRouter.get("/", (req, res) => {
@@ -47,3 +163,127 @@ spotsRouter.delete("/:id", (req, res) => {
   if (!deleted) return res.status(404).json({ success: false, message: "Spot not found" });
   res.json({ success: true, message: "Spot deleted successfully" });
 });
+
+// POST /api/spots/:id/photos - Upload community photo for a spot
+spotsRouter.post("/:id/photos", async (req, res) => {
+  const { id } = req.params;
+  const { photoUrl, imageBase64, filename, caption } = req.body;
+
+  let finalUrl = photoUrl;
+
+  // If user uploaded an image via Base64, upload to Supabase Storage
+  if (imageBase64 && !finalUrl) {
+    try {
+      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      const supabaseUrl = process.env.VITE_SUPABASE_URL || "https://tkyfoexwvbbblccfwyej.supabase.co";
+
+      if (serviceKey && supabaseUrl) {
+        const cleanBase64 = imageBase64.replace(/^data:image\/[a-z]+;base64,/, "");
+        const buffer = Buffer.from(cleanBase64, "base64");
+        const safeName = `${id}-${Date.now()}-${(filename || "photo.jpg").replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+
+        const uploadUrl = `${supabaseUrl}/storage/v1/object/spot-photos/${safeName}`;
+        const uploadResp = await fetch(uploadUrl, {
+          method: "POST",
+          headers: {
+            apikey: serviceKey,
+            Authorization: `Bearer ${serviceKey}`,
+            "Content-Type": "image/jpeg",
+          },
+          body: buffer,
+        });
+
+        if (uploadResp.ok) {
+          finalUrl = `${supabaseUrl}/storage/v1/object/public/spot-photos/${safeName}`;
+        }
+      }
+    } catch (uploadErr) {
+      console.error("[CampRoo API] Failed to upload photo to Supabase storage:", uploadErr);
+    }
+
+    if (!finalUrl && imageBase64) {
+      finalUrl = imageBase64;
+    }
+  }
+
+  if (!finalUrl) {
+    return res.status(400).json({ success: false, message: "No photo provided" });
+  }
+
+  // Update Supabase database if available
+  try {
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseUrl = process.env.VITE_SUPABASE_URL || "https://tkyfoexwvbbblccfwyej.supabase.co";
+    if (serviceKey && supabaseUrl) {
+      const fetchResp = await fetch(`${supabaseUrl}/rest/v1/spots?id=eq.${id}&select=photos`, {
+        headers: {
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+        },
+      });
+      if (fetchResp.ok) {
+        const rows = await fetchResp.json();
+        if (rows && rows.length > 0) {
+          const currentPhotos = rows[0].photos || [];
+          const updatedPhotos = [finalUrl, ...currentPhotos];
+          await fetch(`${supabaseUrl}/rest/v1/spots?id=eq.${id}`, {
+            method: "PATCH",
+            headers: {
+              apikey: serviceKey,
+              Authorization: `Bearer ${serviceKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ photos: updatedPhotos }),
+          });
+        }
+      }
+    }
+  } catch (dbErr) {
+    console.warn("[CampRoo API] Could not patch photos in Supabase DB:", dbErr.message);
+  }
+
+  // Look up spot title for rich email notification
+  const targetSpot = db.getSpotById(id);
+  sendNewSpotPhotoAdminEmail({
+    spotId: id,
+    spotTitle: targetSpot?.title || id,
+    uploaderName: req.body.uploaderName || 'CampRoo Scout',
+    photoUrl: finalUrl,
+    caption: caption || ''
+  }).catch(err => console.error('[Photo Email Error]', err));
+
+  res.json({
+    success: true,
+    photoUrl: finalUrl,
+    caption: caption || "",
+  });
+});
+
+// POST /api/spots/:id/edit-requests - Submit community spot edit suggestion
+spotsRouter.post("/:id/edit-requests", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const editData = req.body || {};
+    const targetSpot = db.getSpotById(id);
+
+    sendSpotEditRequestAdminEmail({
+      spotId: id,
+      spotTitle: editData.spotTitle || targetSpot?.title || id,
+      submitterName: editData.submitterName || 'CampRoo Scout',
+      submitterEmail: editData.submitterEmail || 'unknown@camproo.com',
+      editType: editData.editType || 'road_access',
+      suggestedChanges: editData.suggestedChanges || {},
+      notes: editData.notes || ''
+    }).catch(err => console.error('[Spot Edit Email Error]', err));
+
+    res.status(201).json({
+      success: true,
+      message: "Edit request logged successfully for ranger review.",
+      data: editData,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+

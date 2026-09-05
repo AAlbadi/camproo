@@ -19,14 +19,14 @@ envFile.split('\n').forEach(line => {
 });
 
 const url = env['VITE_SUPABASE_URL'];
-const key = env['VITE_SUPABASE_ANON_KEY'];
+const key = env['SUPABASE_SERVICE_ROLE_KEY'] || env['VITE_SUPABASE_ANON_KEY'];
 
 const supabase = createClient(url, key, {
   auth: { persistSession: false }
 });
 
 async function main() {
-  const datasetPath = path.resolve(__dirname, '../src/data/imported/freeCampingSpots.json');
+  const datasetPath = path.resolve(__dirname, '../src/data/imported/curatedFreeSpots.json');
   console.log(`Reading spots from ${datasetPath}...`);
   const rawData = JSON.parse(fs.readFileSync(datasetPath, 'utf8'));
   console.log(`Total spots in file: ${rawData.length}`);

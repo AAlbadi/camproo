@@ -19,8 +19,12 @@ import {
   Sparkles,
   ShieldAlert,
   UserPlus,
-  BarChart3
+  BarChart3,
+  LogOut,
+  User as UserIcon
 } from 'lucide-react';
+
+import { MapSearchBar, AreaSelectPayload } from '../explore/MapSearchBar';
 
 export const Navbar: React.FC = () => {
   const {
@@ -31,13 +35,26 @@ export const Navbar: React.FC = () => {
     setCurrentView,
     requests,
     threads,
+    isAdminAuthenticated,
+    isAuthenticated,
+    logout,
+    adminLogout,
+    spots,
+    searchFilters,
+    setSearchFilters,
+    isLocating,
+    handleNearMe,
+    setTargetView,
+    userLocation,
   } = useApp();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signup');
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const [analyticsModalOpen, setAnalyticsModalOpen] = useState(false);
+
+  const isUserAdmin = isAdminAuthenticated || currentUser.role === 'admin';
 
   // Calculate notification counters
   const pendingRequestsForHost = requests.filter(
@@ -56,71 +73,170 @@ export const Navbar: React.FC = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-dark-200 transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
+      <header className="sticky top-0 z-[1000] liquid-glass bg-white/95 backdrop-blur-xl border-b border-white/60 shadow-[0_4px_24px_rgba(0,0,0,0.04)] transition-all">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 gap-2 sm:gap-4">
             {/* Left: CampRoo Brand Mark */}
             <div
               onClick={() => handleNav('home')}
-              className="cursor-pointer transition-transform hover:scale-[1.01] shrink-0"
+              className="cursor-pointer transition-transform hover:scale-[1.02] shrink-0 flex items-center"
             >
               <MascotBadge size="md" tagline="WHERE RVERS HELP RVERS" />
             </div>
 
-            {/* Center: Airbnb-style Compact Search Pill & Explore Button */}
-            <div className="hidden md:flex items-center gap-3">
+            {/* Center: Integrated Liquid Glass Search Bar (Level 1) */}
+            <div className="flex-1 max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl mx-1 sm:mx-2">
+              <MapSearchBar
+                spots={spots}
+                value={searchFilters.locationQuery}
+                onChange={(q) => setSearchFilters((prev) => ({ ...prev, locationQuery: q }))}
+                onSelectArea={(payload: AreaSelectPayload) => {
+                  setSearchFilters((prev) => ({
+                    ...prev,
+                    locationQuery: payload.title,
+                    stateCode: payload.stateAbbr || 'all',
+                    searchCenter: payload.center,
+                    searchRadiusMiles: payload.radiusMiles || 50,
+                  }));
+                  if (payload.bbox) {
+                    setTargetView({
+                      bounds: {
+                        southWest: { lat: payload.bbox[0], lng: payload.bbox[1] },
+                        northEast: { lat: payload.bbox[2], lng: payload.bbox[3] },
+                      },
+                      timestamp: Date.now(),
+                    });
+                  } else if (payload.center) {
+                    setTargetView({
+                      center: payload.center,
+                      zoom: payload.zoom || 10,
+                      timestamp: Date.now(),
+                    });
+                  }
+                  if (currentView !== 'explore' && currentView !== 'home') {
+                    handleNav('explore');
+                  }
+                }}
+                onClear={() => {
+                  setSearchFilters((prev) => ({
+                    ...prev,
+                    locationQuery: '',
+                    stateCode: 'all',
+                    searchCenter: undefined,
+                    searchRadiusMiles: undefined,
+                  }));
+                  setTargetView({
+                    center: [39.5, -98.35],
+                    zoom: 5,
+                    timestamp: Date.now(),
+                  });
+                }}
+                onNearMe={handleNearMe}
+                isLocating={isLocating}
+                placeholder="Search city, state, or park (e.g. Idaho, Montana, Sedona)..."
+                userLocation={userLocation}
+                activeTripRoute={searchFilters.tripRoute}
+                onSelectTripRoute={(trip) => {
+                  setSearchFilters((prev) => ({
+                    ...prev,
+                    tripRoute: trip,
+                    locationQuery: '',
+                    searchCenter: undefined,
+                    searchRadiusMiles: undefined,
+                  }));
+                  if (trip.routeCoordinates && trip.routeCoordinates.length > 0) {
+                    let minLat = 90, maxLat = -90, minLng = 180, maxLng = -180;
+                    for (const [lat, lng] of trip.routeCoordinates) {
+                      if (lat < minLat) minLat = lat;
+                      if (lat > maxLat) maxLat = lat;
+                      if (lng < minLng) minLng = lng;
+                      if (lng > maxLng) maxLng = lng;
+                    }
+                    setTargetView({
+                      bounds: {
+                        southWest: { lat: minLat, lng: minLng },
+                        northEast: { lat: maxLat, lng: maxLng },
+                      },
+                      timestamp: Date.now(),
+                    });
+                  }
+                  if (currentView !== 'explore' && currentView !== 'home') {
+                    handleNav('explore');
+                  }
+                }}
+                onClearTripRoute={() => {
+                  setSearchFilters((prev) => ({
+                    ...prev,
+                    tripRoute: null,
+                  }));
+                }}
+              />
+            </div>
+
+            {/* Right: Actions & User Pill */}
+            <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+              {/* Live Map & Routes Quick Launch */}
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => handleNav('explore')}
-                className="flex items-center gap-3 pl-5 pr-2 py-2 rounded-full border border-dark-300 hover:shadow-search bg-white text-xs font-semibold text-dark-900 transition-all shadow-xs"
+                className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-dark-900/90 hover:bg-black text-white text-xs font-extrabold shadow-xs transition-all"
               >
-                <span className="font-bold text-dark-900">Explore 9,700+ Spots</span>
-                <span className="text-dark-300">|</span>
-                <span className="text-dark-700">Any Rig</span>
-                <span className="text-dark-300">|</span>
-                <span className="text-dark-500 font-normal">100% Free</span>
-                <div className="w-8 h-8 rounded-full bg-roo-500 text-white flex items-center justify-center shrink-0">
-                  <Search className="w-3.5 h-3.5 stroke-[2.5]" />
-                </div>
+                <Compass className="w-3.5 h-3.5 text-roo-400" />
+                <span>Live Map</span>
               </motion.button>
-            </div>
 
-            {/* Right: Actions & User Pill */}
-            <div className="flex items-center gap-2 sm:gap-3">
-              {/* Host Spot Button with shadcn Button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleNav('host-onboarding')}
-                className="hidden lg:flex rounded-full text-xs font-bold"
+              {/* Mission & Vision Link */}
+              <button
+                onClick={() => handleNav('about')}
+                className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-extrabold transition-all ${
+                  currentView === 'about'
+                    ? 'bg-roo-50 text-roo-700 border border-roo-200'
+                    : 'text-dark-700 hover:text-dark-950 hover:bg-dark-100/80'
+                }`}
+                title="Our Mission & Story"
               >
-                Share your spot
-              </Button>
+                <span>Mission</span>
+              </button>
 
-              {/* Sign In Quick Trigger */}
+              {/* Host Spot Button - desktop / tablet only, mobile has it in bottom nav */}
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  setAuthMode('signup');
-                  setAuthModalOpen(true);
-                }}
-                className="hidden sm:flex rounded-full text-xs font-bold gap-1.5"
+                onClick={() => handleNav('host-onboarding')}
+                className="hidden sm:flex items-center gap-1.5 rounded-full text-xs font-extrabold border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 shadow-2xs transition-all"
               >
-                <Sparkles className="w-3.5 h-3.5 text-primary" />
-                <span>Sign In</span>
+                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Share a spot</span>
               </Button>
 
-              {/* Traffic & Data Hub Shortcut */}
-              <button
-                onClick={() => setAnalyticsModalOpen(true)}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-200 transition-colors shadow-2xs"
-                title="Traffic, Newsletter & Data Hub"
-              >
-                <BarChart3 className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Traffic & Data</span>
-              </button>
+              {/* Sign In Trigger (defaults to signin mode) - ONLY when NOT authenticated */}
+              {!isAuthenticated && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setAuthMode('signin');
+                    setAuthModalOpen(true);
+                  }}
+                  className="hidden sm:flex rounded-full text-xs font-bold gap-1.5 border-dark-300 hover:border-dark-400"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-roo-500" />
+                  <span>Sign In</span>
+                </Button>
+              )}
+
+              {/* Admin Traffic Shortcut - ONLY shown when authenticated as Admin Aziz */}
+              {isUserAdmin && (
+                <button
+                  onClick={() => setAnalyticsModalOpen(true)}
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-200 transition-colors shadow-2xs"
+                  title="Traffic & Data Hub (Admin Aziz)"
+                >
+                  <BarChart3 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Traffic & Data</span>
+                </button>
+              )}
 
               {/* Safety Center Shortcut */}
               <button
@@ -131,102 +247,169 @@ export const Navbar: React.FC = () => {
                 <ShieldCheck className="w-5 h-5 text-emerald-600" />
               </button>
 
-              {/* User Dropdown Pill with shadcn Avatar & Badge */}
+              {/* Buy Me a Coffee button (desktop/tablet only; mobile has it directly in bottom nav) */}
+              <a
+                href="https://buymeacoffee.com/camproo"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 text-xs font-black shadow-2xs transition-all active:scale-95 shrink-0"
+                title="☕ Buy Me a Coffee"
+              >
+                <span>☕</span>
+                <span className="hidden xs:inline">Coffee</span>
+              </a>
+
+              {/* User Dropdown Pill */}
               <div className="relative">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                  className="flex items-center gap-2.5 pl-3 pr-1.5 py-1.5 rounded-full border border-border hover:shadow-md bg-card transition-all"
+                  className="flex items-center gap-2.5 pl-3 pr-1.5 py-1.5 rounded-full border border-dark-200 hover:shadow-md bg-white transition-all shadow-2xs"
                 >
-                  <Menu className="w-4 h-4 text-muted-foreground" />
+                  <Menu className="w-4 h-4 text-dark-600" />
                   <div className="relative">
-                    <Avatar className="w-7 h-7 ring-1 ring-border">
-                      <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
-                      <AvatarFallback>{currentUser.name.slice(0, 2)}</AvatarFallback>
-                    </Avatar>
-                    {(pendingRequestsForHost > 0 || unreadMessagesCount > 0) && (
-                      <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-primary rounded-full border-2 border-background" />
+                    {isAuthenticated ? (
+                      <Avatar className="w-7 h-7 ring-1 ring-dark-200">
+                        <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
+                        <AvatarFallback className="bg-emerald-600 text-white font-bold text-xs">
+                          {currentUser.name.slice(0, 1).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <div className="w-7 h-7 rounded-full bg-dark-100 flex items-center justify-center text-dark-600">
+                        <UserIcon className="w-4 h-4" />
+                      </div>
+                    )}
+                    {isAuthenticated && (pendingRequestsForHost > 0 || unreadMessagesCount > 0) && (
+                      <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-roo-500 rounded-full border-2 border-white" />
                     )}
                   </div>
                 </motion.button>
 
-                {/* Dropdown Menu */}
+                {/* Dropdown Menu - Cleaned up: only Share a spot and Log out */}
                 <AnimatePresence>
                   {userDropdownOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95, y: -8 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, y: -8 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute right-0 mt-2 w-72 bg-white rounded-3xl shadow-airbnb-hover border border-dark-200 p-2 z-50 divide-y divide-dark-100"
-                      onMouseLeave={() => setUserDropdownOpen(false)}
-                    >
-                      {/* Nav Links */}
-                      <div className="py-1 text-xs font-semibold text-dark-800">
+                    <>
+                      <div
+                        className="fixed inset-0 z-[590]"
+                        onClick={() => setUserDropdownOpen(false)}
+                      />
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: -8 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: -8 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute right-0 mt-2 w-64 bg-white rounded-3xl shadow-2xl border border-dark-200 p-2 z-[600] divide-y divide-dark-100"
+                        onMouseLeave={() => setUserDropdownOpen(false)}
+                      >
+                      {/* User Info Header when signed in */}
+                      {isAuthenticated && (
+                        <div className="px-3.5 py-2.5 mb-1 bg-dark-50/70 rounded-2xl">
+                          <div className="flex items-center gap-2.5">
+                            <Avatar className="w-8 h-8 ring-1 ring-dark-200">
+                              <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
+                              <AvatarFallback className="bg-emerald-600 text-white font-bold text-xs">
+                                {currentUser.name.slice(0, 1).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5">
+                                <p className="text-xs font-bold text-dark-900 truncate">{currentUser.name}</p>
+                                {isUserAdmin && (
+                                  <span className="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-amber-100 text-amber-800">Admin</span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-dark-500 truncate">{currentUser.email || 'Camper'}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Primary Action: Share a Spot */}
+                      <div className="py-1">
                         <button
-                          onClick={() => { handleNav('explore'); setUserDropdownOpen(false); }}
-                          className="w-full text-left px-4 py-2.5 rounded-xl hover:bg-dark-50 flex items-center justify-between"
+                          onClick={() => {
+                            handleNav('host-onboarding');
+                            setUserDropdownOpen(false);
+                          }}
+                          className="w-full text-left px-3.5 py-2.5 rounded-xl hover:bg-emerald-50 text-emerald-950 font-bold flex items-center justify-between text-xs transition-colors"
                         >
-                          <span>Explore Free Spots</span>
-                          <Compass className="w-4 h-4 text-dark-500" />
-                        </button>
-                        <button
-                          onClick={() => { handleNav('trips'); setUserDropdownOpen(false); }}
-                          className="w-full text-left px-4 py-2.5 rounded-xl hover:bg-dark-50 flex items-center justify-between"
-                        >
-                          <span>My Roaming Trips</span>
-                          <Car className="w-4 h-4 text-dark-500" />
-                        </button>
-                        <button
-                          onClick={() => { handleNav('my-spots'); setUserDropdownOpen(false); }}
-                          className="w-full text-left px-4 py-2.5 rounded-xl hover:bg-dark-50 flex items-center justify-between"
-                        >
-                          <span className="flex items-center gap-1.5">
-                            <span>My Shared Spots</span>
-                            {pendingRequestsForHost > 0 && (
-                              <span className="px-1.5 py-0.2 bg-roo-500 text-white rounded-full text-[10px]">
-                                {pendingRequestsForHost}
-                              </span>
-                            )}
+                          <span className="flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-emerald-600" />
+                            <span>Share a spot</span>
                           </span>
-                          <Home className="w-4 h-4 text-dark-500" />
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-extrabold">
+                            FREE
+                          </span>
                         </button>
+
+                        {/* Admin Traffic Hub shortcut if Admin Aziz */}
+                        {isUserAdmin && (
+                          <button
+                            onClick={() => {
+                              setAnalyticsModalOpen(true);
+                              setUserDropdownOpen(false);
+                            }}
+                            className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold text-emerald-800 hover:bg-emerald-50 flex items-center justify-between transition-colors mt-0.5"
+                          >
+                            <span className="flex items-center gap-2">
+                              <BarChart3 className="w-4 h-4 text-emerald-600" />
+                              <span>Traffic & Data</span>
+                            </span>
+                          </button>
+                        )}
+
+                        {/* Our Mission & Story */}
                         <button
-                          onClick={() => { handleNav('messages'); setUserDropdownOpen(false); }}
-                          className="w-full text-left px-4 py-2.5 rounded-xl hover:bg-dark-50 flex items-center justify-between"
+                          onClick={() => {
+                            handleNav('about');
+                            setUserDropdownOpen(false);
+                          }}
+                          className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold text-dark-800 hover:bg-dark-50 flex items-center justify-between transition-colors mt-0.5"
                         >
-                          <span>Messages</span>
-                          <MessageSquare className="w-4 h-4 text-dark-500" />
-                        </button>
-                        <button
-                          onClick={() => { handleNav('community'); setUserDropdownOpen(false); }}
-                          className="w-full text-left px-4 py-2.5 rounded-xl hover:bg-dark-50 flex items-center justify-between"
-                        >
-                          <span>The Roam Hub (Community)</span>
-                          <Users className="w-4 h-4 text-dark-500" />
+                          <span className="flex items-center gap-2">
+                            <Compass className="w-4 h-4 text-roo-500" />
+                            <span>Our Mission & Story</span>
+                          </span>
                         </button>
                       </div>
 
-                      {/* Profile & Admin */}
-                      <div className="py-1.5 px-1">
-                        <button
-                          onClick={() => { handleNav('profile'); setUserDropdownOpen(false); }}
-                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-dark-900 hover:bg-dark-50"
-                        >
-                          Profile & Rig Details
-                        </button>
-                        <button
-                          onClick={() => { handleNav('admin'); setUserDropdownOpen(false); }}
-                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-roo-600 hover:bg-roo-50 flex items-center justify-between"
-                        >
-                          <span>Ranger Admin Moderation</span>
-                          <ShieldAlert className="w-3.5 h-3.5" />
-                        </button>
+                      {/* Log Out (or Sign In if not logged in) */}
+                      <div className="pt-1">
+                        {isAuthenticated ? (
+                          <button
+                            onClick={() => {
+                              logout();
+                              setUserDropdownOpen(false);
+                            }}
+                            className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 flex items-center justify-between transition-colors"
+                          >
+                            <span className="flex items-center gap-2">
+                              <LogOut className="w-4 h-4 text-rose-500" />
+                              <span>Log Out</span>
+                            </span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setAuthMode('signin');
+                              setAuthModalOpen(true);
+                              setUserDropdownOpen(false);
+                            }}
+                            className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold text-roo-600 hover:bg-roo-50 flex items-center justify-between transition-colors"
+                          >
+                            <span className="flex items-center gap-2">
+                              <Sparkles className="w-4 h-4 text-roo-500" />
+                              <span>Sign In</span>
+                            </span>
+                          </button>
+                        )}
                       </div>
                     </motion.div>
-                  )}
-                </AnimatePresence>
+                  </>
+                )}
+              </AnimatePresence>
               </div>
             </div>
           </div>

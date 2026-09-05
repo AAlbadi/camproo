@@ -173,7 +173,7 @@ export const CommunityForum: React.FC = () => {
               <div className="flex items-center justify-between gap-4 pb-3 border-b border-border">
                 <div className="flex items-center gap-3">
                   <img
-                    src={author?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'}
+                    src={author?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(author?.name || 'RVer')}&background=0284c7&color=fff&bold=true`}
                     alt={author?.name}
                     className="w-10 h-10 rounded-2xl object-cover ring-1 ring-border"
                   />

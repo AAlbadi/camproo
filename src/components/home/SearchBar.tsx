@@ -1,15 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../../context/AppContext';
-import { RVType, RV_TYPE_LABELS } from '../../types';
-import { Search, MapPin, Calendar as CalendarIcon, Truck, Sparkles, X, Check } from 'lucide-react';
+import { Search, MapPin, Calendar as CalendarIcon, Sparkles, X, Check, Trees } from 'lucide-react';
 import { Calendar } from '../ui/calendar';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 
 export const SearchBar: React.FC = () => {
   const { searchFilters, setSearchFilters, setCurrentView } = useApp();
-  const [activeTab, setActiveTab] = useState<'where' | 'dates' | 'who' | null>(null);
+  const [activeTab, setActiveTab] = useState<'where' | 'dates' | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Close popover on outside click
@@ -23,8 +22,8 @@ export const SearchBar: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setActiveTab(null);
     setCurrentView('explore');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -33,9 +32,9 @@ export const SearchBar: React.FC = () => {
   const popularLocations = [
     { name: 'Moab', state: 'Utah', icon: '🏜️' },
     { name: 'Sedona', state: 'Arizona', icon: '⛰️' },
+    { name: 'Lake Tahoe', state: 'California', icon: '🌲' },
     { name: 'Bend', state: 'Oregon', icon: '🌲' },
-    { name: 'Bar Harbor', state: 'Maine', icon: '🌊' },
-    { name: 'Gatlinburg', state: 'Smokies', icon: '🐻' },
+    { name: 'Yellowstone', state: 'Wyoming', icon: '🐻' },
     { name: 'Joshua Tree', state: 'California', icon: '🌵' },
   ];
 
@@ -51,7 +50,7 @@ export const SearchBar: React.FC = () => {
         {/* Where Input */}
         <div
           onClick={() => setActiveTab(activeTab === 'where' ? null : 'where')}
-          className={`w-full md:w-5/12 px-6 py-2.5 rounded-full transition-colors cursor-pointer ${
+          className={`w-full md:w-6/12 px-6 py-2.5 rounded-full transition-colors cursor-pointer ${
             activeTab === 'where' ? 'bg-card shadow-sm ring-1 ring-border' : 'hover:bg-muted/40'
           }`}
         >
@@ -60,7 +59,7 @@ export const SearchBar: React.FC = () => {
           </span>
           <input
             type="text"
-            placeholder="Search Moab, Sedona, Bend, Smokies..."
+            placeholder="Search area (e.g. Sedona, Lake Tahoe, Moab, California)..."
             value={searchFilters.locationQuery}
             onChange={(e) => setSearchFilters(prev => ({ ...prev, locationQuery: e.target.value }))}
             className="w-full bg-transparent text-xs sm:text-sm font-bold text-foreground placeholder:text-muted-foreground/60 focus:outline-none truncate"
@@ -87,27 +86,19 @@ export const SearchBar: React.FC = () => {
           </div>
         </div>
 
-        {/* Who / RV Type */}
+        {/* Explore CTA */}
         <div
-          onClick={() => setActiveTab(activeTab === 'who' ? null : 'who')}
-          className={`w-full md:w-4/12 pl-5 pr-2 py-2 rounded-full transition-colors cursor-pointer flex items-center justify-between gap-2 ${
-            activeTab === 'who' ? 'bg-card shadow-sm ring-1 ring-border' : 'hover:bg-muted/40'
-          }`}
+          onClick={() => handleSubmit()}
+          className="w-full md:w-3/12 pl-5 pr-2 py-2 rounded-full transition-colors cursor-pointer flex items-center justify-between gap-2 hover:bg-muted/40"
         >
           <div className="flex-1 min-w-0">
             <span className="block text-[10px] font-black uppercase tracking-wider text-muted-foreground">
-              RV Rig Class
+              Public Lands
             </span>
-            <select
-              value={searchFilters.rvType}
-              onChange={(e) => setSearchFilters(prev => ({ ...prev, rvType: e.target.value as RVType | 'any' }))}
-              className="w-full bg-transparent text-xs font-bold text-foreground focus:outline-none cursor-pointer truncate"
-            >
-              <option value="any">Any Rig · Free Stays</option>
-              {Object.entries(RV_TYPE_LABELS).map(([k, label]) => (
-                <option key={k} value={k}>{label}</option>
-              ))}
-            </select>
+            <div className="text-xs font-bold text-foreground truncate flex items-center gap-1 mt-0.5">
+              <Sparkles className="w-3 h-3 text-roo-500" />
+              <span>100% Free</span>
+            </div>
           </div>
 
           {/* Search CTA Button */}
@@ -121,7 +112,7 @@ export const SearchBar: React.FC = () => {
         </div>
       </motion.form>
 
-      {/* Floating Dropdown Panels (shadcn popovers with fluid animation) */}
+      {/* Floating Dropdown Panels */}
       <AnimatePresence>
         {activeTab === 'where' && (
           <motion.div
@@ -133,7 +124,7 @@ export const SearchBar: React.FC = () => {
           >
             <div className="flex items-center justify-between mb-3">
               <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
-                Popular US RV Havens
+                Popular US RV & Camping Havens
               </span>
               <Badge variant="free">100% Free</Badge>
             </div>
@@ -145,6 +136,7 @@ export const SearchBar: React.FC = () => {
                   onClick={() => {
                     setSearchFilters(prev => ({ ...prev, locationQuery: loc.name }));
                     setActiveTab(null);
+                    setCurrentView('explore');
                   }}
                   className="flex items-center gap-2.5 p-2.5 rounded-2xl hover:bg-muted text-left transition-colors group"
                 >

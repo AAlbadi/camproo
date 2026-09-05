@@ -12,6 +12,16 @@ if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
+const COUNTRY_FLAGS = {
+  US: '🇺🇸', AE: '🇦🇪', CA: '🇨🇦', GB: '🇬🇧', FR: '🇫🇷', DE: '🇩🇪', ES: '🇪🇸',
+  IT: '🇮🇹', NL: '🇳🇱', RU: '🇷🇺', JP: '🇯🇵', CN: '🇨🇳', IN: '🇮🇳', KR: '🇰🇷',
+  AU: '🇦🇺', MX: '🇲🇽', BR: '🇧🇷', EG: '🇪🇬', ZA: '🇿🇦', SG: '🇸🇬', TH: '🇹🇭',
+  ID: '🇮🇩', PH: '🇵🇭', PK: '🇵🇰', BD: '🇧🇩', AR: '🇦🇷', CO: '🇨🇴', PE: '🇵🇪',
+  TR: '🇹🇷', PL: '🇵🇱', CH: '🇨🇭', SE: '🇸🇪', NO: '🇳🇴', DK: '🇩🇰', FI: '🇫🇮',
+  SA: '🇸🇦', OM: '🇴🇲', QA: '🇶🇦', BH: '🇧🇭', KW: '🇰🇼', LB: '🇱🇧', IL: '🇮🇱',
+  JO: '🇯🇴', IQ: '🇮🇶',
+};
+
 // Initial database schema seed
 const initialSchema = {
   users: [
@@ -21,7 +31,7 @@ const initialSchema = {
       email: 'alex.sam@camproo.com',
       role: 'traveler',
       phone: '+1 (555) 432-8765',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+      avatar: 'https://ui-avatars.com/api/?name=Alex+Rover&background=0284c7&color=fff&bold=true',
       bio: 'Full-time rovers in a 28ft Class C with two Australian Shepherds.',
       homeRegion: 'Pacific Northwest',
       yearsRVing: 5,
@@ -55,7 +65,7 @@ const initialSchema = {
       email: 'caleb.sarah@redrockmoab.com',
       role: 'host',
       phone: '+1 (555) 987-6543',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+      avatar: 'https://ui-avatars.com/api/?name=Caleb+Jenkins&background=ea580c&color=fff&bold=true',
       bio: 'Lifelong Moab locals hosting sustainable boondockers on 40 private desert acres.',
       homeRegion: 'Moab, UT',
       yearsRVing: 12,
@@ -248,6 +258,9 @@ class Database {
     const referrers = {};
     const sources = {};
     const devices = {};
+    const countries = {};
+    const cities = {};
+    const timezones = {};
 
     events.forEach(e => {
       // Clean referrer
@@ -268,6 +281,20 @@ class Database {
       // Device
       const dev = e.device || 'desktop';
       devices[dev] = (devices[dev] || 0) + 1;
+
+      // Geo & Timezone
+      if (e.countryCode && e.countryCode !== 'UN') {
+        countries[e.countryCode] = countries[e.countryCode] || { count: 0, country: e.country || 'Unknown' };
+        countries[e.countryCode].count++;
+      }
+      if (e.city && e.city !== 'Unknown' && e.country) {
+        const cityKey = `${e.city}, ${e.countryCode || e.country}`;
+        cities[cityKey] = cities[cityKey] || { count: 0, city: e.city, country: e.country, countryCode: e.countryCode };
+        cities[cityKey].count++;
+      }
+      if (e.timezone) {
+        timezones[e.timezone] = (timezones[e.timezone] || 0) + 1;
+      }
     });
 
     // Conversions by source (users who registered)
@@ -277,6 +304,29 @@ class Database {
       signupsBySource[s] = (signupsBySource[s] || 0) + 1;
     });
 
+    // Top Pages
+    const pages = {};
+    events.forEach(e => {
+      const p = e.path || '/';
+      pages[p] = (pages[p] || 0) + 1;
+    });
+
+    const countriesBreakdown = Object.entries(countries).map(([code, data]) => ({
+      countryCode: code,
+      country: data.country,
+      flag: COUNTRY_FLAGS[code] || '🌍',
+      count: data.count,
+      percentage: totalViews > 0 ? Math.round((data.count / totalViews) * 100) : 0
+    })).sort((a, b) => b.count - a.count);
+
+    const citiesBreakdown = Object.values(cities)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 20);
+
+    const timezonesBreakdown = Object.entries(timezones)
+      .map(([timezone, count]) => ({ timezone, count }))
+      .sort((a, b) => b.count - a.count);
+
     return {
       totalViews,
       uniqueSessions,
@@ -285,8 +335,15 @@ class Database {
       topReferrers: Object.entries(referrers).map(([domain, count]) => ({ domain, count })).sort((a, b) => b.count - a.count),
       sourcesBreakdown: Object.entries(sources).map(([source, count]) => ({ source, count })).sort((a, b) => b.count - a.count),
       devicesBreakdown: Object.entries(devices).map(([device, count]) => ({ device, count })),
+      pagesBreakdown: Object.entries(pages).map(([path, count]) => ({ path, count })).sort((a, b) => b.count - a.count),
+      countriesBreakdown,
+      citiesBreakdown,
+      timezonesBreakdown,
       signupsBySource,
-      recentEvents: events.slice(-25).reverse()
+      recentEvents: events.slice(-30).reverse().map(e => ({
+        ...e,
+        flag: e.countryCode ? (COUNTRY_FLAGS[e.countryCode] || '🌍') : undefined
+      }))
     };
   }
 

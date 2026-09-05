@@ -78,19 +78,20 @@ export const LeaveReviewModal: React.FC<LeaveReviewModalProps> = ({ request, spo
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-3xl w-full max-w-lg p-6 border border-cream-200 shadow-float space-y-6 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-[700] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+      <div className="absolute inset-0" onClick={onClose} />
+      <div className="relative z-10 bg-white rounded-3xl w-full max-w-lg p-4 sm:p-6 border border-cream-200 shadow-float space-y-5 sm:space-y-6 max-h-[92dvh] overflow-y-auto overscroll-contain">
         <div className="flex items-center justify-between pb-3 border-b border-cream-100">
           <div>
-            <h3 className="text-lg font-extrabold text-forest-950">Review Your CampRoo Stay</h3>
+            <h3 className="text-base sm:text-lg font-extrabold text-forest-950">Review Your CampRoo Stay</h3>
             <p className="text-xs text-cream-900/60 font-medium">{spot?.title || 'RV Spot'}</p>
           </div>
-          <button onClick={onClose} className="p-1 rounded-full text-cream-400 hover:text-black">
+          <button onClick={onClose} className="p-1.5 rounded-full text-cream-400 hover:text-black">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
           {/* Rating Criteria Categories */}
           <div className="space-y-3 p-4 rounded-2xl bg-cream-50 border border-cream-200">
             <div className="flex items-center justify-between">

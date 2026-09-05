@@ -13,7 +13,9 @@ import { reportsRouter } from "./routes/reports.js";
 import { healthRouter } from "./routes/health.js";
 import { analyticsRouter } from "./routes/analytics.js";
 import { newsletterRouter } from "./routes/newsletter.js";
+import { supportRouter } from "./routes/support.js";
 import { db } from "./services/db.js";
+import { requireAdminAuth } from "./services/adminAuth.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,9 +51,10 @@ app.use("/api/reviews", reviewsRouter);
 app.use("/api/reports", reportsRouter);
 app.use("/api/analytics", analyticsRouter);
 app.use("/api/newsletter", newsletterRouter);
+app.use("/api/support", supportRouter);
 
-// System status & Email logs for Admin modal
-app.get("/api/system/status", (req, res) => {
+// System status & Email logs for Admin modal (Strictly protected for admin aziz)
+app.get("/api/system/status", requireAdminAuth, (req, res) => {
   const hasSupabase = Boolean(process.env.VITE_SUPABASE_URL || process.env.SUPABASE_SERVICE_ROLE_KEY);
   res.json({
     status: "online",
@@ -69,7 +72,7 @@ app.get("/api/system/status", (req, res) => {
   });
 });
 
-app.get("/api/email/logs", (req, res) => {
+app.get("/api/email/logs", requireAdminAuth, (req, res) => {
   res.json({ logs: db.getEmailLogs() });
 });
 

@@ -86,6 +86,33 @@ export const db = {
     queueSave();
     return data.users[idx];
   },
+  getSavedSpots: (userId) => {
+    const data = loadDatabase();
+    const user = data.users.find(u => u.id === userId);
+    return (user && user.savedSpotIds) ? user.savedSpotIds : [];
+  },
+  saveSpot: (userId, spotId) => {
+    const data = loadDatabase();
+    let user = data.users.find(u => u.id === userId);
+    if (!user) {
+      user = { id: userId, savedSpotIds: [] };
+      data.users.push(user);
+    }
+    if (!user.savedSpotIds) user.savedSpotIds = [];
+    if (!user.savedSpotIds.includes(spotId)) {
+      user.savedSpotIds.push(spotId);
+      queueSave();
+    }
+    return user.savedSpotIds;
+  },
+  unsaveSpot: (userId, spotId) => {
+    const data = loadDatabase();
+    const user = data.users.find(u => u.id === userId);
+    if (!user || !user.savedSpotIds) return [];
+    user.savedSpotIds = user.savedSpotIds.filter(id => id !== spotId);
+    queueSave();
+    return user.savedSpotIds;
+  },
 
   getSpots: (filters = {}) => {
     const data = loadDatabase();
@@ -130,7 +157,7 @@ export const db = {
       rating: spotData.rating || 5.0,
       reviewCount: spotData.reviewCount || 0,
       activeStatus: spotData.activeStatus || "live",
-      photos: spotData.photos && spotData.photos.length > 0 ? spotData.photos : ["/images/hero_rv_camp.jpg"],
+      photos: spotData.photos && spotData.photos.length > 0 ? spotData.photos : ["/images/real_bald_mountain.jpg"],
       ...spotData,
     };
     data.spots.unshift(newSpot);
@@ -192,8 +219,11 @@ export const db = {
 
   getThreads: (userId) => {
     const data = loadDatabase();
-    if (!userId) return data.threads;
-    return data.threads.filter(t => t.participantIds.includes(userId));
+    if (!userId) return data.threads || [];
+    return (data.threads || []).filter(t => 
+      (Array.isArray(t.participantIds) && t.participantIds.includes(userId)) ||
+      (Array.isArray(t.participants) && t.participants.includes(userId))
+    );
   },
   getThreadById: (id) => {
     const data = loadDatabase();

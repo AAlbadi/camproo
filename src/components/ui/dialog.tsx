@@ -36,7 +36,7 @@ export const DialogContent: React.FC<DialogContentProps> = ({ className, childre
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[700] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm">
           {/* Backdrop dismiss */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -53,7 +53,7 @@ export const DialogContent: React.FC<DialogContentProps> = ({ className, childre
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
             transition={{ type: 'spring', damping: 26, stiffness: 320 }}
             className={cn(
-              "relative z-10 w-full max-w-lg rounded-3xl border border-border bg-card text-card-foreground shadow-float max-h-[90vh] flex flex-col overflow-hidden",
+              "relative z-10 w-full max-w-lg rounded-3xl border border-border bg-card text-card-foreground shadow-float max-h-[92dvh] flex flex-col overflow-hidden",
               className
             )}
           >
@@ -75,7 +75,7 @@ export const DialogHeader: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
   return (
     <div
       className={cn(
-        "p-6 border-b border-border flex items-center justify-between bg-muted/30",
+        "p-4 sm:p-6 border-b border-border flex items-center justify-between bg-muted/30",
         className
       )}
       {...props}
@@ -115,7 +115,7 @@ export const DialogBody: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
   className,
   ...props
 }) => (
-  <div className={cn("p-6 overflow-y-auto flex-1", className)} {...props} />
+  <div className={cn("p-4 sm:p-6 overflow-y-auto flex-1 overscroll-contain", className)} {...props} />
 );
 
 export const DialogFooter: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
@@ -124,7 +124,7 @@ export const DialogFooter: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
 }) => (
   <div
     className={cn(
-      "p-4 border-t border-border flex items-center justify-end gap-2 bg-muted/20",
+      "p-3 sm:p-4 border-t border-border flex items-center justify-end gap-2 bg-muted/20",
       className
     )}
     {...props}

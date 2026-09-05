@@ -6,7 +6,7 @@ import { getCurrentAttribution } from '../../lib/tracker';
 import { ShieldCheck, Sparkles, Send, CheckCircle2, Newspaper } from 'lucide-react';
 
 export const Footer: React.FC = () => {
-  const { setCurrentView } = useApp();
+  const { setCurrentView, currentUser, isAdminAuthenticated, openSupportModal } = useApp();
   const { showToast } = useToast();
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
@@ -110,12 +110,30 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <button
-                  onClick={() => { setCurrentView('admin'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  onClick={() => { setCurrentView('about'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                   className="hover:text-dark-900 hover:underline text-roo-600 font-bold"
                 >
-                  Ranger Admin Hub
+                  Our Mission & Story
                 </button>
               </li>
+              <li>
+                <button
+                  onClick={() => openSupportModal('General Support & Inquiry')}
+                  className="hover:text-dark-900 hover:underline text-sky-700 dark:text-sky-400 font-bold"
+                >
+                  Support & Inquiries
+                </button>
+              </li>
+              {(isAdminAuthenticated || currentUser?.role === 'admin') && (
+                <li>
+                  <button
+                    onClick={() => { setCurrentView('admin'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                    className="hover:text-dark-900 hover:underline text-amber-700 font-bold"
+                  >
+                    Ranger Admin Hub (Aziz)
+                  </button>
+                </li>
+              )}
             </ul>
           </div>
 

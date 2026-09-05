@@ -6,7 +6,7 @@ import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Separator } from '../ui/separator';
-import { Send, MessageSquare, ShieldCheck, MapPin, Calendar, Clock, ChevronRight, Sparkles, UserCheck } from 'lucide-react';
+import { Send, MessageSquare, ShieldCheck, MapPin, Calendar, Clock, ChevronRight, Sparkles, UserCheck, ArrowLeft } from 'lucide-react';
 
 export const MessagingCenter: React.FC = () => {
   const {
@@ -24,12 +24,19 @@ export const MessagingCenter: React.FC = () => {
 
   const [messageInput, setMessageInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [mobileShowChat, setMobileShowChat] = useState<boolean>(Boolean(activeThreadId));
 
   // Filter threads for current user
   const userThreads = threads.filter(t => t.participants.includes(currentUser.id));
 
   // Determine active thread
   const currentThread = userThreads.find(t => t.id === activeThreadId) || userThreads[0];
+
+  useEffect(() => {
+    if (activeThreadId) {
+      setMobileShowChat(true);
+    }
+  }, [activeThreadId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -95,7 +102,7 @@ export const MessagingCenter: React.FC = () => {
 
       <Card className="border-border bg-card shadow-airbnb overflow-hidden grid grid-cols-1 md:grid-cols-12 min-h-[640px]">
         {/* Left Sidebar: Thread List */}
-        <div className="md:col-span-4 border-r border-border flex flex-col bg-secondary/20">
+        <div className={`md:col-span-4 border-r border-border flex flex-col bg-secondary/20 ${mobileShowChat ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-4 border-b border-border bg-card">
             <h2 className="text-sm font-extrabold text-foreground flex items-center gap-2">
               <MessageSquare className="w-4 h-4 text-primary" />
@@ -153,13 +160,16 @@ export const MessagingCenter: React.FC = () => {
                 return (
                   <button
                     key={thread.id}
-                    onClick={() => setActiveThreadId(thread.id)}
+                    onClick={() => {
+                      setActiveThreadId(thread.id);
+                      setMobileShowChat(true);
+                    }}
                     className={`w-full p-4 text-left transition-all flex items-start gap-3 ${
                       isSelected ? 'bg-white shadow-xs border-l-4 border-l-roo-500 font-semibold' : 'hover:bg-dark-100/60'
                     }`}
                   >
                     <img
-                      src={partner?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'}
+                      src={partner?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(partner?.name || 'RVer')}&background=0284c7&color=fff&bold=true`}
                       alt={partner?.name}
                       className="w-10 h-10 rounded-2xl object-cover shrink-0 ring-1 ring-dark-200"
                     />
@@ -189,12 +199,20 @@ export const MessagingCenter: React.FC = () => {
         </div>
 
         {/* Right Main Chat Panel */}
-        <div className="md:col-span-8 flex flex-col bg-card">
+        <div className={`md:col-span-8 flex flex-col bg-card ${mobileShowChat ? 'flex' : 'hidden md:flex'}`}>
           {currentThread && otherUser ? (
             <>
               {/* Chat Header with Stay Context */}
               <div className="p-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-secondary/30">
                 <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setMobileShowChat(false)}
+                    className="md:hidden p-1.5 -ml-1 rounded-xl bg-card border border-border text-foreground hover:bg-secondary flex items-center justify-center shrink-0"
+                    aria-label="Back to threads"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                  </button>
                   <Avatar className="w-10 h-10 rounded-2xl ring-1 ring-border">
                     <AvatarImage src={otherUser.avatar} alt={otherUser.name} />
                     <AvatarFallback className="rounded-2xl">{otherUser.name.slice(0, 2)}</AvatarFallback>
@@ -294,16 +312,33 @@ export const MessagingCenter: React.FC = () => {
               </form>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-3">
-              <img
-                src="/images/camproo_app_icon.jpg"
-                alt="CampRoo Mascot"
-                className="w-14 h-14 rounded-2xl object-cover shadow-sm border border-roo-200"
-              />
-              <h3 className="text-base font-bold text-foreground">Select a Conversation</h3>
-              <p className="text-xs text-muted-foreground max-w-sm">
-                Choose a conversation from the sidebar or click on any spot in Explore to coordinate a stay directly with the host.
-              </p>
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
+              <div className="w-16 h-16 rounded-3xl bg-secondary/80 border border-border flex items-center justify-center text-3xl shadow-xs">
+                💬
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-black text-foreground">
+                  {userThreads.length === 0 ? 'Your Inbox is Fresh & Ready' : 'Select a Conversation'}
+                </h3>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed">
+                  {userThreads.length === 0
+                    ? 'Start a direct chat with any host on the left, or browse spots on the live map to coordinate your next stay.'
+                    : 'Choose a conversation from the sidebar to view chat history and coordinates.'}
+                </p>
+              </div>
+              {userThreads.length === 0 && (
+                <Button
+                  onClick={() => {
+                    setCurrentView('explore');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  variant="outdoor"
+                  size="sm"
+                  className="rounded-xl shadow-xs"
+                >
+                  Explore Free Spots Map →
+                </Button>
+              )}
             </div>
           )}
         </div>

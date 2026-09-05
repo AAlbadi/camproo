@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { db } from "../db.js";
+import { sendDirectMessageAdminEmail } from "../services/emailService.js";
 
 export const threadsRouter = Router();
 
@@ -18,9 +19,18 @@ threadsRouter.get("/:id", (req, res) => {
 });
 
 // POST start new thread
-threadsRouter.post("/", (req, res) => {
+threadsRouter.post("/", async (req, res) => {
   try {
     const newThread = db.addThread(req.body);
+    
+    sendDirectMessageAdminEmail({
+      senderName: newThread.travelerName || req.body.travelerName || 'Sender',
+      senderEmail: req.body.travelerEmail || 'unknown@example.com',
+      recipientName: newThread.hostName || req.body.hostName || 'Recipient',
+      messageText: req.body.initialMessage || req.body.messages?.[0]?.text || 'Started a new thread',
+      spotTitle: newThread.spotTitle || req.body.spotTitle || 'Direct Message'
+    }).catch(err => console.error('[Email Error]', err));
+
     res.status(201).json({ success: true, data: newThread });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -28,9 +38,20 @@ threadsRouter.post("/", (req, res) => {
 });
 
 // POST send message in thread
-threadsRouter.post("/:id/messages", (req, res) => {
+threadsRouter.post("/:id/messages", async (req, res) => {
   const msg = db.addMessageToThread(req.params.id, req.body);
   if (!msg) return res.status(404).json({ success: false, message: "Thread not found" });
+
+  const thread = db.getThreadById(req.params.id);
+  
+  sendDirectMessageAdminEmail({
+    senderName: req.body.senderName || req.body.senderId || 'Sender',
+    senderEmail: req.body.senderEmail || 'unknown@example.com',
+    recipientName: 'Recipient',
+    messageText: req.body.text || 'N/A',
+    spotTitle: thread ? thread.spotTitle : 'Direct Message'
+  }).catch(err => console.error('[Email Error]', err));
+
   res.status(201).json({ success: true, data: msg });
 });
 

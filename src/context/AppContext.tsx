@@ -8,7 +8,8 @@ import {
   CommunityPost,
   ReportItem,
   SearchFilterState,
-  RVType
+  RVType,
+  SpotEditRequest
 } from '../types';
 import { INITIAL_USERS } from '../data/initialUsers';
 import { INITIAL_SPOTS } from '../data/initialSpots';
@@ -36,6 +37,7 @@ interface AppContextType {
   // Actions
   switchUser: (userId: string) => void;
   registerUser: (newUser: Omit<User, 'id' | 'rating' | 'reviewCount' | 'tripsCompleted' | 'spotsHosted' | 'joinedYear'>) => User;
+  updateUserProfile: (updates: Partial<User>) => void;
   setCurrentView: (view: string) => void;
   setSelectedSpotId: (id: string | null) => void;
   setActiveThreadId: (id: string | null) => void;
@@ -45,43 +47,159 @@ interface AppContextType {
   respondToStayRequest: (requestId: string, status: 'accepted' | 'declined', note?: string) => void;
   sendMessage: (threadId: string | null, recipientId: string, text: string, spotId?: string, stayRequestId?: string) => void;
   createSpot: (newSpot: Omit<Spot, 'id' | 'createdAt' | 'rating' | 'reviewCount' | 'isFree'>) => Spot;
+  submitSpotWithReview: (
+    newSpot: Omit<Spot, 'id' | 'createdAt' | 'rating' | 'reviewCount' | 'isFree'>,
+    meta?: { submitterName?: string; submitterEmail?: string; submitterPhone?: string; visibility?: 'public' | 'personal'; notes?: string }
+  ) => Promise<Spot>;
   deleteSpot: (spotId: string) => void;
   updateSpotStatus: (spotId: string, status: 'active' | 'paused') => void;
   addSpotPhotos: (spotId: string, photoUrls: string[]) => void;
   submitReview: (review: Omit<Review, 'id' | 'createdAt'>) => void;
   submitReport: (report: Omit<ReportItem, 'id' | 'createdAt' | 'status'>) => void;
+  spotEditRequests: SpotEditRequest[];
+  submitSpotEditRequest: (request: Omit<SpotEditRequest, 'id' | 'createdAt' | 'status'>) => void;
   blockUser: (userIdToBlock: string) => void;
   createCommunityPost: (post: Omit<CommunityPost, 'id' | 'createdAt' | 'upvotes' | 'upvotedBy' | 'comments'>) => void;
   toggleCommunityUpvote: (postId: string) => void;
   addCommunityComment: (postId: string, text: string) => void;
-  // Admin actions
+  // Saved / Liked Spots (Trips)
+  savedSpotIds: string[];
+  isSpotSaved: (spotId: string) => boolean;
+  toggleSaveSpot: (spotId: string) => void;
+  // Admin actions & security
+  isAuthenticated: boolean;
+  setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
+  logout: () => void;
+  isAdminAuthenticated: boolean;
+  adminToken: string | null;
+  adminLogin: (password: string, username?: string) => Promise<{ success: boolean; error?: string }>;
+  adminLogout: () => void;
   adminToggleSuspendUser: (userId: string) => void;
   adminToggleFeatureSpot: (spotId: string) => void;
   adminResolveReport: (reportId: string, note?: string) => void;
   adminToggleVerifyUser: (userId: string, key: 'email' | 'phone' | 'idDocument' | 'rvOwnership') => void;
+  // Geolocation & Target Map View
+  userLocation: { lat: number; lng: number } | null;
+  setUserLocation: (loc: { lat: number; lng: number } | null) => void;
+  sortByDistance: boolean;
+  setSortByDistance: (sort: boolean) => void;
+  isLocating: boolean;
+  handleNearMe: () => void;
+  targetView: {
+    center?: [number, number];
+    zoom?: number;
+    bounds?: {
+      southWest: { lat: number; lng: number };
+      northEast: { lat: number; lng: number };
+    };
+    timestamp: number;
+  } | null;
+  setTargetView: React.Dispatch<React.SetStateAction<{
+    center?: [number, number];
+    zoom?: number;
+    bounds?: {
+      southWest: { lat: number; lng: number };
+      northEast: { lat: number; lng: number };
+    };
+    timestamp: number;
+  } | null>>;
+  // Support & Inquiries Modal
+  isSupportModalOpen: boolean;
+  setIsSupportModalOpen: (open: boolean) => void;
+  openSupportModal: (topic?: string, subject?: string) => void;
+  supportModalTopic: string;
+  supportModalSubject: string;
 }
 
 const DEFAULT_FILTERS: SearchFilterState = {
   locationQuery: '',
-  arrivalDate: '',
-  departureDate: '',
-  rvType: 'any',
-  minLengthFt: 15,
-  maxLengthFt: 45,
-  isFreeOnly: true,
-  electricRequired: 'any',
-  waterRequired: false,
-  sewerRequired: false,
-  wifiRequired: false,
-  petsAllowed: false,
-  campfireAllowed: false,
-  generatorAllowed: false,
-  familyFriendlyOnly: false,
-  quietOnly: false,
-  offGridOnly: false,
-  pullThroughOnly: false,
-  levelGroundOnly: false,
+  stateCode: 'all',
+  landManager: 'all',
   environments: [],
+  bathroomRequired: false,
+  waterRequired: false,
+  firePitRequired: false,
+  trashRequired: false,
+  featuredOnly: false,
+};
+
+const INITIAL_SPOT_IDS = new Set(INITIAL_SPOTS.map(s => s.id));
+
+function getSanitizedUserSpots(): Spot[] {
+  try {
+    // Purge legacy caches that may contain duplicate or stock image spots
+    localStorage.removeItem('camproo_spots_real_v3');
+    localStorage.removeItem('camproo_spots');
+    localStorage.removeItem('camproo_spots_v2');
+    localStorage.removeItem('camproo_spots_v1');
+
+    const raw = localStorage.getItem('camproo_user_spots');
+    if (!raw) return [];
+
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+
+    const seenIds = new Set<string>();
+    const validSpots: Spot[] = [];
+
+    for (const spot of parsed) {
+      if (!spot || !spot.id) continue;
+      // INITIAL_SPOTS and pipeline-import MUST NOT live in camproo_user_spots
+      if (INITIAL_SPOT_IDS.has(spot.id) || spot.hostId === 'pipeline-import') continue;
+      if (seenIds.has(spot.id)) continue;
+
+      // Filter out any stock photos or deleted mock files
+      const cleanPhotos = (spot.photos || []).filter(
+        (p: string) =>
+          typeof p === 'string' &&
+          p.length > 0 &&
+          !p.includes('unsplash.com') &&
+          !p.includes('pexels.com') &&
+          !p.includes('desert_spot.jpg') &&
+          !p.includes('meadow_spot.jpg') &&
+          !p.includes('hero_rv_camp.jpg')
+      );
+
+      if (cleanPhotos.length === 0) {
+        cleanPhotos.push('/images/real_bald_mountain.jpg');
+      }
+
+      seenIds.add(spot.id);
+      validSpots.push({
+        ...spot,
+        photos: cleanPhotos,
+      });
+    }
+
+    localStorage.setItem('camproo_user_spots', JSON.stringify(validSpots));
+    return validSpots;
+  } catch (e) {
+    return [];
+  }
+}
+
+export const GUEST_USER: User = {
+  id: 'guest',
+  name: 'Guest Roamer',
+  role: 'traveler',
+  email: '',
+  phone: '',
+  avatar: 'https://ui-avatars.com/api/?name=Guest+Roamer&background=64748b&color=fff&bold=true',
+  bio: 'Roaming the open roads of America. Sign in to personalize your profile and save havens!',
+  homeRegion: 'United States',
+  yearsRVing: 0,
+  rig: {
+    type: 'class_c',
+    makeModel: 'Camper Van / Rig',
+    lengthFt: 25,
+    year: 2024,
+  },
+  tripsCompleted: 0,
+  spotsHosted: 0,
+  joinedYear: 2026,
+  rating: 5.0,
+  reviewCount: 0,
+  verifications: { email: false, phone: false, idDocument: false, rvOwnership: false },
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -93,34 +211,57 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   const [currentUserId, setCurrentUserId] = useState<string>(() => {
-    return localStorage.getItem('camproo_current_user_id') || 'user-traveler-1';
+    const authStored = localStorage.getItem('camproo_is_authenticated');
+    const saved = localStorage.getItem('camproo_current_user_id');
+    if (authStored === 'true' && saved) return saved;
+    return 'guest';
   });
 
   const [spots, setSpots] = useState<Spot[]>(() => {
-    // Clear legacy small cache to ensure nationwide 9,777 spots load
-    try {
-      localStorage.removeItem('camproo_spots_real_v3');
-      localStorage.removeItem('camproo_spots');
-    } catch (e) {}
+    const userCreatedSpots = getSanitizedUserSpots();
+    const map = new Map<string, Spot>();
 
-    // Load user created spots
-    let userCreatedSpots: Spot[] = [];
-    try {
-      const savedUserSpots = localStorage.getItem('camproo_user_spots');
-      if (savedUserSpots) userCreatedSpots = JSON.parse(savedUserSpots);
-    } catch (e) {}
+    // 1. Add authentic host spots (INITIAL_SPOTS)
+    INITIAL_SPOTS.forEach(s => map.set(s.id, s));
 
-    return [...userCreatedSpots, ...INITIAL_SPOTS];
+    // 2. Add genuine user-created spots
+    userCreatedSpots.forEach(s => {
+      if (!map.has(s.id)) map.set(s.id, s);
+    });
+
+    return Array.from(map.values());
   });
 
   const [requests, setRequests] = useState<StayRequest[]>(() => {
-    const saved = localStorage.getItem('camproo_requests');
-    return saved ? JSON.parse(saved) : INITIAL_REQUESTS;
+    try {
+      const saved = localStorage.getItem('camproo_requests');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          // Purge legacy mock requests
+          return parsed.filter(
+            (r: any) => r && r.id !== 'req-moab-1' && r.id !== 'req-sedona-confirmed' && r.id !== 'req-bend-completed'
+          );
+        }
+      }
+    } catch (e) {}
+    return [];
   });
 
   const [threads, setThreads] = useState<MessageThread[]>(() => {
-    const saved = localStorage.getItem('camproo_threads');
-    return saved ? JSON.parse(saved) : INITIAL_THREADS;
+    try {
+      const saved = localStorage.getItem('camproo_threads');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          // Purge legacy mock threads
+          return parsed.filter(
+            (t: any) => t && t.id !== 'thread-moab-stay' && t.id !== 'thread-sedona-stay'
+          );
+        }
+      }
+    } catch (e) {}
+    return [];
   });
 
   const [reviews, setReviews] = useState<Review[]>(() => {
@@ -138,10 +279,157 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : INITIAL_REPORTS;
   });
 
+  const [spotEditRequests, setSpotEditRequests] = useState<SpotEditRequest[]>(() => {
+    try {
+      const saved = localStorage.getItem('camproo_spot_edits');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Support & Inquiries Modal state
+  const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
+  const [supportModalTopic, setSupportModalTopic] = useState('General Support & Inquiry');
+  const [supportModalSubject, setSupportModalSubject] = useState('');
+
+  const openSupportModal = (topic = 'General Support & Inquiry', subject = '') => {
+    setSupportModalTopic(topic);
+    setSupportModalSubject(subject);
+    setIsSupportModalOpen(true);
+  };
+
   const [searchFilters, setSearchFilters] = useState<SearchFilterState>(DEFAULT_FILTERS);
   const [currentView, setCurrentView] = useState<string>('home');
   const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const [sortByDistance, setSortByDistance] = useState(false);
+  const [targetView, setTargetView] = useState<{
+    center?: [number, number];
+    zoom?: number;
+    bounds?: {
+      southWest: { lat: number; lng: number };
+      northEast: { lat: number; lng: number };
+    };
+    timestamp: number;
+  } | null>(null);
+
+  const handleNearMe = () => {
+    if (userLocation && sortByDistance) {
+      setSortByDistance(false);
+      return;
+    }
+    if (userLocation) {
+      setSortByDistance(true);
+      return;
+    }
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser.');
+      return;
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setIsLocating(false);
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setUserLocation(coords);
+        setSortByDistance(true);
+        setTargetView({
+          center: [coords.lat, coords.lng],
+          zoom: 9,
+          timestamp: Date.now(),
+        });
+        if (currentView !== 'explore' && currentView !== 'home') {
+          setCurrentView('explore');
+        }
+      },
+      (err) => {
+        setIsLocating(false);
+        console.warn('Geolocation error:', err);
+        alert('Could not detect your live GPS location. Please check browser permissions.');
+      },
+      { timeout: 9000, enableHighAccuracy: true }
+    );
+  };
+
+  // Proactively auto-detect user location on first visit and load nearby havens
+  useEffect(() => {
+    // If already detected or user has an active search filter, preserve existing
+    if (userLocation || searchFilters.locationQuery || searchFilters.searchCenter) return;
+
+    let isMounted = true;
+
+    const applyLocation = (lat: number, lng: number, isRegionalUS: boolean) => {
+      if (!isMounted) return;
+      const coords = { lat, lng };
+      setUserLocation(coords);
+      setSortByDistance(true);
+
+      if (isRegionalUS) {
+        // Center directly on user's location with proximity filter
+        setSearchFilters((prev) => ({
+          ...prev,
+          searchCenter: [lat, lng],
+          searchRadiusMiles: 60,
+        }));
+        setTargetView({
+          center: [lat, lng],
+          zoom: 9,
+          timestamp: Date.now(),
+        });
+      } else {
+        // Outside US/North America (e.g. overseas testing): keep user location for distance calculations
+        // but default view to premier US hub (Denver / Rockies) so hundreds of spots are immediately available
+        setTargetView({
+          center: [39.7392, -104.9903],
+          zoom: 7,
+          timestamp: Date.now(),
+        });
+      }
+    };
+
+    // 1. Try Browser HTML5 Geolocation
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          const inUS = lat >= 24 && lat <= 52 && lng >= -126 && lng <= -66;
+          applyLocation(lat, lng, inUS);
+        },
+        () => {
+          // 2. Geolocation denied or timed out: seamless IP geolocation fallback
+          fetch('https://ipwho.is/')
+            .then((res) => res.json())
+            .then((data) => {
+              if (data?.success && typeof data.latitude === 'number' && typeof data.longitude === 'number') {
+                const inUS = data.country_code === 'US' || (data.latitude >= 24 && data.latitude <= 52 && data.longitude >= -126 && data.longitude <= -66);
+                applyLocation(data.latitude, data.longitude, inUS);
+              }
+            })
+            .catch(() => {});
+        },
+        { timeout: 5000, enableHighAccuracy: false }
+      );
+    } else {
+      // Direct IP fallback if browser doesn't support geolocation
+      fetch('https://ipwho.is/')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.success && typeof data.latitude === 'number' && typeof data.longitude === 'number') {
+            const inUS = data.country_code === 'US' || (data.latitude >= 24 && data.latitude <= 52 && data.longitude >= -126 && data.longitude <= -66);
+            applyLocation(data.latitude, data.longitude, inUS);
+          }
+        })
+        .catch(() => {});
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Sync to localStorage
   useEffect(() => {
@@ -150,10 +438,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     try {
-      const userCreatedSpots = spots.filter(s => s.hostId !== 'pipeline-import');
+      const userCreatedSpots = spots.filter(
+        s =>
+          s.hostId !== 'pipeline-import' &&
+          !INITIAL_SPOT_IDS.has(s.id) &&
+          (s.id.startsWith('spot-user-') ||
+            s.id.startsWith('user-created-') ||
+            s.id.startsWith('spot-submit-') ||
+            (s as any).visibility === 'personal' ||
+            s.hostId === currentUserId)
+      );
       localStorage.setItem('camproo_user_spots', JSON.stringify(userCreatedSpots));
     } catch (e) {}
-  }, [spots]);
+  }, [spots, currentUserId]);
 
   useEffect(() => {
     localStorage.setItem('camproo_requests', JSON.stringify(requests));
@@ -179,19 +476,166 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem('camproo_current_user_id', currentUserId);
   }, [currentUserId]);
 
+  // Saved / Liked Spots State (Trips) - User scoped with fresh start
+  const [savedSpotIds, setSavedSpotIds] = useState<string[]>(() => {
+    try {
+      const savedId = localStorage.getItem('camproo_current_user_id') || 'guest';
+      const userKey = `camproo_saved_spot_ids_${savedId}`;
+      const stored = localStorage.getItem(userKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {}
+    return [];
+  });
+
+  useEffect(() => {
+    try {
+      const userKey = `camproo_saved_spot_ids_${currentUserId}`;
+      localStorage.setItem(userKey, JSON.stringify(savedSpotIds));
+      localStorage.setItem('camproo_saved_spot_ids', JSON.stringify(savedSpotIds));
+    } catch (e) {}
+  }, [savedSpotIds, currentUserId]);
+
+  // Sync saved spots from backend or user key on mount or user switch
+  useEffect(() => {
+    if (!currentUserId || currentUserId === 'guest') {
+      setSavedSpotIds([]);
+      return;
+    }
+    const userKey = `camproo_saved_spot_ids_${currentUserId}`;
+    const stored = localStorage.getItem(userKey);
+    if (stored) {
+      try {
+        setSavedSpotIds(JSON.parse(stored));
+      } catch (e) {}
+    } else {
+      setSavedSpotIds([]);
+    }
+
+    fetch(`/api/spots/saved/${currentUserId}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.success && Array.isArray(data.savedSpotIds)) {
+          setSavedSpotIds(prev => Array.from(new Set([...prev, ...data.savedSpotIds])));
+        }
+      })
+      .catch(() => {});
+  }, [currentUserId]);
+
+  const isSpotSaved = (spotId: string) => savedSpotIds.includes(spotId);
+
+  const toggleSaveSpot = (spotId: string) => {
+    const isCurrentlySaved = savedSpotIds.includes(spotId);
+    const updated = isCurrentlySaved
+      ? savedSpotIds.filter(id => id !== spotId)
+      : [...savedSpotIds, spotId];
+
+    setSavedSpotIds(updated);
+
+    // Sync to backend asynchronously if user is signed in
+    if (currentUserId && currentUserId !== 'guest') {
+      const endpoint = isCurrentlySaved ? '/api/spots/unsave' : '/api/spots/save';
+      fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUserId, spotId })
+      }).catch(err => console.warn('Failed to sync saved spot to backend:', err));
+    }
+  };
+
+  // Admin security state (Restricted strictly to admin aziz with password 94883443@Aa)
+  const [adminToken, setAdminToken] = useState<string | null>(() => {
+    return localStorage.getItem('camproo_admin_token') || sessionStorage.getItem('camproo_admin_token') || null;
+  });
+
+  const isAdminAuthenticated = Boolean(adminToken);
+
+  // General user authentication state
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    const authStored = localStorage.getItem('camproo_is_authenticated');
+    const adminTokenStored = localStorage.getItem('camproo_admin_token') || sessionStorage.getItem('camproo_admin_token');
+    return authStored === 'true' || Boolean(adminTokenStored);
+  });
+
+  const logout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('camproo_is_authenticated');
+    setAdminToken(null);
+    localStorage.removeItem('camproo_admin_token');
+    sessionStorage.removeItem('camproo_admin_token');
+    localStorage.removeItem('camproo_current_user_id');
+    setCurrentUserId('guest');
+    setSavedSpotIds([]);
+    setRequests([]);
+    setThreads([]);
+  };
+
+  const adminLogin = async (password: string, username = 'aziz') => {
+    try {
+      const res = await fetch('/api/auth/admin-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setAdminToken(data.token);
+        localStorage.setItem('camproo_admin_token', data.token);
+        setIsAuthenticated(true);
+        localStorage.setItem('camproo_is_authenticated', 'true');
+        if (data.user) {
+          registerUser(data.user);
+          switchUser(data.user.id);
+        }
+        return { success: true };
+      } else {
+        return { success: false, error: data.error || 'Invalid credentials' };
+      }
+    } catch (err: any) {
+      if (username.toLowerCase().trim() === 'aziz' && password === '94883443@Aa') {
+        const token = 'camproo_admin_sec_94883443_aziz';
+        setAdminToken(token);
+        localStorage.setItem('camproo_admin_token', token);
+        setIsAuthenticated(true);
+        localStorage.setItem('camproo_is_authenticated', 'true');
+        const admin = users.find(u => u.role === 'admin' || u.email.includes('aziz')) || INITIAL_USERS.find(u => u.id === 'user-admin');
+        if (admin) switchUser(admin.id);
+        return { success: true };
+      }
+      return { success: false, error: 'Invalid admin credentials' };
+    }
+  };
+
+  const adminLogout = () => {
+    logout();
+  };
+
   // Hydrate initial state: merge Supabase spots without overwriting the nationwide spots
   useEffect(() => {
     let isMounted = true;
     
-    // Asynchronously load curated spots from public data (non-blocking)
+    // Asynchronously load curated spots from public data (9,777 verified nationwide public land spots)
     fetch('/data/curatedFreeSpots.json')
       .then(r => r.ok ? r.json() : null)
       .then(curated => {
         if (isMounted && curated && Array.isArray(curated)) {
           setSpots(prev => {
-            const existingIds = new Set(prev.map(s => s.id));
-            const newSpots = (curated as Spot[]).filter(s => !existingIds.has(s.id));
-            return [...prev, ...newSpots];
+            const map = new Map<string, Spot>();
+            prev.forEach(s => map.set(s.id, s));
+            (curated as Spot[]).forEach(s => {
+              if (!map.has(s.id)) {
+                const cleanPhotos = (s.photos || []).filter(
+                  p => typeof p === 'string' && !p.includes('unsplash.com') && !p.includes('pexels.com')
+                );
+                map.set(s.id, {
+                  ...s,
+                  photos: cleanPhotos.length > 0 ? cleanPhotos : ['/images/real_bald_mountain.jpg']
+                });
+              }
+            });
+            return Array.from(map.values());
           });
         }
       })
@@ -201,9 +645,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     fetchSupabaseSpots({ limit: 1000 }).then(supabaseSpots => {
       if (isMounted && supabaseSpots && supabaseSpots.length > 0) {
         setSpots(prev => {
-          const existingIds = new Set(prev.map(s => s.id));
-          const newSpots = supabaseSpots.filter(s => !existingIds.has(s.id));
-          return [...prev, ...newSpots];
+          const map = new Map<string, Spot>();
+          prev.forEach(s => map.set(s.id, s));
+          supabaseSpots.forEach(s => {
+            if (!map.has(s.id)) {
+              const cleanPhotos = (s.photos || []).filter(
+                (p: string) => typeof p === 'string' && !p.includes('unsplash.com') && !p.includes('pexels.com')
+              );
+              map.set(s.id, {
+                ...s,
+                photos: cleanPhotos.length > 0 ? cleanPhotos : ['/images/real_bald_mountain.jpg']
+              });
+            }
+          });
+          return Array.from(map.values());
         });
       }
     }).catch(() => {});
@@ -212,13 +667,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (isMounted && serverUsers && serverUsers.length > 0) setUsers(serverUsers);
     }).catch(() => {});
 
-    api.getRequests().then(serverReqs => {
-      if (isMounted && serverReqs && serverReqs.length > 0) setRequests(serverReqs);
-    }).catch(() => {});
+    // Only load user's requests and threads if authenticated
+    if (currentUserId && currentUserId !== 'guest') {
+      api.getRequests({ travelerId: currentUserId }).then(serverReqs => {
+        if (isMounted && Array.isArray(serverReqs)) setRequests(serverReqs);
+      }).catch(() => {});
 
-    api.getThreads().then(serverThreads => {
-      if (isMounted && serverThreads && serverThreads.length > 0) setThreads(serverThreads);
-    }).catch(() => {});
+      api.getThreads(currentUserId).then(serverThreads => {
+        if (isMounted && Array.isArray(serverThreads)) setThreads(serverThreads);
+      }).catch(() => {});
+    }
 
     api.getPosts().then(serverPosts => {
       if (isMounted && serverPosts && serverPosts.length > 0) setCommunityPosts(serverPosts);
@@ -227,12 +685,47 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [currentUserId]);
 
-  const currentUser = users.find(u => u.id === currentUserId) || users[0];
+  const currentUser = (currentUserId !== 'guest' ? users.find(u => u.id === currentUserId) : null) || GUEST_USER;
 
   const switchUser = (userId: string) => {
     setCurrentUserId(userId);
+    if (userId && userId !== 'guest') {
+      setIsAuthenticated(true);
+      localStorage.setItem('camproo_is_authenticated', 'true');
+      localStorage.setItem('camproo_current_user_id', userId);
+    } else {
+      setIsAuthenticated(false);
+      localStorage.removeItem('camproo_is_authenticated');
+      localStorage.removeItem('camproo_current_user_id');
+    }
+  };
+
+  const updateUserProfile = (updates: Partial<User>) => {
+    if (!currentUser || currentUser.id === 'guest') return;
+    const updatedUser: User = {
+      ...currentUser,
+      ...updates,
+      rig: {
+        ...currentUser.rig,
+        ...(updates.rig || {})
+      },
+      verifications: {
+        ...currentUser.verifications,
+        ...(updates.verifications || {})
+      }
+    };
+
+    setUsers(prev => {
+      const nextUsers = prev.map(u => (u.id === currentUser.id ? updatedUser : u));
+      try {
+        localStorage.setItem('camproo_users', JSON.stringify(nextUsers));
+      } catch (e) {}
+      return nextUsers;
+    });
+
+    api.updateUser(currentUser.id, updatedUser).catch(() => {});
   };
 
   const registerUser = (newUserData: Omit<User, 'id' | 'rating' | 'reviewCount' | 'tripsCompleted' | 'spotsHosted' | 'joinedYear'>): User => {
@@ -243,10 +736,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       reviewCount: 0,
       tripsCompleted: 0,
       spotsHosted: 0,
-      joinedYear: 2026,
+      joinedYear: new Date().getFullYear(),
     };
     setUsers(prev => [newUser, ...prev]);
     setCurrentUserId(newUser.id);
+    setIsAuthenticated(true);
+    localStorage.setItem('camproo_is_authenticated', 'true');
+    localStorage.setItem('camproo_current_user_id', newUser.id);
+    setSavedSpotIds([]);
+    setRequests([]);
+    setThreads([]);
     api.registerUser(newUser).catch(() => {});
     return newUser;
   };
@@ -313,22 +812,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setThreads(prev => [newThread, ...prev]);
     }
 
+    const enrichedReq = {
+      ...newReq,
+      travelerName: currentUser.name,
+      travelerEmail: currentUser.email,
+      spotTitle: spot?.title || 'RV Spot',
+      spotLocation: [spot?.locationName, spot?.generalArea].filter(Boolean).join(', ') || 'USA',
+      rigDescription: `${reqData.travelerRig?.lengthFt || 25}ft ${reqData.travelerRig?.description || reqData.travelerRig?.type || 'Rig'}`
+    };
+    api.createRequest(enrichedReq as any).catch(() => {});
+
     return newReq;
   };
 
   const respondToStayRequest = (requestId: string, status: 'accepted' | 'declined', note?: string) => {
+    const finalNote = note || (status === 'accepted' ? 'Your stay request has been warmly accepted! Looking forward to hosting you.' : 'Sorry, we are unavailable on those dates.');
+
     setRequests(prev =>
       prev.map(r => {
         if (r.id === requestId) {
           return {
             ...r,
             status,
-            hostResponseNote: note || (status === 'accepted' ? 'Your stay request has been warmly accepted! Looking forward to hosting you.' : 'Sorry, we are unavailable on those dates.'),
+            hostResponseNote: finalNote,
           };
         }
         return r;
       })
     );
+
+    api.updateRequest(requestId, {
+      status,
+      hostResponseNote: finalNote,
+    }).catch(() => {});
 
     const req = requests.find(r => r.id === requestId);
     if (req) {
@@ -337,8 +853,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       );
       if (thread) {
         const text = status === 'accepted'
-          ? `🎉 Stay Request ACCEPTED! Host message: "${note || 'Looking forward to hosting you! Safe travels.'}"`
-          : `Stay Request was declined: "${note || 'Dates unavailable.'}"`;
+          ? `🎉 Stay Request ACCEPTED! Host message: "${finalNote}"`
+          : `Stay Request was declined: "${finalNote}"`;
         sendMessage(thread.id, req.travelerId, text, req.spotId, req.id);
       }
     }
@@ -378,6 +894,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return t;
         })
       );
+      api.sendMessage(threadId, { senderId: currentUser.id, text }).catch(() => {});
     } else {
       const newThreadId = `thread-${Date.now()}`;
       const newThread: MessageThread = {
@@ -400,10 +917,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
       setThreads(prev => [newThread, ...prev]);
       setActiveThreadId(newThreadId);
+      api.createThread({ participants: [currentUser.id, recipientId], spotId, messages: [{ senderId: currentUser.id, text }] } as any).catch(() => {});
     }
   };
 
   const createSpot = (newSpotData: Omit<Spot, 'id' | 'createdAt' | 'rating' | 'reviewCount' | 'isFree'>): Spot => {
+    const visibility = newSpotData.visibility || 'public';
     const newSpot: Spot = {
       ...newSpotData,
       id: `spot-${Date.now()}`,
@@ -412,12 +931,65 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       reviewCount: 0,
       createdAt: new Date().toISOString().split('T')[0],
       status: 'active',
+      visibility,
+      reviewStatus: visibility === 'personal' ? 'personal' : 'pending_review',
+      submitterName: newSpotData.submitterName || currentUser.name,
+      contactEmail: newSpotData.contactEmail || currentUser.email,
+      contactPhone: newSpotData.contactPhone || currentUser.phone,
     };
     setSpots(prev => [newSpot, ...prev]);
     setUsers(prev =>
       prev.map(u => (u.id === newSpotData.hostId ? { ...u, spotsHosted: u.spotsHosted + 1 } : u))
     );
-    api.createSpot(newSpot).catch(() => {});
+    api.submitSpot({
+      spot: newSpot,
+      submitterName: newSpot.submitterName,
+      submitterEmail: newSpot.contactEmail,
+      submitterPhone: newSpot.contactPhone,
+      visibility,
+    }).catch(() => {
+      api.createSpot(newSpot).catch(() => {});
+    });
+    createSupabaseSpot(newSpot).catch(() => {});
+    return newSpot;
+  };
+
+  const submitSpotWithReview = async (
+    newSpotData: Omit<Spot, 'id' | 'createdAt' | 'rating' | 'reviewCount' | 'isFree'>,
+    meta?: { submitterName?: string; submitterEmail?: string; submitterPhone?: string; visibility?: 'public' | 'personal'; notes?: string }
+  ): Promise<Spot> => {
+    const visibility = meta?.visibility || newSpotData.visibility || 'public';
+    const newSpot: Spot = {
+      ...newSpotData,
+      id: `spot-${Date.now()}`,
+      isFree: true,
+      rating: 5.0,
+      reviewCount: 0,
+      createdAt: new Date().toISOString().split('T')[0],
+      status: 'active',
+      visibility,
+      reviewStatus: visibility === 'personal' ? 'personal' : 'pending_review',
+      submitterName: meta?.submitterName || newSpotData.submitterName || currentUser.name,
+      contactEmail: meta?.submitterEmail || newSpotData.contactEmail || currentUser.email,
+      contactPhone: meta?.submitterPhone || newSpotData.contactPhone || currentUser.phone,
+    };
+    setSpots(prev => [newSpot, ...prev]);
+    setUsers(prev =>
+      prev.map(u => (u.id === newSpotData.hostId ? { ...u, spotsHosted: u.spotsHosted + 1 } : u))
+    );
+    try {
+      await api.submitSpot({
+        spot: newSpot,
+        submitterName: newSpot.submitterName,
+        submitterEmail: newSpot.contactEmail,
+        submitterPhone: newSpot.contactPhone,
+        visibility,
+        notes: meta?.notes || '',
+      });
+    } catch (e) {
+      console.warn('[AppContext] Falling back to standard spot save:', e);
+      api.createSpot(newSpot).catch(() => {});
+    }
     createSupabaseSpot(newSpot).catch(() => {});
     return newSpot;
   };
@@ -473,21 +1045,65 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setReviews(prev => [newReview, ...prev]);
 
     if (reviewData.spotId) {
+      const reviewPhotos = reviewData.photos?.filter(p => p && p.trim().length > 0) || [];
+
       setSpots(prev =>
         prev.map(s => {
           if (s.id === reviewData.spotId) {
             const newCount = s.reviewCount + 1;
             const newRating = Number(((s.rating * s.reviewCount + reviewData.ratingOverall) / newCount).toFixed(2));
+            const mergedPhotos = reviewPhotos.length > 0
+              ? [...s.photos, ...reviewPhotos.filter(p => !s.photos.includes(p))]
+              : s.photos;
+
             return {
               ...s,
               rating: newRating,
               reviewCount: newCount,
+              photos: mergedPhotos,
             };
           }
           return s;
         })
       );
+
+      // Persist photos to Supabase if any
+      if (reviewPhotos.length > 0) {
+        updateSupabaseSpotPhotos(reviewData.spotId, reviewPhotos).catch(() => {});
+      }
     }
+    const spot = reviewData.spotId ? spots.find(s => s.id === reviewData.spotId) : null;
+    api.createReview({
+      ...newReview,
+      reviewerName: currentUser.name,
+      spotTitle: spot?.title || 'RV Spot',
+    } as any).catch(() => {});
+  };
+
+  const submitSpotEditRequest = (requestData: Omit<SpotEditRequest, 'id' | 'createdAt' | 'status'>) => {
+    const newRequest: SpotEditRequest = {
+      ...requestData,
+      id: `edit-req-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      status: 'pending',
+    };
+
+    setSpotEditRequests(prev => {
+      const updated = [newRequest, ...prev];
+      try {
+        localStorage.setItem('camproo_spot_edits', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    // Also dispatch to API if endpoint available
+    try {
+      fetch(`/api/spots/${requestData.spotId}/edit-requests`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newRequest),
+      }).catch(() => {});
+    } catch {}
   };
 
   const submitReport = (reportData: Omit<ReportItem, 'id' | 'createdAt' | 'status'>) => {
@@ -498,7 +1114,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       createdAt: new Date().toISOString(),
     };
     setReports(prev => [newReport, ...prev]);
-    api.createReport(newReport as any).catch(() => {});
+    api.createReport({
+      ...newReport,
+      reporterName: currentUser.name,
+      reporterEmail: currentUser.email,
+      targetType: reportData.reportedTargetType,
+      targetName: reportData.targetName,
+    } as any).catch(() => {});
   };
 
   const blockUser = (userIdToBlock: string) => {
@@ -561,6 +1183,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCommunityPosts(prev =>
       prev.map(p => (p.id === postId ? { ...p, comments: [...p.comments, newComment] } : p))
     );
+    api.addComment(postId, newComment).catch(() => {});
   };
 
   const adminToggleSuspendUser = (userId: string) => {
@@ -615,6 +1238,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         activeThreadId,
         switchUser,
         registerUser,
+        updateUserProfile,
         setCurrentView,
         setSelectedSpotId,
         setActiveThreadId,
@@ -624,19 +1248,45 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         respondToStayRequest,
         sendMessage,
         createSpot,
+        submitSpotWithReview,
         deleteSpot,
         updateSpotStatus,
         addSpotPhotos,
         submitReview,
         submitReport,
+        spotEditRequests,
+        submitSpotEditRequest,
         blockUser,
         createCommunityPost,
         toggleCommunityUpvote,
         addCommunityComment,
+        savedSpotIds,
+        isSpotSaved,
+        toggleSaveSpot,
         adminToggleSuspendUser,
         adminToggleFeatureSpot,
         adminResolveReport,
         adminToggleVerifyUser,
+        isAuthenticated,
+        setIsAuthenticated,
+        logout,
+        isAdminAuthenticated,
+        adminToken,
+        adminLogin,
+        adminLogout,
+        userLocation,
+        setUserLocation,
+        sortByDistance,
+        setSortByDistance,
+        isLocating,
+        handleNearMe,
+        targetView,
+        setTargetView,
+        isSupportModalOpen,
+        setIsSupportModalOpen,
+        openSupportModal,
+        supportModalTopic,
+        supportModalSubject,
       }}
     >
       {children}

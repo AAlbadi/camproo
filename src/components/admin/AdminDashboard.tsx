@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useToast } from '../../context/ToastContext';
 import {
@@ -17,7 +17,8 @@ import {
   Lock,
   Unlock,
   BadgeCheck,
-  MessageSquare
+  MessageSquare,
+  Mail
 } from 'lucide-react';
 
 export const AdminDashboard: React.FC = () => {
@@ -34,6 +35,9 @@ export const AdminDashboard: React.FC = () => {
     deleteSpot,
     setCurrentView,
     setSelectedSpotId,
+    isAdminAuthenticated,
+    adminLogin,
+    adminLogout
   } = useApp();
 
   const { showToast } = useToast();
@@ -41,6 +45,128 @@ export const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'analytics' | 'reports' | 'users' | 'spots' | 'reviews' | 'verifications'>('analytics');
   const [userSearch, setUserSearch] = useState('');
   const [spotSearch, setSpotSearch] = useState('');
+
+  // Admin gate form states
+  const [adminUser, setAdminUser] = useState('aziz');
+  const [adminPass, setAdminPass] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [gateError, setGateError] = useState('');
+
+  const [liveStats, setLiveStats] = useState<any>(null);
+  const [emailLogs, setEmailLogs] = useState<any[]>([]);
+  const [loadingStats, setLoadingStats] = useState(false);
+
+  const fetchLiveStats = async () => {
+    if (!isAdminAuthenticated) return;
+    setLoadingStats(true);
+    try {
+      const headers = {
+        'Authorization': `Bearer camproo_admin_sec_94883443_aziz`,
+        'x-admin-token': 'camproo_admin_sec_94883443_aziz'
+      };
+      const [statsRes, emailsRes] = await Promise.all([
+        fetch('/api/analytics/stats', { headers }).catch(() => null),
+        fetch('/api/email/logs', { headers }).catch(() => null)
+      ]);
+      if (statsRes?.ok) setLiveStats(await statsRes.json());
+      if (emailsRes?.ok) {
+        const d = await emailsRes.json();
+        setEmailLogs(d.logs || []);
+      }
+    } catch (err) {
+      console.error('Error fetching admin stats:', err);
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAdminAuthenticated) fetchLiveStats();
+  }, [isAdminAuthenticated]);
+
+  const handleAdminGateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setGateError('');
+    setIsVerifying(true);
+    try {
+      const res = await adminLogin(adminPass, adminUser);
+      if (res.success) {
+        showToast('Admin access verified. Welcome Aziz.', 'success');
+        setAdminPass('');
+      } else {
+        setGateError(res.error || 'Access denied. Incorrect admin credentials.');
+      }
+    } catch {
+      setGateError('Verification failed. Please try again.');
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  // If not authenticated, render Admin Gate
+  if (!isAdminAuthenticated) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-20 animate-fade-in text-center space-y-6">
+        <div className="w-16 h-16 rounded-3xl bg-amber-500/10 text-amber-600 border border-amber-500/20 flex items-center justify-center mx-auto shadow-sm">
+          <Lock className="w-8 h-8 stroke-[2.2]" />
+        </div>
+
+        <div>
+          <h2 className="text-2xl font-black text-dark-900 tracking-tight">
+            Ranger Admin Portal Restricted
+          </h2>
+          <p className="text-xs text-dark-500 mt-1 max-w-sm mx-auto">
+            Platform moderation, spot auditing, and account safety controls are strictly restricted to admin <strong className="text-dark-900">aziz</strong>.
+          </p>
+        </div>
+
+        {gateError && (
+          <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2 text-left">
+            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+            <span>{gateError}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleAdminGateSubmit} className="space-y-3.5 text-left border border-dark-200 p-6 rounded-3xl bg-white shadow-xl">
+          <div>
+            <label className="text-xs font-bold text-dark-800 block mb-1">
+              Admin Username
+            </label>
+            <input
+              type="text"
+              required
+              value={adminUser}
+              onChange={e => setAdminUser(e.target.value)}
+              placeholder="aziz"
+              className="w-full h-11 px-3.5 rounded-2xl text-xs font-bold border border-dark-200 focus:border-roo-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-bold text-dark-800 block mb-1">
+              Admin Password
+            </label>
+            <input
+              type="password"
+              required
+              value={adminPass}
+              onChange={e => setAdminPass(e.target.value)}
+              placeholder="••••••••••••"
+              className="w-full h-11 px-3.5 rounded-2xl text-xs font-bold border border-dark-200 focus:border-roo-500 focus:outline-none"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={isVerifying}
+            className="w-full h-11 rounded-2xl bg-dark-950 hover:bg-black text-white font-bold text-xs shadow-md transition-all mt-2"
+          >
+            {isVerifying ? 'Verifying Credentials...' : 'Unlock Ranger Admin Portal'}
+          </button>
+        </form>
+      </div>
+    );
+  }
 
   // Analytics Metrics
   const totalUsers = users.length;
@@ -112,59 +238,181 @@ export const AdminDashboard: React.FC = () => {
 
       {/* ANALYTICS TAB */}
       {activeTab === 'analytics' && (
-        <div className="space-y-8 animate-fade-in">
-          {/* Key KPI Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="bg-white p-6 rounded-3xl border border-dark-200 shadow-airbnb">
+        <div className="space-y-6 animate-fade-in">
+          {/* Refresh */}
+          <div className="flex justify-end">
+            <button
+              onClick={fetchLiveStats}
+              disabled={loadingStats}
+              className="px-4 py-2 rounded-2xl bg-dark-900 hover:bg-black text-white text-xs font-bold flex items-center gap-2 shadow-md transition-all"
+            >
+              {loadingStats ? 'Loading...' : '🔄 Refresh Live Data'}
+            </button>
+          </div>
+
+          {/* KPI Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+            <div className="bg-white p-5 rounded-3xl border border-dark-200 shadow-airbnb">
               <span className="text-[11px] font-bold text-dark-500 uppercase block">Registered RVers</span>
               <span className="text-3xl font-black text-dark-900 mt-1 block">{totalUsers}</span>
-              <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1 mt-1">
-                <TrendingUp className="w-3 h-3" /> +24% growth
-              </span>
             </div>
-
-            <div className="bg-white p-6 rounded-3xl border border-dark-200 shadow-airbnb">
+            <div className="bg-white p-5 rounded-3xl border border-dark-200 shadow-airbnb">
               <span className="text-[11px] font-bold text-dark-500 uppercase block">Free Spots Listed</span>
               <span className="text-3xl font-black text-dark-900 mt-1 block">{totalSpots}</span>
-              <span className="text-[10px] text-roo-500 font-bold mt-1 block">100% Free peer pads</span>
             </div>
-
-            <div className="bg-white p-6 rounded-3xl border border-dark-200 shadow-airbnb">
+            <div className="bg-white p-5 rounded-3xl border border-dark-200 shadow-airbnb">
               <span className="text-[11px] font-bold text-dark-500 uppercase block">Free Nights Hosted</span>
               <span className="text-3xl font-black text-dark-900 mt-1 block">{totalFreeNightsHosted}</span>
-              <span className="text-[10px] text-emerald-600 font-bold mt-1 block">$0 booking fees</span>
             </div>
-
-            <div className="bg-white p-6 rounded-3xl border border-dark-200 shadow-airbnb">
+            <div className="bg-white p-5 rounded-3xl border border-dark-200 shadow-airbnb">
               <span className="text-[11px] font-bold text-dark-500 uppercase block">Pending Reports</span>
-              <span className={`text-3xl font-black mt-1 block ${pendingReports.length > 0 ? 'text-roo-500' : 'text-dark-900'}`}>
-                {pendingReports.length}
-              </span>
-              <span className="text-[10px] text-dark-500 font-semibold mt-1 block">Ranger triage queue</span>
+              <span className={`text-3xl font-black mt-1 block ${pendingReports.length > 0 ? 'text-roo-500' : 'text-dark-900'}`}>{pendingReports.length}</span>
+            </div>
+            <div className="bg-white p-5 rounded-3xl border border-emerald-200 shadow-airbnb">
+              <span className="text-[11px] font-bold text-emerald-600 uppercase block">Total Link Opens</span>
+              <span className="text-3xl font-black text-emerald-700 mt-1 block">{liveStats?.totalViews || 0}</span>
+              <span className="text-[10px] text-dark-500 font-semibold block mt-0.5">{liveStats?.uniqueSessions || 0} unique visitors</span>
             </div>
           </div>
 
-          {/* Platform Health Matrix */}
-          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-dark-200 shadow-airbnb space-y-4">
-            <h3 className="text-lg font-extrabold text-dark-900">Community Integrity & Quality Standards</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-              <div className="p-4 rounded-2xl bg-dark-50 border border-dark-200 space-y-1">
-                <span className="font-bold text-dark-900 block">Identity Verification Rate</span>
-                <p className="text-2xl font-black text-emerald-600">96.4%</p>
-                <span className="text-dark-600">Phone, email, and ID verified</span>
+          {/* WHERE THEY FROM - Countries */}
+          <div className="bg-white p-6 rounded-3xl border border-dark-200 shadow-airbnb space-y-4">
+            <h3 className="text-lg font-extrabold text-dark-900 flex items-center gap-2">🌍 Where They're From (Countries)</h3>
+            {liveStats?.countriesBreakdown?.length ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {liveStats.countriesBreakdown.map((c: any, i: number) => (
+                  <div key={i} className="p-3.5 rounded-2xl bg-dark-50 border border-dark-200 flex items-center gap-3">
+                    <span className="text-2xl">{c.flag || '🏳️'}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-dark-900 truncate">{c.country || 'Unknown'}</span>
+                        <span className="text-xs font-black text-dark-900 ml-2">{c.count}</span>
+                      </div>
+                      <div className="w-full bg-dark-200 rounded-full h-1.5 mt-1">
+                        <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${c.percentage || 0}%` }} />
+                      </div>
+                      <span className="text-[10px] text-dark-500 mt-0.5 block">{(c.percentage || 0).toFixed(1)}% of visitors</span>
+                    </div>
+                  </div>
+                ))}
               </div>
+            ) : (
+              <div className="text-xs text-dark-400 py-4 text-center">Visitor location data will appear as traffic arrives.</div>
+            )}
+          </div>
 
-              <div className="p-4 rounded-2xl bg-dark-50 border border-dark-200 space-y-1">
-                <span className="font-bold text-dark-900 block">Average Host Rating</span>
-                <p className="text-2xl font-black text-dark-900">4.95 ★</p>
-                <span className="text-dark-600">Across {reviews.length} completed stays</span>
+          {/* WHERE THEY FROM - Cities */}
+          <div className="bg-white p-6 rounded-3xl border border-dark-200 shadow-airbnb space-y-4">
+            <h3 className="text-lg font-extrabold text-dark-900 flex items-center gap-2">🏙️ Top Cities</h3>
+            {liveStats?.citiesBreakdown?.length ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                {liveStats.citiesBreakdown.slice(0, 12).map((c: any, i: number) => (
+                  <div key={i} className="p-3 rounded-2xl bg-dark-50 border border-dark-100 text-center">
+                    <div className="text-sm font-bold text-dark-900">{c.city || 'Unknown'}</div>
+                    <div className="text-[10px] text-dark-500">{c.country}</div>
+                    <div className="text-lg font-black text-emerald-600 mt-1">{c.count}</div>
+                  </div>
+                ))}
               </div>
+            ) : (
+              <div className="text-xs text-dark-400 py-4 text-center">City data will appear as traffic arrives.</div>
+            )}
+          </div>
 
-              <div className="p-4 rounded-2xl bg-dark-50 border border-dark-200 space-y-1">
-                <span className="font-bold text-dark-900 block">Repeat Welcome Rate</span>
-                <p className="text-2xl font-black text-roo-500">99.1%</p>
-                <span className="text-dark-600">"Would welcome again" responses</span>
+          {/* HOW MANY OPENED THE LINK - Pages & Sources */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Link Opens / Pages */}
+            <div className="bg-white p-6 rounded-3xl border border-dark-200 shadow-airbnb space-y-3">
+              <h3 className="text-sm font-extrabold text-dark-900">🔗 Link Opens (Pages Visited)</h3>
+              {liveStats?.pagesBreakdown?.length ? (
+                liveStats.pagesBreakdown.slice(0, 10).map((p: any, i: number) => (
+                  <div key={i} className="flex items-center justify-between text-xs py-1.5 border-b border-dark-100 last:border-0">
+                    <span className="font-mono font-bold text-dark-800 truncate max-w-[180px]">{p.path}</span>
+                    <span className="font-mono bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-full text-[11px] font-bold border border-emerald-200">{p.count} opens</span>
+                  </div>
+                ))
+              ) : (
+                <div className="text-xs text-dark-400 py-3 text-center">No page views yet.</div>
+              )}
+            </div>
+
+            {/* Traffic Sources */}
+            <div className="bg-white p-6 rounded-3xl border border-dark-200 shadow-airbnb space-y-3">
+              <h3 className="text-sm font-extrabold text-dark-900">📡 Traffic Sources</h3>
+              {liveStats?.topReferrers?.length ? (
+                liveStats.topReferrers.slice(0, 10).map((r: any, i: number) => (
+                  <div key={i} className="flex items-center justify-between text-xs py-1.5 border-b border-dark-100 last:border-0">
+                    <span className="font-semibold text-dark-800 truncate max-w-[200px]">{r.domain}</span>
+                    <span className="font-mono text-dark-600 bg-dark-100 px-2 py-0.5 rounded-full text-[11px] font-bold">{r.count} views</span>
+                  </div>
+                ))
+              ) : (
+                <div className="text-xs text-dark-400 py-3 text-center">No referrer data yet.</div>
+              )}
+            </div>
+          </div>
+
+          {/* Devices */}
+          <div className="bg-white p-6 rounded-3xl border border-dark-200 shadow-airbnb">
+            <h3 className="text-sm font-extrabold text-dark-900 mb-3">📱 Device Breakdown</h3>
+            <div className="flex items-center gap-6 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">💻</span>
+                <span className="font-bold text-dark-900">Desktop: {liveStats?.devicesBreakdown?.find((d: any) => d.device === 'desktop')?.count || 0}</span>
               </div>
+              <div className="flex items-center gap-2">
+                <span className="text-lg">📱</span>
+                <span className="font-bold text-dark-900">Mobile: {liveStats?.devicesBreakdown?.find((d: any) => d.device === 'mobile')?.count || 0}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Live Visitor Stream */}
+          <div className="bg-white p-6 rounded-3xl border border-dark-200 shadow-airbnb space-y-3">
+            <h3 className="text-sm font-extrabold text-dark-900">⚡ Live Visitor Activity Stream</h3>
+            <div className="space-y-1.5 max-h-64 overflow-y-auto">
+              {liveStats?.recentEvents?.length ? (
+                liveStats.recentEvents.map((evt: any, i: number) => (
+                  <div key={i} className="text-[11px] p-2.5 rounded-xl bg-dark-50/80 border border-dark-100 flex items-center justify-between">
+                    <div className="flex items-center gap-2 truncate">
+                      <span className="text-base">{evt.flag || '🏳️'}</span>
+                      <span className="font-semibold text-dark-600">{evt.city || evt.country || 'Unknown'}</span>
+                      <span className="font-bold font-mono text-dark-900 bg-white px-1.5 py-0.5 rounded border border-dark-200">{evt.path}</span>
+                      <span className="text-dark-400">from</span>
+                      <span className="text-emerald-700 font-semibold truncate max-w-[150px]">{evt.referrer || 'Direct'}</span>
+                      {evt.browser && <span className="text-dark-400 text-[10px]">({evt.browser})</span>}
+                    </div>
+                    <span className="text-dark-500 text-[10px] whitespace-nowrap pl-2 font-mono">
+                      {new Date(evt.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="text-xs text-dark-400 py-4 text-center">No visitor events recorded yet.</div>
+              )}
+            </div>
+          </div>
+
+          {/* Email Delivery Audit */}
+          <div className="bg-white p-6 rounded-3xl border border-dark-200 shadow-airbnb space-y-3">
+            <h3 className="text-sm font-extrabold text-dark-900 flex items-center gap-2">📧 Email Notifications to aalbadi1911@gmail.com</h3>
+            <div className="space-y-1.5 max-h-56 overflow-y-auto">
+              {emailLogs.length ? (
+                emailLogs.map((log: any, i: number) => (
+                  <div key={i} className="text-[11px] p-2.5 rounded-xl bg-dark-50/80 border border-dark-100 flex items-center justify-between">
+                    <div className="truncate">
+                      <div className="font-bold text-dark-900">{log.subject}</div>
+                      <div className="text-dark-500">To: {log.to} · Provider: {log.provider}</div>
+                    </div>
+                    <div className="text-right shrink-0 ml-3">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${log.status === 'sent' || log.status === 'delivered_sandbox' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>{log.status}</span>
+                      <div className="text-[10px] text-dark-400 mt-0.5 font-mono">{new Date(log.sentAt).toLocaleTimeString()}</div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-xs text-dark-400 py-4 text-center">No emails dispatched yet.</div>
+              )}
             </div>
           </div>
         </div>
@@ -342,6 +590,15 @@ export const AdminDashboard: React.FC = () => {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-dark-900">{s.title}</span>
+                      {s.visibility === 'personal' ? (
+                        <span className="text-[10px] px-2 py-0.2 rounded-full bg-indigo-100 text-indigo-800 font-extrabold">
+                          PERSONAL
+                        </span>
+                      ) : s.reviewStatus === 'pending_review' ? (
+                        <span className="text-[10px] px-2 py-0.2 rounded-full bg-amber-100 text-amber-800 font-extrabold">
+                          PENDING REVIEW
+                        </span>
+                      ) : null}
                       {s.isFeatured && (
                         <span className="text-[10px] px-2 py-0.2 rounded-full bg-roo-100 text-roo-800 font-extrabold">
                           FEATURED
@@ -353,11 +610,24 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                     <div className="text-[11px] text-dark-600">
                       {s.locationName}, {s.generalArea} · Up to {s.rigCompatibility.maxLengthFt}ft
+                      {s.contactEmail && (
+                        <span className="ml-2 text-dark-500">· Submitter: <span className="font-semibold text-dark-800">{s.submitterName || 'Host'}</span> ({s.contactEmail})</span>
+                      )}
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
+                  {s.contactEmail && (
+                    <a
+                      href={`mailto:${s.contactEmail}?subject=${encodeURIComponent(`Regarding your CampRoo spot: ${s.title}`)}&body=${encodeURIComponent(`Hi ${s.submitterName || 'there'},\n\nThank you for sharing ${s.title} on CampRoo. I reviewed your submission and wanted to connect.\n\nBest regards,\nCampRoo Team`)}`}
+                      className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center gap-1 border border-emerald-200 transition-colors"
+                      title={`Email ${s.submitterName || 'Submitter'} at ${s.contactEmail}`}
+                    >
+                      <Mail className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Email Host</span>
+                    </a>
+                  )}
                   <button
                     onClick={() => {
                       adminToggleFeatureSpot(s.id);

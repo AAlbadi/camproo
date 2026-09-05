@@ -15,35 +15,32 @@ from pipeline.processors.normalizer import CampSpot
 
 logger = logging.getLogger(__name__)
 
-# High-quality natural outdoor camping and dispersed landscape imagery from Unsplash
+# Authentic public land and dispersed camping photography from USFS/BLM and Wikimedia Commons
 ENVIRONMENT_FALLBACK_PHOTOS = {
     "desert": [
-        "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=1200&q=80",  # Desert BLM vista
-        "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&q=80",  # Desert road trip
-        "https://images.unsplash.com/photo-1510312305653-8ed496efae75?auto=format&fit=crop&w=1200&q=80",  # Joshua tree / red rock
-        "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80",  # Arid plains sunset
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/67/-TravelTuesday_with_My_Public_Lands_%2824446462030%29.jpg/1280px--TravelTuesday_with_My_Public_Lands_%2824446462030%29.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/99/-TravelTuesday_with_My_Public_Lands_at_Canyon_Rims_Recreation_Area_SRMA_%2824115137893%29.jpg/1280px--TravelTuesday_with_My_Public_Lands_at_Canyon_Rims_Recreation_Area_SRMA_%2824115137893%29.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ef/Rock_formations_along_Geology_Tour_Road_at_sunset_%2851146471142%29.jpg/1280px-Rock_formations_along_Geology_Tour_Road_at_sunset_%2851146471142%29.jpg",
     ],
     "forest": [
-        "https://images.unsplash.com/photo-1511497584788-87676104235f?auto=format&fit=crop&w=1200&q=80",  # Deep pine forest
-        "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=1200&q=80",  # Forest lake campsite
-        "https://images.unsplash.com/photo-1516214104703-d870798883c5?auto=format&fit=crop&w=1200&q=80",  # Misty forest road
-        "https://images.unsplash.com/photo-1470246973918-29a93221c455?auto=format&fit=crop&w=1200&q=80",  # Pine trees sunrise
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7d/Manti-La_Sal_National_Forest_%2827006934032%29.jpg/1280px-Manti-La_Sal_National_Forest_%2827006934032%29.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5e/Trailer_Camping_ET5A7516_%2829804296456%29.jpg/1920px-Trailer_Camping_ET5A7516_%2829804296456%29.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/46/Blesner_Creek_Autumn_Sunset_-_Fall_Colors_at_Superior_National_Forest%2C_Minnesota_%2836763922793%29.jpg/1280px-Blesner_Creek_Autumn_Sunset_-_Fall_Colors_at_Superior_National_Forest%2C_Minnesota_%2836763922793%29.jpg",
     ],
     "mountain": [
-        "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80",  # Alpine peak
-        "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80",  # Mountain valley & river
-        "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1200&q=80",  # Mountain wilderness
-        "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?auto=format&fit=crop&w=1200&q=80",  # Mountain overlook
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/16/Sedona_Red_Rocks_from_I-17.jpg/1280px-Sedona_Red_Rocks_from_I-17.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3b/Zephyr_Cove%2C_Lake_Tahoe%2C_NV_8-10_%2816347314744%29.jpg/1280px-Zephyr_Cove%2C_Lake_Tahoe%2C_NV_8-10_%2816347314744%29.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/08/View_of_fields%2C_mountains_and_mist_in_Cades_Cove_looking_SW._-_Great_Smoky_Mountains_National_Park_Roads_and_Bridges%2C_Cades_Cove_Road_and_Laurel_Creek_Road%2C_From_Townsend_Wye_HAER_TENN%2C78-GAT.V%2C6D-18.tif/lossy-page1-1280px-thumbnail.tif.jpg",
     ],
     "coastal": [
-        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",  # Pacific coastline
-        "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=1200&q=80",  # Shoreline waters
-        "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80",  # River inlet
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d4/Acadia_National_Park%2C_Maine_%288cd03391-75a7-403f-8d64-42aa07408dfb%29.jpg/1280px-Acadia_National_Park%2C_Maine_%288cd03391-75a7-403f-8d64-42aa07408dfb%29.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e9/Acadia_National_Park%2C_Maine_%28a84afa37-b94d-49d1-9be8-bb2d45115784%29.jpg/1280px-Acadia_National_Park%2C_Maine_%28a84afa37-b94d-49d1-9be8-bb2d45115784%29.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/20/Acadia_National_Park%2C_Maine_%285e76e4c7-b65c-4cd0-9a0b-9d0082e50fa8%29.jpg/1280px-Acadia_National_Park%2C_Maine_%285e76e4c7-b65c-4cd0-9a0b-9d0082e50fa8%29.jpg",
     ],
     "rural": [
-        "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80",  # Open grassland
-        "https://images.unsplash.com/photo-1470246973918-29a93221c455?auto=format&fit=crop&w=1200&q=80",  # Golden hour prairie
-        "https://images.unsplash.com/photo-1510312305653-8ed496efae75?auto=format&fit=crop&w=1200&q=80",  # Wide horizon
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/95/Hill_Country_State_Natural_Area.jpg/1280px-Hill_Country_State_Natural_Area.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ef/Overlook_View_Hill_Country_SNA_Texas_2023.jpg/1280px-Overlook_View_Hill_Country_SNA_Texas_2023.jpg",
+        "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/33/Hill_Country_SNA_Texas_2023.jpg/1280px-Hill_Country_SNA_Texas_2023.jpg",
     ],
 }
 
