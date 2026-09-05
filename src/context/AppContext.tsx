@@ -703,25 +703,85 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     let isMounted = true;
     
-    // Asynchronously load curated spots from public data in chunks (<15MB each to respect Cloudflare asset limit)
-    Promise.all([
-      fetch('/data/curatedFreeSpots_part1.json').then(r => r.ok ? r.json() : []).catch(() => []),
-      fetch('/data/curatedFreeSpots_part2.json').then(r => r.ok ? r.json() : []).catch(() => [])
-    ]).then(([part1, part2]) => {
-      const curated = [...part1, ...part2];
+    // Asynchronously load compact curated spots from public data in 4 chunks (<2.5MB each)
+    const partUrls = Array.from({ length: 4 }, (_, i) => `/data/curatedFreeSpots_part${i + 1}.json`);
+    Promise.all(
+      partUrls.map(url => fetch(url).then(r => (r.ok ? r.json() : [])).catch(() => []))
+    ).then((parts) => {
+      const curated = parts.flat();
       if (isMounted && curated.length > 0) {
         setSpots(prev => {
           const map = new Map<string, Spot>();
           prev.forEach(s => map.set(s.id, s));
-          (curated as Spot[]).forEach(s => {
+          (curated as any[]).forEach(s => {
             if (!map.has(s.id)) {
               const cleanPhotos = (s.photos || []).filter(
-                p => typeof p === 'string' && !p.includes('unsplash.com') && !p.includes('pexels.com')
+                (p: string) => typeof p === 'string' && !p.includes('unsplash.com') && !p.includes('pexels.com')
               );
-              map.set(s.id, {
-                ...s,
-                photos: cleanPhotos.length > 0 ? cleanPhotos : ['/images/real_bald_mountain.jpg']
-              });
+              const hydratedSpot: Spot = {
+                id: s.id,
+                hostId: s.hostId || 'pipeline-import',
+                title: s.title || s.locationName || 'Free Dispersed Spot',
+                tagline: s.tagline || `Free USFS/BLM Camping — ${s.generalArea || 'USA'}`,
+                description: s.description || s.title || 'Free public lands dispersed camping spot.',
+                locationName: s.locationName || s.title,
+                generalArea: s.generalArea || 'USA',
+                coordinates: s.coordinates || [39.5, -98.35],
+                photos: cleanPhotos.length > 0 ? cleanPhotos : ['/images/real_bald_mountain.jpg'],
+                spaceType: s.spaceType || 'forest_clearing',
+                environment: s.environment || 'forest',
+                rigCompatibility: s.rigCompatibility || {
+                  maxLengthFt: 35,
+                  maxHeightFt: 13.5,
+                  maxWidthFt: 8.5,
+                  acceptedTypes: ['class_b', 'class_c', 'campervan', 'truck_camper', 'rooftop_tent', 'travel_trailer'],
+                  accessType: 'back_in',
+                  surfaceType: 'dirt',
+                  isLevel: false,
+                  turnaroundSpace: 'Forest / BLM access clearing',
+                  trailerDisconnectRequired: false
+                },
+                amenities: s.amenities || {
+                  electricity: 'none',
+                  water: 'none',
+                  sewer: 'none',
+                  wifi: false,
+                  bathroom: false,
+                  shower: false,
+                  firePit: false,
+                  trash: false,
+                  shade: 'partial',
+                  generatorsAllowed: true,
+                  petsAllowed: true,
+                  familyFriendly: true,
+                  quietSetting: true,
+                  offGridCapable: true
+                },
+                proximity: s.proximity || {
+                  fuelNearbyMiles: 0,
+                  groceriesNearbyMiles: 0,
+                  rvDumpNearbyMiles: 0,
+                  attractionNote: 'Scenic public lands area'
+                },
+                rules: s.rules || {
+                  maxStayNights: 14,
+                  checkInWindow: 'Anytime',
+                  checkOutTime: 'Anytime',
+                  quietHours: 'Respect other campers',
+                  campfirePolicy: 'Check local fire restrictions',
+                  childrenAllowed: true,
+                  extraGuestsAllowed: true,
+                  hostInteraction: 'independent_gate_code'
+                },
+                gatekeeping: 'any_member',
+                rating: s.rating ?? 0,
+                reviewCount: s.reviewCount ?? 0,
+                isFree: true,
+                isFeatured: s.isFeatured ?? true,
+                status: s.status || 'active',
+                createdAt: s.createdAt || '2026-09-04'
+              };
+              map.set(s.id, hydratedSpot);
             }
           });
           return Array.from(map.values());

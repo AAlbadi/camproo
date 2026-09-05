@@ -145,9 +145,9 @@ export const LeafletInteractiveMap: React.FC<LeafletInteractiveMapProps> = (prop
   const [showLayersMenu, setShowLayersMenu] = useState(false);
   const [isLocatingUser, setIsLocatingUser] = useState(false);
 
-  // Spot isolation state (show spot alone on map)
-  const [internalIsolate, setInternalIsolate] = useState(true);
-  const isIsolated = isolateSelectedSpot !== undefined ? isolateSelectedSpot : internalIsolate;
+  // Spot isolation state (defaults to false so map retains route and spot context)
+  const [internalIsolate, setInternalIsolate] = useState(false);
+  const isIsolated = isolateSelectedSpot !== undefined ? isolateSelectedSpot : false;
   const toggleIsolate = useCallback(() => {
     if (onToggleIsolateSelected) {
       onToggleIsolateSelected();
@@ -155,12 +155,6 @@ export const LeafletInteractiveMap: React.FC<LeafletInteractiveMapProps> = (prop
       setInternalIsolate((prev) => !prev);
     }
   }, [onToggleIsolateSelected]);
-
-  useEffect(() => {
-    if (selectedSpotId) {
-      setInternalIsolate(true);
-    }
-  }, [selectedSpotId]);
 
   // Helper to get current bounds
   const getMapBounds = useCallback((): MapBounds | null => {
@@ -853,66 +847,35 @@ export const LeafletInteractiveMap: React.FC<LeafletInteractiveMapProps> = (prop
     });
 
     spotsToRender.forEach((spot) => {
+      const stopIdx = (spot as any).routeStopIndex;
+      const isRoadTripStop = Boolean(stopIdx);
       const isHovered = hoveredSpotId === spot.id;
       const isSelected = selectedSpotId === spot.id;
-      const googleUrl = getGoogleMapsNavigationUrl(origin.coordinates, spot.coordinates, spot.title);
-
-      const stopIdx = (spot as any).routeStopIndex;
       const etaText = (spot as any).arrivalTimeFormatted ? ` · ETA ${(spot as any).arrivalTimeFormatted}` : '';
 
-      const isRoadTripStop = Boolean(stopIdx);
-
-      const titleBadge = (isSelected || (isHovered && isRoadTripStop)) ? `
+      // Clean, non-colliding tooltip only on hover for standard spots (selected spots use bottom drawer; road trip spots expand pill directly)
+      const showHoverTooltip = isHovered && !isSelected && !isRoadTripStop;
+      const titleBadge = showHoverTooltip ? `
         <div style="
           position: absolute;
           bottom: 100%;
           left: 50%;
           transform: translateX(-50%) translateY(-6px);
-          background: rgba(15, 23, 42, 0.96);
-          backdrop-filter: blur(12px);
+          background: rgba(15, 23, 42, 0.94);
+          backdrop-filter: blur(8px);
           color: #FFFFFF;
-          padding: 4px 9px;
-          border-radius: 12px;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+          padding: 3px 8px;
+          border-radius: 8px;
+          box-shadow: 0 4px 14px rgba(0,0,0,0.28);
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: 5px;
           white-space: nowrap;
-          border: 1px solid rgba(255,255,255,0.18);
+          border: 1px solid rgba(255,255,255,0.15);
           z-index: 1000;
-          pointer-events: auto;
+          pointer-events: none;
         ">
-          ${stopIdx ? `<span style="background: linear-gradient(135deg, #FF5A1F, #D97706); color: #FFFFFF; padding: 1px 6px; border-radius: 6px; font-size: 10px; font-weight: 900;">#${stopIdx}</span>` : ''}
-          <span style="font-size: 11px; font-weight: 800; max-width: 150px; overflow: hidden; text-overflow: ellipsis;">${spot.title}${etaText}</span>
-          <button class="spot-details-action" data-spot-id="${spot.id}" style="
-            background: #FF5A1F;
-            color: #FFFFFF;
-            padding: 2px 7px;
-            border-radius: 6px;
-            font-size: 10px;
-            font-weight: 800;
-            border: none;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 2px;
-          ">
-            <span>View Details →</span>
-          </button>
-          <a href="${googleUrl}" target="_blank" rel="noopener noreferrer" style="
-            background: #2563EB;
-            color: #FFFFFF;
-            padding: 2px 6px;
-            border-radius: 6px;
-            font-size: 10px;
-            font-weight: 700;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 2px;
-          " onclick="event.stopPropagation();">
-            <span>GPS ↗</span>
-          </a>
+          <span style="font-size: 11px; font-weight: 800; max-width: 170px; overflow: hidden; text-overflow: ellipsis;">${spot.title}</span>
         </div>
       ` : '';
 
@@ -1157,153 +1120,56 @@ export const LeafletInteractiveMap: React.FC<LeafletInteractiveMapProps> = (prop
       {/* Map Container */}
       <div ref={mapContainerRef} className="w-full h-full min-h-[460px]" />
 
-      {/* Top Center: Minimalist Map Quick Filter Strip (desktop only, hidden on mobile or when viewing single spot) */}
+      {/* Top Center: Minimalist Map Search / Auto-Search Control */}
       {!isolateSelectedSpot && (
-        <div className="hidden md:flex absolute top-3 inset-x-0 mx-auto w-full max-w-2xl px-3 justify-center z-[400] pointer-events-none">
-        {/* Horizontal Quick Filter & Auto-Search Strip */}
-        <div className="pointer-events-auto flex items-center flex-nowrap touch-pan-x gap-1.5 overflow-x-auto no-scrollbar py-0.5 px-1 max-w-full">
-          {hasMovedSinceSearch && !searchAsIMove ? (
-            <button
-              onClick={handleManualSearchArea}
-              className="bg-white/95 backdrop-blur-md px-3 py-1 rounded-full text-xs font-black text-roo-600 border border-roo-200 flex items-center gap-1.5 shadow-sm hover:bg-white active:scale-95 transition-all shrink-0"
-            >
-              <RefreshCw className="w-3 h-3 text-roo-500 animate-spin" />
-              <span>Search this area</span>
-            </button>
-          ) : (
-            <button
-              onClick={() => {
-                const next = !searchAsIMove;
-                setSearchAsIMove(next);
-                if (next) {
-                  const bounds = getMapBounds();
-                  if (bounds && onBoundsChange) onBoundsChange(bounds);
-                }
-              }}
-              className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-all shadow-2xs border shrink-0 flex items-center gap-1.5 ${
-                searchAsIMove
-                  ? 'bg-white/95 backdrop-blur-md text-dark-900 border-dark-200'
-                  : 'bg-white/70 backdrop-blur-md text-dark-500 border-dark-200/50 hover:bg-white'
-              }`}
-            >
-              <div className={`w-3 h-3 rounded-xs border flex items-center justify-center ${
-                searchAsIMove ? 'bg-dark-900 border-dark-900 text-white' : 'border-dark-400 bg-white'
-              }`}>
-                {searchAsIMove && <Check className="w-2 h-2 stroke-[3]" />}
-              </div>
-              <span className="hidden sm:inline">Search as I move</span>
-              <span className="sm:hidden">Auto-search</span>
-            </button>
-          )}
-
-          {/* Agency Filter Chips */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onChangeAgencyFilter?.('all');
-            }}
-            className={`px-3 py-1 rounded-full text-[11px] font-extrabold transition-all shadow-2xs border shrink-0 flex items-center gap-1 ${
-              activeAgencyFilter === 'all'
-                ? 'bg-dark-900 text-white border-dark-900 shadow-xs'
-                : 'bg-white/95 backdrop-blur-md text-dark-700 hover:text-dark-950 border-dark-200'
-            }`}
-          >
-            <Sparkles className="w-3 h-3 text-roo-400" />
-            <span>All Agencies</span>
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onChangeAgencyFilter?.('USFS');
-            }}
-            className={`px-3 py-1 rounded-full text-[11px] font-extrabold transition-all shadow-2xs border shrink-0 flex items-center gap-1 ${
-              activeAgencyFilter === 'USFS'
-                ? 'bg-emerald-700 text-white border-emerald-700 shadow-xs'
-                : 'bg-white/95 backdrop-blur-md text-dark-700 hover:text-dark-950 border-dark-200'
-            }`}
-          >
-            <Trees className="w-3 h-3 text-emerald-500" />
-            <span>USFS (9.3k)</span>
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onChangeAgencyFilter?.('BLM');
-            }}
-            className={`px-3 py-1 rounded-full text-[11px] font-extrabold transition-all shadow-2xs border shrink-0 flex items-center gap-1 ${
-              activeAgencyFilter === 'BLM'
-                ? 'bg-amber-700 text-white border-amber-700 shadow-xs'
-                : 'bg-white/95 backdrop-blur-md text-dark-700 hover:text-dark-950 border-dark-200'
-            }`}
-          >
-            <Mountain className="w-3 h-3 text-amber-500" />
-            <span>BLM (464)</span>
-          </button>
-
-          {/* Origin Picker Pill */}
-          <div className="relative shrink-0">
-            <button
-              onClick={() => setShowOriginMenu(!showOriginMenu)}
-              className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-white/95 backdrop-blur-md text-dark-800 hover:text-dark-950 border border-dark-200 shadow-2xs flex items-center gap-1.5"
-            >
-              <span>🚐</span>
-              <span className="truncate max-w-[80px] sm:max-w-[120px]">{origin.name.replace('Live GPS Location', 'Live GPS')}</span>
-              <ChevronDown className="w-3 h-3 text-dark-500" />
-            </button>
-
-            {showOriginMenu && (
-              <div className="absolute top-full right-0 mt-2 w-64 bg-white/95 backdrop-blur-xl border border-dark-200 rounded-2xl shadow-xl p-2 z-50 divide-y divide-dark-100">
-                <div className="p-1">
-                  <button
-                    onClick={handleUseCurrentLocation}
-                    disabled={isLocatingUser}
-                    className="w-full text-left px-3 py-2 rounded-xl bg-roo-50 hover:bg-roo-100 text-roo-700 font-extrabold text-xs flex items-center gap-2 transition-colors"
-                  >
-                    <Navigation className={`w-3.5 h-3.5 text-roo-500 ${isLocatingUser ? 'animate-spin' : ''}`} />
-                    <span>{isLocatingUser ? 'Acquiring GPS...' : 'Use My Live GPS'}</span>
-                  </button>
+        <div className="hidden md:flex absolute top-3 inset-x-0 mx-auto w-full max-w-md px-3 justify-center z-[400] pointer-events-none">
+          <div className="pointer-events-auto flex items-center gap-1.5 py-0.5 px-1">
+            {hasMovedSinceSearch && !searchAsIMove ? (
+              <button
+                onClick={handleManualSearchArea}
+                className="bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-black text-roo-600 border border-roo-200/90 flex items-center gap-1.5 shadow-md hover:bg-white active:scale-95 transition-all"
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-roo-500 animate-spin" />
+                <span>Search this area</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  const next = !searchAsIMove;
+                  setSearchAsIMove(next);
+                  if (next) {
+                    const bounds = getMapBounds();
+                    if (bounds && onBoundsChange) onBoundsChange(bounds);
+                  }
+                }}
+                className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all shadow-2xs border flex items-center gap-1.5 ${
+                  searchAsIMove
+                    ? 'bg-white/95 backdrop-blur-md text-dark-900 border-dark-200 shadow-xs'
+                    : 'bg-white/80 backdrop-blur-md text-dark-500 border-dark-200/60 hover:bg-white'
+                }`}
+              >
+                <div className={`w-3 h-3 rounded-xs border flex items-center justify-center ${
+                  searchAsIMove ? 'bg-dark-900 border-dark-900 text-white' : 'border-dark-400 bg-white'
+                }`}>
+                  {searchAsIMove && <Check className="w-2 h-2 stroke-[3]" />}
                 </div>
-
-                <div className="p-1 space-y-0.5">
-                  <div className="px-3 py-1 text-[9px] font-black uppercase tracking-wider text-dark-400">
-                    Popular Starting Hubs
-                  </div>
-                  {DEFAULT_ORIGINS.map((orig) => (
-                    <button
-                      key={orig.name}
-                      onClick={() => {
-                        onChangeOrigin(orig);
-                        setShowOriginMenu(false);
-                        mapInstanceRef.current?.flyTo(orig.coordinates, 8, { duration: 1.2 });
-                      }}
-                      className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-colors flex items-center justify-between ${
-                        origin.name === orig.name ? 'bg-dark-900 text-white' : 'text-dark-800 hover:bg-dark-100'
-                      }`}
-                    >
-                      <span>{orig.name}</span>
-                      {origin.name === orig.name && <span className="text-[10px]">✓</span>}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                <span>Search as I move</span>
+              </button>
             )}
           </div>
         </div>
-        </div>
       )}
 
-      {/* Floating Status: Spot Alone on Map (only shown when not on single spot view) */}
-      {selectedSpotId && !isolateSelectedSpot && (
-        <div className="absolute top-24 sm:top-24 left-1/2 -translate-x-1/2 z-[400] bg-white/95 backdrop-blur-md px-3.5 py-1 rounded-full shadow-md border border-dark-200 text-xs font-bold flex items-center gap-2 pointer-events-auto">
+      {/* Floating Status: Spot Alone on Map (only shown if explicitly isolated) */}
+      {selectedSpotId && !isolateSelectedSpot && isIsolated && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[400] bg-white/95 backdrop-blur-md px-3.5 py-1 rounded-full shadow-md border border-dark-200 text-xs font-bold flex items-center gap-2 pointer-events-auto">
           <span className="w-2 h-2 rounded-full bg-roo-500 animate-pulse" />
-          <span className="text-dark-900 text-[11px]">
-            {isIsolated ? 'Viewing spot alone on map' : 'Showing all spots'}
-          </span>
+          <span className="text-dark-900 text-[11px]">Viewing spot alone on map</span>
           <button
             onClick={toggleIsolate}
             className="text-roo-600 hover:text-roo-700 underline text-[11px] font-black ml-1 cursor-pointer"
           >
-            {isIsolated ? 'Show all' : 'Isolate'}
+            Show all
           </button>
         </div>
       )}

@@ -1677,6 +1677,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onRequestStay }) => {
                 onNavigateToDetails={handleNavigateToDetails}
                 onRequestStay={onRequestStay}
                 tripRoute={searchFilters.tripRoute}
+                isolateSelectedSpot={false}
                 className="w-full h-full"
               />
 
