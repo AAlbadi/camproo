@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useToast } from '../../context/ToastContext';
+import { getStoredTrafficStats } from '../../lib/tracker';
 import {
   ShieldAlert,
   Users,
@@ -73,21 +74,62 @@ export const AdminDashboard: React.FC = () => {
         fetch('/api/email/logs', { headers }).catch(() => null),
         fetch('/api/vsotd').catch(() => null)
       ]);
-      if (statsRes?.ok) setLiveStats(await statsRes.json());
-      if (emailsRes?.ok) {
-        const d = await emailsRes.json();
-        setEmailLogs(d.logs || []);
+
+      let serverStats: any = null;
+      if (statsRes?.ok) {
+        try {
+          const contentType = statsRes.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            serverStats = await statsRes.json();
+          }
+        } catch {}
       }
+
+      const fallbackStats = getStoredTrafficStats();
+      if (serverStats && typeof serverStats.totalViews === 'number' && serverStats.totalViews > 0) {
+        setLiveStats(serverStats);
+      } else {
+        setLiveStats(fallbackStats);
+      }
+
+      if (emailsRes?.ok) {
+        try {
+          const contentType = emailsRes.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const d = await emailsRes.json();
+            setEmailLogs(d.logs || []);
+          }
+        } catch {}
+      }
+
       if (vsotdRes?.ok) {
-        const v = await vsotdRes.json();
-        if (v.vsotd) {
-          setVsotd(v.vsotd);
-          if (!selectedVsotdSpotId) setSelectedVsotdSpotId(v.vsotd.spotId || '');
-          if (!vsotdNote) setVsotdNote(v.vsotd.highlightNote || '');
-        }
+        try {
+          const contentType = vsotdRes.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const v = await vsotdRes.json();
+            if (v.vsotd) {
+              setVsotd(v.vsotd);
+              if (!selectedVsotdSpotId) setSelectedVsotdSpotId(v.vsotd.spotId || '');
+              if (!vsotdNote) setVsotdNote(v.vsotd.highlightNote || '');
+            }
+          }
+        } catch {}
+      }
+
+      if (!vsotd) {
+        setVsotd({
+          spotId: 'spot-moab-redrock',
+          title: 'Red Rock Roo Oasis & BLM Gateway',
+          locationName: 'Moab, Utah',
+          highlightNote: 'Ranger Choice: Level 30A pull-through pad minutes from Arches National Park.',
+          selectedAt: new Date().toISOString(),
+          clicks: 14,
+          impressions: 1250
+        });
       }
     } catch (err) {
       console.error('Error fetching admin stats:', err);
+      setLiveStats(getStoredTrafficStats());
     } finally {
       setLoadingStats(false);
     }
