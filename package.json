@@ -8,6 +8,9 @@
     "dev:web": "vite --host 127.0.0.1 --port 3000",
     "server": "node server/server.js",
     "build": "tsc && vite build",
+    "deploy:pages": "npx wrangler pages deploy dist --project-name camproo --branch main",
+    "deploy:worker": "npx wrangler deploy",
+    "deploy": "npm run build && npm run deploy:pages && npm run deploy:worker",
     "preview": "vite preview"
   },
   "dependencies": {
