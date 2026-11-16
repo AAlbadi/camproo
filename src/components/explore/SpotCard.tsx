@@ -153,13 +153,6 @@ export const SpotCard: React.FC<SpotCardProps> = ({
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
               />
 
-              {/* Badge: Free Stay on real photo */}
-              <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 z-10 flex flex-col gap-1 items-start">
-                <Badge variant="free" className="shadow-xs text-[9px] sm:text-[10px] px-1.5 py-0.2 sm:px-2 sm:py-0.5">
-                  FREE STAY
-                </Badge>
-              </div>
-
               {/* Carousel Arrows (Appear on Card Hover or Touch on Mobile) */}
               {authenticPhotos.length > 1 && (
                 <div className="absolute inset-x-1.5 sm:inset-x-2 top-1/2 -translate-y-1/2 flex justify-between items-center opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
@@ -238,47 +231,21 @@ export const SpotCard: React.FC<SpotCardProps> = ({
                   </p>
                 )}
             </div>
-            {spot.rating > 0 && spot.reviewCount > 0 ? (
+            {spot.rating > 0 && spot.reviewCount > 0 && (
               <div className="flex items-center gap-1 text-[11px] sm:text-xs font-black text-foreground shrink-0 mt-0.5">
                 <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
                 <span>{spot.rating}</span>
               </div>
-            ) : isPublic ? (
-              <span className="text-[9px] sm:text-[10px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.2 rounded border border-emerald-200/60 shrink-0 mt-0.5">
-                Public Land
-              </span>
-            ) : (
-              <span className="text-[9px] sm:text-[10px] font-bold text-muted-foreground bg-muted px-1.5 py-0.2 rounded shrink-0 mt-0.5">
-                Host Stay
-              </span>
             )}
           </div>
 
-          {/* Row 2: Rig Clearance, Access & Amenities */}
+          {/* Row 2: Rig Clearance, Access & Agency */}
           <div className="flex items-center justify-between gap-1.5 text-[10px] sm:text-xs text-muted-foreground font-medium pt-0.5">
             <div className="flex items-center gap-1.5 truncate">
               <Truck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary/70 shrink-0" />
               <span className="font-bold text-dark-800 dark:text-dark-200">Max {spot.rigCompatibility.maxLengthFt}ft</span>
               <span>·</span>
               <span className="capitalize truncate">{spot.rigCompatibility.accessType.replace('_', ' ')}</span>
-              {spot.amenities.electricity !== 'none' && (
-                <>
-                  <span>·</span>
-                  <span className="text-amber-600 font-bold flex items-center gap-0.5 shrink-0">
-                    <Zap className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
-                    <span>Elec</span>
-                  </span>
-                </>
-              )}
-              {spot.amenities.water !== 'none' && (
-                <>
-                  <span>·</span>
-                  <span className="text-blue-600 font-bold flex items-center gap-0.5 shrink-0">
-                    <Droplet className="w-2.5 h-2.5 fill-blue-500 text-blue-500" />
-                    <span>Water</span>
-                  </span>
-                </>
-              )}
             </div>
 
             {isPublic ? (
@@ -293,51 +260,18 @@ export const SpotCard: React.FC<SpotCardProps> = ({
             ) : null}
           </div>
 
-          {/* Row 3: Price & Actions */}
+          {/* Row 3: Clean Price & Navigation */}
           <div className="flex items-center justify-between pt-1.5 sm:pt-2 border-t border-border mt-0.5">
             <div className="flex items-baseline gap-1">
               <span className="font-black text-foreground text-xs sm:text-sm">$0</span>
               <span className="text-[10px] sm:text-xs text-muted-foreground font-medium">
-                {isPublic ? 'free public land' : 'free host stay'}
+                {isPublic ? 'free stay' : 'community host'}
               </span>
             </div>
 
-            <div className="flex items-center gap-1 sm:gap-1.5">
-              <a
-                href={`https://www.google.com/maps/dir/?api=1&destination=${spot.coordinates[0]},${spot.coordinates[1]}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="text-[10px] sm:text-[11px] font-extrabold text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-0.5 px-1.5 py-0.5 rounded-md hover:bg-blue-50 transition-colors"
-                title="Open GPS navigation in Google Maps"
-              >
-                <span>GPS ↗</span>
-              </a>
-              {isPublic ? (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSelect(spot.id);
-                  }}
-                  className="rounded-full px-2.5 sm:px-3 h-6 sm:h-7 text-[10px] sm:text-xs font-bold border-emerald-300 text-emerald-800 bg-emerald-50/50 hover:bg-emerald-100 hover:text-emerald-900"
-                >
-                  Free Stay
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRequest(spot);
-                  }}
-                  className="rounded-full px-2.5 sm:px-3.5 h-6 sm:h-7 text-[10px] sm:text-xs font-bold"
-                >
-                  Request
-                </Button>
-              )}
-            </div>
+            <span className="text-[10px] sm:text-[11px] font-bold text-emerald-700 dark:text-emerald-400 group-hover:translate-x-0.5 transition-transform">
+              View Specs →
+            </span>
           </div>
         </div>
       </Card>

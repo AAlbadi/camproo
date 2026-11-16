@@ -901,13 +901,9 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onRequestStay }) => {
         {/* Standard View: Card Grid */}
         {!isMapExpanded && (
           <div className="flex flex-col gap-3 sm:gap-4">
-            <div className="flex items-center justify-between px-1 gap-2">
+            <div className="md:hidden flex items-center justify-between px-1 gap-2">
               <span className="text-xs font-bold text-dark-700 truncate">
-                {searchFilters.tripRoute
-                  ? `Showing ${displayedSpots.length.toLocaleString()} havens along road trip`
-                  : activeSearchTitle
-                  ? `Showing ${displayedSpots.length.toLocaleString()} nearest spots to ${activeSearchTitle}`
-                  : `Showing ${displayedSpots.length.toLocaleString()} spots`}
+                {displayedSpots.length.toLocaleString()} spots
               </span>
 
               {/* Mobile View Toggle (Spec List vs Cards) */}

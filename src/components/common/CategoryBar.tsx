@@ -164,13 +164,6 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({ onOpenFilters, activeF
                   }`}
                 />
                 <span className="whitespace-nowrap tracking-tight">{cat.label}</span>
-                <span
-                  className={`text-[10px] px-1 py-0.2 rounded-full font-medium ${
-                    active ? 'bg-white/20 text-white' : 'text-dark-400'
-                  }`}
-                >
-                  {cat.countLabel}
-                </span>
               </button>
             );
           })}

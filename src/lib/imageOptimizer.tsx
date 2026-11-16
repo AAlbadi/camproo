@@ -17,7 +17,16 @@ export function isAuthenticPhoto(url: string | undefined | null): boolean {
     trimmed.includes('camping_scenic_placeholder') ||
     trimmed.includes('desert_spot.jpg') ||
     trimmed.includes('meadow_spot.jpg') ||
-    trimmed.includes('hero_rv_camp.jpg')
+    trimmed.includes('hero_rv_camp.jpg') ||
+    trimmed.includes('unsplash.com') ||
+    trimmed.includes('pexels.com') ||
+    trimmed.includes('wallpaperaccess.com') ||
+    trimmed.includes('freepik.com') ||
+    trimmed.includes('pinimg.com') ||
+    trimmed.includes('ytimg.com') ||
+    trimmed.includes('onlyinyourstate.com') ||
+    trimmed.includes('discoveringmontana.com') ||
+    trimmed.includes('goatsontheroad.com')
   ) {
     return false;
   }

@@ -15,7 +15,6 @@ import { AboutPage } from './components/about/AboutPage';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { RequestStayModal } from './components/spot-detail/RequestStayModal';
 import { SupportInquiryModal } from './components/common/SupportInquiryModal';
-import { DonationPopup } from './components/common/DonationPopup';
 import { MobileBottomNav } from './components/common/MobileBottomNav';
 import { Spot, isPublicSpot } from './types';
 import { useEffect } from 'react';
@@ -140,13 +139,6 @@ export const App: React.FC = () => {
 
       {/* Persistent Mobile Bottom Navigation Bar */}
       <MobileBottomNav />
-
-      {/* Floating Corner Donation Widget - hidden on spot-detail and mobile to avoid blocking content */}
-      {currentView !== 'spot-detail' && (
-        <div className="hidden md:block">
-          <DonationPopup position="bottom-right" />
-        </div>
-      )}
 
       {/* Global Stay Request Modal */}
       {modalSpot && (

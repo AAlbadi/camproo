@@ -174,32 +174,8 @@ export const Navbar: React.FC = () => {
             </div>
 
             {/* Right: Actions & User Pill */}
-            <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-              {/* Live Map & Routes Quick Launch */}
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => handleNav('explore')}
-                className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-dark-900/90 hover:bg-black text-white text-xs font-extrabold shadow-xs transition-all"
-              >
-                <Compass className="w-3.5 h-3.5 text-roo-400" />
-                <span>Live Map</span>
-              </motion.button>
-
-              {/* Mission & Vision Link */}
-              <button
-                onClick={() => handleNav('about')}
-                className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-extrabold transition-all ${
-                  currentView === 'about'
-                    ? 'bg-roo-50 text-roo-700 border border-roo-200'
-                    : 'text-dark-700 hover:text-dark-950 hover:bg-dark-100/80'
-                }`}
-                title="Our Mission & Story"
-              >
-                <span>Mission</span>
-              </button>
-
-              {/* Host Spot Button - desktop / tablet only, mobile has it in bottom nav */}
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Host Spot Button */}
               <Button
                 variant="outline"
                 size="sm"
@@ -210,7 +186,7 @@ export const Navbar: React.FC = () => {
                 <span>Share a spot</span>
               </Button>
 
-              {/* Sign In Trigger (defaults to signin mode) - ONLY when NOT authenticated */}
+              {/* Sign In Trigger - ONLY when NOT authenticated */}
               {!isAuthenticated && (
                 <Button
                   variant="outline"
@@ -225,39 +201,6 @@ export const Navbar: React.FC = () => {
                   <span>Sign In</span>
                 </Button>
               )}
-
-              {/* Admin Traffic Shortcut - ONLY shown when authenticated as Admin Aziz */}
-              {isUserAdmin && (
-                <button
-                  onClick={() => setAnalyticsModalOpen(true)}
-                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-200 transition-colors shadow-2xs"
-                  title="Traffic & Data Hub (Admin Aziz)"
-                >
-                  <BarChart3 className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Traffic & Data</span>
-                </button>
-              )}
-
-              {/* Safety Center Shortcut */}
-              <button
-                onClick={() => handleNav('safety')}
-                className="hidden sm:flex p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                title="Trust & Safety Center"
-              >
-                <ShieldCheck className="w-5 h-5 text-emerald-600" />
-              </button>
-
-              {/* Buy Me a Coffee button (desktop/tablet only; mobile has it directly in bottom nav) */}
-              <a
-                href="https://buymeacoffee.com/camproo"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 text-xs font-black shadow-2xs transition-all active:scale-95 shrink-0"
-                title="☕ Buy Me a Coffee"
-              >
-                <span>☕</span>
-                <span className="hidden xs:inline">Coffee</span>
-              </a>
 
               {/* User Dropdown Pill */}
               <div className="relative">
@@ -400,6 +343,34 @@ export const Navbar: React.FC = () => {
                             <span>Our Mission & Story</span>
                           </span>
                         </button>
+
+                        {/* Trust & Safety Center */}
+                        <button
+                          onClick={() => {
+                            handleNav('safety');
+                            setUserDropdownOpen(false);
+                          }}
+                          className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold text-dark-800 hover:bg-dark-50 flex items-center justify-between transition-colors mt-0.5"
+                        >
+                          <span className="flex items-center gap-2">
+                            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                            <span>Trust & Safety Center</span>
+                          </span>
+                        </button>
+
+                        {/* Buy Me a Coffee */}
+                        <a
+                          href="https://buymeacoffee.com/camproo"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold text-amber-800 hover:bg-amber-50 flex items-center justify-between transition-colors mt-0.5"
+                        >
+                          <span className="flex items-center gap-2">
+                            <span>☕</span>
+                            <span>Support CampRoo (Coffee)</span>
+                          </span>
+                        </a>
                       </div>
 
                       {/* Log Out (or Sign In if not logged in) */}

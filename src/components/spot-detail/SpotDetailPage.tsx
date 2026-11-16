@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useToast } from '../../context/ToastContext';
 import { RigCompatibilityTable } from './RigCompatibilityTable';
-import { SpatialRigVisualizer } from './SpatialRigVisualizer';
 import { AmenitiesGrid } from './AmenitiesGrid';
 import { HostProfileCard } from './HostProfileCard';
 import { ReviewsList } from './ReviewsList';
@@ -265,63 +264,32 @@ export const SpotDetailPage: React.FC = () => {
             <span>Back to Spots</span>
           </Button>
 
-          {/* Quick Action Toolbar */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleOpenNewReviewModal}
-              className="text-xs font-bold gap-1.5 hidden sm:inline-flex bg-background hover:bg-secondary/60"
-            >
-              <PenLine className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Write Review</span>
-            </Button>
+        {/* Quick Action Toolbar */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const shareUrl = `${window.location.origin}${window.location.pathname}?view=spot-detail&spot=${spot.id}`;
+              navigator.clipboard?.writeText(shareUrl);
+              showToast('Spot link copied to clipboard!', 'success');
+            }}
+            className="flex items-center gap-1.5 text-xs bg-background"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            <span>Share</span>
+          </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowAddPhotoModal(true)}
-              className="text-xs font-bold gap-1.5 hidden sm:inline-flex bg-background hover:bg-secondary/60"
-            >
-              <Camera className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Add Photos</span>
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowRequestEditModal(true)}
-              className="text-xs font-bold gap-1.5 hidden sm:inline-flex bg-background hover:bg-secondary/60"
-              title="Request an update or correction for this spot"
-            >
-              <Edit3 className="w-3.5 h-3.5 text-amber-600" />
-              <span>Suggest Edit</span>
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const shareUrl = `${window.location.origin}${window.location.pathname}?view=spot-detail&spot=${spot.id}`;
-                navigator.clipboard?.writeText(shareUrl);
-                showToast('Spot link copied to clipboard!', 'success');
-              }}
-              className="flex items-center gap-1.5 text-xs bg-background"
-            >
-              <Share2 className="w-3.5 h-3.5" />
-              <span>Share</span>
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => toggleSaveSpot(spot.id)}
-              className="flex items-center gap-1.5 text-xs bg-background"
-            >
-              <Heart className={`w-3.5 h-3.5 ${isSaved ? 'text-rose-500 fill-rose-500' : ''}`} />
-              <span>{isSaved ? 'Saved' : 'Save'}</span>
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => toggleSaveSpot(spot.id)}
+            className="flex items-center gap-1.5 text-xs bg-background"
+          >
+            <Heart className={`w-3.5 h-3.5 ${isSaved ? 'text-rose-500 fill-rose-500' : ''}`} />
+            <span>{isSaved ? 'Saved' : 'Save'}</span>
+          </Button>
+        </div>
         </div>
 
         {/* Spot Title & Agency Badge */}
@@ -520,71 +488,12 @@ export const SpotDetailPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start pt-2">
         {/* Left Column: Details, Specs, Rig Inspector, Amenities, Map, Reviews */}
         <div className="lg:col-span-7 xl:col-span-8 space-y-8 divide-y divide-border">
-          {/* Quick Highlights Bar */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-2 text-xs">
-            <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border flex items-start gap-3">
-              <Sparkles className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-              <div>
-                <span className="font-extrabold text-foreground block">
-                  {isPublic ? '100% Free Public Land Stay' : '100% Free Community Stay'}
-                </span>
-                <span className="text-muted-foreground">
-                  Zero booking fees or nightly charges. Open for boondocking and RV camping.
-                </span>
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border flex items-start gap-3">
-              <Compass className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-              <div>
-                <span className="font-extrabold text-foreground block">
-                  {isPublic ? 'First-Come, First-Served' : 'Host Approved Stay'}
-                </span>
-                <span className="text-muted-foreground">
-                  {isPublic ? 'No advance permits or reservations required. Pull up and camp.' : 'Coordinate directly with your verified RVer host.'}
-                </span>
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border flex items-start gap-3">
-              <Clock className="w-5 h-5 text-emerald-700 dark:text-emerald-400 shrink-0 mt-0.5" />
-              <div>
-                <span className="font-extrabold text-foreground block">
-                  {spot.rules?.maxStayNights || 14}-Day Dispersed Stay Limit
-                </span>
-                <span className="text-muted-foreground">
-                  Standard {agencyInfo.shortName} regulations allow up to {spot.rules?.maxStayNights || 14} consecutive days of stay.
-                </span>
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border flex items-start gap-3">
-              <Navigation className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
-              <div>
-                <span className="font-extrabold text-foreground block">
-                  Direct Satellite GPS Waypoint
-                </span>
-                <span className="text-muted-foreground">
-                  Coordinates verified for offline GPS maps and offline boondocking navigation.
-                </span>
-              </div>
-            </div>
-          </div>
-
           {/* About this space */}
-          <div className="pt-6 space-y-3">
+          <div className="space-y-3">
             <h3 className="text-xl font-black text-foreground">About this spot</h3>
             <p className="text-sm text-foreground/90 leading-relaxed font-normal">
               {spot.description}
             </p>
-          </div>
-
-          {/* Clean Interactive RV Fit & Pad Clearance Inspector */}
-          <div className="pt-6 space-y-3">
-            <SpatialRigVisualizer
-              spot={spot}
-              defaultRigLength={currentUser.role === 'traveler' ? currentUser.rig?.lengthFt : undefined}
-            />
           </div>
 
           {/* RV Compatibility & Accepted Classes */}
@@ -947,28 +856,6 @@ export const SpotDetailPage: React.FC = () => {
                 >
                   <Share2 className="w-3.5 h-3.5" />
                   <span>Share Spot</span>
-                </Button>
-              </div>
-
-              {/* Community Buttons */}
-              <div className="grid grid-cols-2 gap-2 pt-1 border-t border-border">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleOpenNewReviewModal}
-                  className="w-full text-xs font-bold gap-1 text-emerald-800 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50"
-                >
-                  <PenLine className="w-3.5 h-3.5" />
-                  <span>Write Review</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowRequestEditModal(true)}
-                  className="w-full text-xs font-bold gap-1 text-amber-800 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/50"
-                >
-                  <Edit3 className="w-3.5 h-3.5" />
-                  <span>Suggest Edit</span>
                 </Button>
               </div>
 
