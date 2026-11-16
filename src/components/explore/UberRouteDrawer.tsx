@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Spot } from '../../types';
 import { RouteResult, getGoogleMapsNavigationUrl } from '../../lib/routeService';
 import { getOptimizedImageUrl } from '../../lib/imageOptimizer';
+import { SpotThumbnail } from '../common/SpotBiomeVisual';
 import {
   Navigation,
   Clock,
@@ -101,26 +102,23 @@ export const UberRouteDrawer: React.FC<UberRouteDrawerProps> = ({
       {/* Photo Thumbnail (Clickable to open details) */}
       <div
         onClick={() => onViewSpotDetails?.(spot.id)}
-        className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl overflow-hidden bg-dark-950 shrink-0 cursor-pointer shadow-xs group"
+        className="cursor-pointer shrink-0 group"
         title="Click to view listing details"
       >
-        <img
-          src={getOptimizedImageUrl(spot.photos[0], { width: 160, quality: 75 })}
-          alt={spot.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          onError={(e) => {
-            const target = e.currentTarget;
-            if (!target.src.includes('real_bald_mountain')) {
-              target.src = '/images/real_bald_mountain.jpg';
-            }
-          }}
+        <SpotThumbnail
+          spot={spot}
+          className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl"
+          badge={
+            <>
+              <div className="absolute top-1 left-1 bg-dark-950/85 text-white px-1.5 py-0.5 rounded text-[8px] font-black leading-none">
+                {isRoadTripMode && stopNumber ? `STOP #${stopNumber}` : '$0 FREE'}
+              </div>
+              <div className="absolute bottom-1 right-1 bg-roo-500 text-white px-1 py-0.5 rounded text-[8px] font-black leading-none">
+                {spot.rigCompatibility?.maxLengthFt || 35}ft
+              </div>
+            </>
+          }
         />
-        <div className="absolute top-1 left-1 bg-dark-950/85 text-white px-1.5 py-0.5 rounded text-[8px] font-black leading-none">
-          {isRoadTripMode && stopNumber ? `STOP #${stopNumber}` : '$0 FREE'}
-        </div>
-        <div className="absolute bottom-1 right-1 bg-roo-500 text-white px-1 py-0.5 rounded text-[8px] font-black leading-none">
-          {spot.rigCompatibility?.maxLengthFt || 35}ft
-        </div>
       </div>
 
       {/* Middle info */}

@@ -32,6 +32,7 @@ const TIMEZONE_MAP = {
 
 // 100% Pure Edge Telemetry & VSOTD state maintained at Cloudflare Edge
 let edgeEvents = [];
+let edgeRequests = [];
 let vsotdState = {
   spotId: 'spot-moab-redrock',
   title: 'Red Rock Roo Oasis & BLM Gateway',
@@ -65,7 +66,7 @@ async function dispatchEdgeEmail({ to = 'aalbadi1911@gmail.com', subject, html, 
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          from: 'CampRoo Community <onboarding@resend.dev>',
+          from: env?.EMAIL_FROM || 'CampRoo Community <onboarding@resend.dev>',
           to: [to],
           subject,
           html,
@@ -305,7 +306,11 @@ export default {
         };
 
         if (env?.TELEMETRY_KV) {
-          await env.TELEMETRY_KV.put(`submitted_spot:${spotRecord.id}`, JSON.stringify(spotRecord), { expirationTtl: 86400 * 90 });
+          try {
+            await env.TELEMETRY_KV.put(`submitted_spot:${spotRecord.id}`, JSON.stringify(spotRecord), { expirationTtl: 86400 * 90 });
+          } catch (kvErr) {
+            console.warn('[KV Storage Warning]', kvErr.message);
+          }
         }
 
         const emailSubject = `🏕️ New Spot Submitted: "${spotRecord.title || 'RV Spot'}" (${spotRecord.locationName || 'USA'})`;
@@ -362,7 +367,11 @@ export default {
         };
 
         if (env?.TELEMETRY_KV) {
-          await env.TELEMETRY_KV.put(`support_inquiry:${inquiryRecord.id}`, JSON.stringify(inquiryRecord), { expirationTtl: 86400 * 90 });
+          try {
+            await env.TELEMETRY_KV.put(`support_inquiry:${inquiryRecord.id}`, JSON.stringify(inquiryRecord), { expirationTtl: 86400 * 90 });
+          } catch (kvErr) {
+            console.warn('[KV Storage Warning]', kvErr.message);
+          }
         }
 
         const emailSubject = `📩 Support Inquiry: [${topic}] ${subject} (from ${name})`;
@@ -419,7 +428,11 @@ export default {
         };
 
         if (env?.TELEMETRY_KV) {
-          await env.TELEMETRY_KV.put(`newsletter_sub:${subRecord.id}`, JSON.stringify(subRecord), { expirationTtl: 86400 * 365 });
+          try {
+            await env.TELEMETRY_KV.put(`newsletter_sub:${subRecord.id}`, JSON.stringify(subRecord), { expirationTtl: 86400 * 365 });
+          } catch (kvErr) {
+            console.warn('[KV Storage Warning]', kvErr.message);
+          }
         }
 
         const emailSubject = `📬 New Newsletter Subscriber: ${email}`;
@@ -465,7 +478,11 @@ export default {
         };
 
         if (env?.TELEMETRY_KV) {
-          await env.TELEMETRY_KV.put(`report:${reportRecord.id}`, JSON.stringify(reportRecord), { expirationTtl: 86400 * 90 });
+          try {
+            await env.TELEMETRY_KV.put(`report:${reportRecord.id}`, JSON.stringify(reportRecord), { expirationTtl: 86400 * 90 });
+          } catch (kvErr) {
+            console.warn('[KV Storage Warning]', kvErr.message);
+          }
         }
 
         const emailSubject = `🚨 Safety Report Filed: ${reportRecord.reason || 'User/Spot Audit'} (${reportRecord.targetName || 'Item'})`;
@@ -512,7 +529,11 @@ export default {
         };
 
         if (env?.TELEMETRY_KV) {
-          await env.TELEMETRY_KV.put(`review:${reviewRecord.id}`, JSON.stringify(reviewRecord), { expirationTtl: 86400 * 90 });
+          try {
+            await env.TELEMETRY_KV.put(`review:${reviewRecord.id}`, JSON.stringify(reviewRecord), { expirationTtl: 86400 * 90 });
+          } catch (kvErr) {
+            console.warn('[KV Storage Warning]', kvErr.message);
+          }
         }
 
         const emailSubject = `⭐ New Review Posted: "${reviewRecord.spotTitle || 'Spot'}" (${reviewRecord.ratingOverall || 5} Stars)`;
@@ -548,44 +569,164 @@ export default {
     }
 
     // 6. STAY REQUESTS & SPOT EDITS
+    if (pathname === '/api/requests' && request.method === 'GET') {
+      try {
+        let list = [...edgeRequests];
+        if (env?.TELEMETRY_KV) {
+          try {
+            const kvList = await env.TELEMETRY_KV.list({ prefix: 'request:', limit: 100 });
+            if (kvList?.keys?.length) {
+              const rawItems = await Promise.all(kvList.keys.map(k => env.TELEMETRY_KV.get(k.name).catch(() => null)));
+              const parsed = rawItems.map(r => { try { return JSON.parse(r); } catch (e) { return null; } }).filter(Boolean);
+              const map = new Map();
+              list.forEach(item => map.set(item.id, item));
+              parsed.forEach(item => map.set(item.id, item));
+              list = Array.from(map.values());
+            }
+          } catch (kvErr) {
+            console.warn('[KV Storage Warning]', kvErr.message);
+          }
+        }
+
+        const userId = url.searchParams.get('userId');
+        const travelerId = url.searchParams.get('travelerId');
+        const hostId = url.searchParams.get('hostId');
+
+        if (userId) {
+          list = list.filter(r => r.travelerId === userId || r.hostId === userId);
+        } else {
+          if (travelerId) list = list.filter(r => r.travelerId === travelerId);
+          if (hostId) list = list.filter(r => r.hostId === hostId);
+        }
+
+        return new Response(JSON.stringify({ success: true, data: list }), { headers: corsHeaders });
+      } catch (e) {
+        return new Response(JSON.stringify({ success: false, error: e.message }), { status: 500, headers: corsHeaders });
+      }
+    }
+
     if ((pathname === '/api/requests' || pathname.includes('/edit-requests')) && request.method === 'POST') {
       try {
         const body = await request.json().catch(() => ({}));
         const reqRecord = {
           ...body,
           id: body.id || `req-${Date.now()}`,
-          createdAt: new Date().toISOString()
+          status: body.status || 'pending',
+          createdAt: body.createdAt || new Date().toISOString()
         };
 
+        edgeRequests.unshift(reqRecord);
+
         if (env?.TELEMETRY_KV) {
-          await env.TELEMETRY_KV.put(`request:${reqRecord.id}`, JSON.stringify(reqRecord), { expirationTtl: 86400 * 90 });
+          try {
+            await env.TELEMETRY_KV.put(`request:${reqRecord.id}`, JSON.stringify(reqRecord), { expirationTtl: 86400 * 90 });
+          } catch (kvErr) {
+            console.warn('[KV Storage Warning]', kvErr.message);
+          }
         }
 
+        const adminEmail = env?.ADMIN_EMAIL || 'aalbadi1911@gmail.com';
         const isEdit = pathname.includes('/edit');
         const emailSubject = isEdit ? `✏️ Spot Edit Requested for Spot #${body.spotId}` : `🚐 New Stay Booking Request (${body.arrivalDate || 'Stay'})`;
         const emailHtml = `
-          <div style="font-family: sans-serif; padding: 20px; color: #1e293b;">
-            <h2 style="color: #6366f1;">${isEdit ? '✏️ Spot Edit Request' : '🚐 New Stay Request'}</h2>
-            <p>Details:</p>
-            <pre style="background: #f1f5f9; padding: 12px; border-radius: 8px;">${JSON.stringify(reqRecord, null, 2)}</pre>
+          <div style="font-family: sans-serif; padding: 20px; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 14px;">
+            <h2 style="color: #10b981; margin-top: 0;">${isEdit ? '✏️ Spot Edit Request' : '🚐 New Stay Booking Request'}</h2>
+            <p>A new stay request has been submitted for spot <strong>${body.spotTitle || body.spotId || 'Camp Spot'}</strong>.</p>
             <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 15px 0;" />
-            <p style="font-size: 12px; color: #64748b;">Dispatched to platform owner <strong>aalbadi1911@gmail.com</strong>.</p>
+            <p><strong>Spot:</strong> ${body.spotTitle || body.spotId || 'RV Spot'} (${body.spotLocation || 'Location N/A'})</p>
+            <p><strong>Traveler:</strong> ${body.travelerName || 'Traveler'} &lt;${body.travelerEmail || 'No email'}&gt;</p>
+            <p><strong>Host ID:</strong> ${body.hostId || 'Community / Admin'}</p>
+            <p><strong>Dates:</strong> ${body.arrivalDate || 'N/A'} to ${body.departureDate || 'N/A'} (${body.nights || 1} night${(body.nights || 1) > 1 ? 's' : ''})</p>
+            <p><strong>Travelers:</strong> ${body.adults || 1} Adults${body.children ? `, ${body.children} Children` : ''}${body.pets ? `, ${body.pets} Pets` : ''}</p>
+            <p><strong>Rig:</strong> ${body.rigDescription || 'Standard RV'}</p>
+            <p><strong>Personal Note:</strong></p>
+            <blockquote style="background: #f8fafc; padding: 12px; border-left: 4px solid #10b981; margin: 10px 0; border-radius: 4px;">"${body.personalNote || 'Looking forward to staying!'}"</blockquote>
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 15px 0;" />
+            <p style="font-size: 12px; color: #64748b;">Dispatched to platform owner <strong>${adminEmail}</strong>.</p>
           </div>
         `;
 
         const emailLog = await dispatchEdgeEmail({
-          to: 'aalbadi1911@gmail.com',
+          to: adminEmail,
           subject: emailSubject,
           html: emailHtml,
           type: isEdit ? 'spot_edit_request' : 'stay_request'
         }, env);
 
+        // Also if host email exists and is different from adminEmail, dispatch to host
+        if (body.hostEmail && body.hostEmail !== adminEmail) {
+          const hostHtml = `
+            <div style="font-family: sans-serif; padding: 20px; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px;">
+              <h2 style="color: #059669; margin-top: 0;">🚐 You Received a Stay Request!</h2>
+              <p>A traveler has requested to stay at your spot: <strong>${body.spotTitle || 'Your Spot'}</strong>.</p>
+              <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 15px 0;" />
+              <p><strong>Traveler:</strong> ${body.travelerName || 'Traveler'} &lt;${body.travelerEmail || 'No email'}&gt;</p>
+              <p><strong>Dates:</strong> ${body.arrivalDate || 'N/A'} to ${body.departureDate || 'N/A'} (${body.nights || 1} nights)</p>
+              <p><strong>Rig:</strong> ${body.rigDescription || 'N/A'}</p>
+              <p><strong>Note:</strong> "${body.personalNote || 'N/A'}"</p>
+            </div>
+          `;
+          await dispatchEdgeEmail({
+            to: body.hostEmail,
+            subject: `🚐 New Stay Request for "${body.spotTitle || 'Your Spot'}"`,
+            html: hostHtml,
+            type: 'stay_request_host'
+          }, env).catch(() => {});
+        }
+
         return new Response(JSON.stringify({
           success: true,
-          emailSent: true,
+          emailSent: emailLog.status === 'sent' || emailLog.status === 'logged',
           data: reqRecord,
           emailLog
         }), { headers: corsHeaders });
+      } catch (e) {
+        return new Response(JSON.stringify({ success: false, error: e.message }), { status: 500, headers: corsHeaders });
+      }
+    }
+
+    if (pathname.startsWith('/api/requests/') && request.method === 'PATCH') {
+      try {
+        const id = pathname.replace('/api/requests/', '');
+        const updates = await request.json().catch(() => ({}));
+        const idx = edgeRequests.findIndex(r => r.id === id);
+        let updated = null;
+        if (idx !== -1) {
+          edgeRequests[idx] = { ...edgeRequests[idx], ...updates };
+          updated = edgeRequests[idx];
+        } else {
+          updated = { id, ...updates };
+        }
+
+        if (env?.TELEMETRY_KV) {
+          try {
+            const existingRaw = await env.TELEMETRY_KV.get(`request:${id}`).catch(() => null);
+            const existing = existingRaw ? JSON.parse(existingRaw) : {};
+            updated = { ...existing, ...updates, id };
+            await env.TELEMETRY_KV.put(`request:${id}`, JSON.stringify(updated), { expirationTtl: 86400 * 90 });
+          } catch (kvErr) {
+            console.warn('[KV Storage Warning]', kvErr.message);
+          }
+        }
+
+        return new Response(JSON.stringify({ success: true, data: updated }), { headers: corsHeaders });
+      } catch (e) {
+        return new Response(JSON.stringify({ success: false, error: e.message }), { status: 500, headers: corsHeaders });
+      }
+    }
+
+    if (pathname.startsWith('/api/requests/') && request.method === 'DELETE') {
+      try {
+        const id = pathname.replace('/api/requests/', '');
+        edgeRequests = edgeRequests.filter(r => r.id !== id);
+        if (env?.TELEMETRY_KV) {
+          try {
+            await env.TELEMETRY_KV.delete(`request:${id}`);
+          } catch (kvErr) {
+            console.warn('[KV Storage Warning]', kvErr.message);
+          }
+        }
+        return new Response(JSON.stringify({ success: true, message: 'Deleted' }), { headers: corsHeaders });
       } catch (e) {
         return new Response(JSON.stringify({ success: false, error: e.message }), { status: 500, headers: corsHeaders });
       }

@@ -13,6 +13,7 @@ import {
   formatDuration
 } from '../../lib/routeService';
 import { getOptimizedImageUrl } from '../../lib/imageOptimizer';
+import { SpotThumbnail } from '../common/SpotBiomeVisual';
 import {
   Search,
   Navigation,
@@ -300,23 +301,15 @@ export const HeroMapExperience: React.FC<HeroMapExperienceProps> = ({ onRequestS
                       }`}
                     >
                       {/* Thumbnail */}
-                      <div className="relative w-20 h-20 shrink-0 rounded-xl overflow-hidden bg-dark-100">
-                        <img
-                          src={getOptimizedImageUrl(spot.photos[0], { width: 200, quality: 75 })}
-                          alt={spot.title}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                          onError={(e) => {
-                            const target = e.currentTarget;
-                            if (!target.src.includes('real_bald_mountain')) {
-                              target.src = '/images/real_bald_mountain.jpg';
-                            }
-                          }}
-                        />
-                        <div className="absolute top-1 left-1 bg-black/70 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full">
-                          FREE
-                        </div>
-                      </div>
+                      <SpotThumbnail
+                        spot={spot}
+                        className="w-20 h-20 shrink-0 rounded-xl"
+                        badge={
+                          <div className="absolute top-1 left-1 bg-black/70 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full">
+                            FREE
+                          </div>
+                        }
+                      />
 
                       {/* Info */}
                       <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">

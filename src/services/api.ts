@@ -82,7 +82,7 @@ export const api = {
   },
 
   // Requests
-  getRequests: async (query?: { travelerId?: string; hostId?: string }): Promise<StayRequest[]> => {
+  getRequests: async (query?: { userId?: string; travelerId?: string; hostId?: string }): Promise<StayRequest[]> => {
     const params = new URLSearchParams(query as any || {}).toString();
     const q = params ? `?${params}` : "";
     return request<StayRequest[]>(`/requests${q}`);
@@ -98,6 +98,9 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify(updates),
     });
+  },
+  deleteRequest: async (id: string): Promise<void> => {
+    await request(`/requests/${id}`, { method: "DELETE" });
   },
 
   // Message Threads

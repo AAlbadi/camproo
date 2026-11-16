@@ -22,6 +22,7 @@ import {
   BadgeCheck,
   MessageSquare,
   Mail,
+  Calendar,
   Edit,
   Edit3,
   Clock,
@@ -37,6 +38,8 @@ export const AdminDashboard: React.FC = () => {
     requests,
     reports,
     reviews,
+    respondToStayRequest,
+    adminDeleteStayRequest,
     adminToggleSuspendUser,
     adminToggleFeatureSpot,
     adminResolveReport,
@@ -62,7 +65,9 @@ export const AdminDashboard: React.FC = () => {
 
   const { showToast } = useToast();
 
-  const [activeTab, setActiveTab] = useState<'analytics' | 'vsotd' | 'reports' | 'edits' | 'users' | 'spots' | 'reviews' | 'verifications'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'vsotd' | 'spots' | 'requests' | 'edits' | 'reviews' | 'reports' | 'users' | 'verifications'>('analytics');
+  const [stayRequestFilter, setStayRequestFilter] = useState<'all' | 'pending' | 'accepted' | 'declined'>('all');
+  const [stayRequestSearch, setStayRequestSearch] = useState('');
   const [userSearch, setUserSearch] = useState('');
   const [spotSearch, setSpotSearch] = useState('');
   const [spotStatusFilter, setSpotStatusFilter] = useState<'all' | 'pending' | 'approved' | 'featured'>('all');
@@ -291,6 +296,23 @@ export const AdminDashboard: React.FC = () => {
   const pendingSpots = spots.filter(s => s.reviewStatus === 'pending_review');
   const pendingEdits = spotEditRequests.filter(e => e.status === 'pending');
   const pendingReviews = reviews.filter(r => r.status === 'pending');
+  const pendingStayRequests = requests.filter(r => r.status === 'pending');
+
+  const filteredStayRequests = requests.filter(r => {
+    const spot = spots.find(s => s.id === r.spotId);
+    const traveler = users.find(u => u.id === r.travelerId);
+    const query = stayRequestSearch.toLowerCase();
+    const matchesSearch = !stayRequestSearch ||
+      (r.travelerName || traveler?.name || '').toLowerCase().includes(query) ||
+      (r.travelerEmail || traveler?.email || '').toLowerCase().includes(query) ||
+      (r.spotTitle || spot?.title || '').toLowerCase().includes(query) ||
+      (r.spotLocation || spot?.locationName || '').toLowerCase().includes(query) ||
+      (r.personalNote || '').toLowerCase().includes(query);
+
+    if (!matchesSearch) return false;
+    if (stayRequestFilter === 'all') return true;
+    return r.status === stayRequestFilter;
+  });
 
   const totalFreeNightsHosted = requests
     .filter(r => r.status === 'accepted' || r.status === 'completed')
@@ -365,7 +387,7 @@ export const AdminDashboard: React.FC = () => {
 
         {/* Tab Navigator */}
         <div className="flex flex-wrap items-center bg-dark-100 p-1 rounded-2xl border border-dark-200 self-start">
-          {(['analytics', 'vsotd', 'spots', 'edits', 'reviews', 'reports', 'users', 'verifications'] as const).map(tab => (
+          {(['analytics', 'vsotd', 'spots', 'requests', 'edits', 'reviews', 'reports', 'users', 'verifications'] as const).map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -383,6 +405,15 @@ export const AdminDashboard: React.FC = () => {
                   {pendingSpots.length > 0 && (
                     <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-white text-[10px] font-black animate-pulse">
                       {pendingSpots.length}
+                    </span>
+                  )}
+                </>
+              ) : tab === 'requests' ? (
+                <>
+                  <span>Stay Requests</span>
+                  {pendingStayRequests.length > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-full bg-roo-500 text-white text-[10px] font-black animate-pulse">
+                      {pendingStayRequests.length}
                     </span>
                   )}
                 </>
@@ -1018,6 +1049,255 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
               ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* STAY REQUESTS TAB */}
+      {activeTab === 'requests' && (
+        <div className="space-y-4 animate-fade-in">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-extrabold text-dark-900">Spot Stay Requests ({filteredStayRequests.length})</h2>
+              <p className="text-xs text-dark-600 mt-0.5">
+                Review rover booking inquiries, manage free stay approvals, and inspect reservation details across all spots.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {pendingStayRequests.length > 0 && (
+                <button
+                  onClick={() => {
+                    pendingStayRequests.forEach(req => respondToStayRequest(req.id, 'accepted', 'Approved by platform administrator.'));
+                    showToast(`Approved all ${pendingStayRequests.length} pending stay requests!`, 'success');
+                  }}
+                  className="px-4 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black flex items-center gap-1.5 shadow-md transition-all"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Approve All Pending ({pendingStayRequests.length})</span>
+                </button>
+              )}
+
+              <div className="relative w-56">
+                <Search className="w-4 h-4 text-dark-400 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  placeholder="Search requests..."
+                  value={stayRequestSearch}
+                  onChange={e => setStayRequestSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-dark-300 text-xs text-dark-900 focus:outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Sub-nav filters */}
+          <div className="flex items-center gap-2 bg-dark-100 p-1 rounded-2xl border border-dark-200 self-start w-fit text-xs font-bold">
+            <button
+              onClick={() => setStayRequestFilter('all')}
+              className={`px-3 py-1.5 rounded-xl transition-all ${stayRequestFilter === 'all' ? 'bg-dark-900 text-white' : 'text-dark-600 hover:text-dark-900'}`}
+            >
+              All ({requests.length})
+            </button>
+            <button
+              onClick={() => setStayRequestFilter('pending')}
+              className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 ${stayRequestFilter === 'pending' ? 'bg-amber-600 text-white' : 'text-dark-600 hover:text-dark-900'}`}
+            >
+              <span>Pending</span>
+              {pendingStayRequests.length > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black">
+                  {pendingStayRequests.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setStayRequestFilter('accepted')}
+              className={`px-3 py-1.5 rounded-xl transition-all ${stayRequestFilter === 'accepted' ? 'bg-emerald-600 text-white' : 'text-dark-600 hover:text-dark-900'}`}
+            >
+              Accepted ({requests.filter(r => r.status === 'accepted').length})
+            </button>
+            <button
+              onClick={() => setStayRequestFilter('declined')}
+              className={`px-3 py-1.5 rounded-xl transition-all ${stayRequestFilter === 'declined' ? 'bg-red-600 text-white' : 'text-dark-600 hover:text-dark-900'}`}
+            >
+              Declined ({requests.filter(r => r.status === 'declined').length})
+            </button>
+          </div>
+
+          {/* Requests List */}
+          <div className="space-y-4">
+            {filteredStayRequests.length === 0 ? (
+              <div className="p-12 text-center bg-dark-50 rounded-3xl border border-dark-200">
+                <Calendar className="w-12 h-12 text-dark-300 mx-auto mb-3" />
+                <p className="text-xs font-bold text-dark-700">No stay requests found matching this filter.</p>
+                <p className="text-[11px] text-dark-500 mt-1">When rovers submit stay requests for spots, they will appear here with full contact and rig details.</p>
+              </div>
+            ) : (
+              filteredStayRequests.map(req => {
+                const traveler = users.find(u => u.id === req.travelerId);
+                const spot = spots.find(s => s.id === req.spotId);
+                const host = users.find(u => u.id === req.hostId);
+                const travelerEmail = req.travelerEmail || traveler?.email || '';
+                const travelerName = req.travelerName || traveler?.name || 'Traveler';
+                const spotTitle = req.spotTitle || spot?.title || 'Unknown Spot';
+
+                return (
+                  <div
+                    key={req.id}
+                    className="p-5 rounded-3xl bg-white border border-dark-200 shadow-soft space-y-4 hover:border-dark-300 transition-all"
+                  >
+                    {/* Header */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-dark-100">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={traveler?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(travelerName)}&background=0284c7&color=fff`}
+                          alt={travelerName}
+                          className="w-11 h-11 rounded-2xl object-cover border border-dark-200 shrink-0"
+                        />
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-sm font-extrabold text-dark-900">{travelerName}</h3>
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                                req.status === 'accepted'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : req.status === 'declined'
+                                  ? 'bg-red-100 text-red-800'
+                                  : 'bg-amber-100 text-amber-800'
+                              }`}
+                            >
+                              {req.status}
+                            </span>
+                          </div>
+                          <p className="text-xs text-dark-500">
+                            {travelerEmail && (
+                              <a href={`mailto:${travelerEmail}`} className="text-emerald-700 hover:underline font-semibold">
+                                {travelerEmail}
+                              </a>
+                            )}
+                            {req.createdAt && ` · Submitted on ${new Date(req.createdAt).toLocaleDateString()}`}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="text-right sm:self-auto">
+                        <span className="text-[10px] uppercase font-bold text-dark-400 block">Requested Spot</span>
+                        <button
+                          onClick={() => {
+                            if (spot) {
+                              setSelectedSpotId(spot.id);
+                              setCurrentView('spot-detail');
+                            }
+                          }}
+                          className="text-xs font-black text-dark-900 hover:text-emerald-700 transition-colors"
+                        >
+                          {spotTitle} →
+                        </button>
+                        <span className="text-[10px] text-dark-500 block">
+                          Host: {host?.name || 'Platform/Public'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Stay & Rig Details Grid */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                      <div className="p-3 rounded-2xl bg-dark-50 border border-dark-100">
+                        <span className="text-[10px] uppercase font-bold text-dark-500 block">Dates</span>
+                        <span className="font-extrabold text-dark-900">{req.arrivalDate} → {req.departureDate}</span>
+                        <span className="text-[10px] text-dark-500 block font-semibold">({req.nights} nights)</span>
+                      </div>
+
+                      <div className="p-3 rounded-2xl bg-dark-50 border border-dark-100">
+                        <span className="text-[10px] uppercase font-bold text-dark-500 block">Traveling Rig</span>
+                        <span className="font-extrabold text-dark-900">{req.travelerRig?.lengthFt || 25} ft</span>
+                        <span className="text-[10px] text-dark-500 block">{req.travelerRig?.description || 'RV'}</span>
+                      </div>
+
+                      <div className="p-3 rounded-2xl bg-dark-50 border border-dark-100">
+                        <span className="text-[10px] uppercase font-bold text-dark-500 block">Travelers</span>
+                        <span className="font-extrabold text-dark-900">{req.guestCount || 2} guests</span>
+                        <span className="text-[10px] text-dark-500 block">Arrival: {req.arrivalTimeEst || '4:00 PM'}</span>
+                      </div>
+
+                      <div className="p-3 rounded-2xl bg-dark-50 border border-dark-100">
+                        <span className="text-[10px] uppercase font-bold text-dark-500 block">Request ID</span>
+                        <span className="font-mono text-[11px] text-dark-700 font-bold block truncate">{req.id}</span>
+                        <span className="text-[10px] text-dark-500 block">Free 100% Peer Stay</span>
+                      </div>
+                    </div>
+
+                    {/* Traveler note */}
+                    {req.personalNote && (
+                      <div className="p-3 rounded-2xl bg-amber-50/60 border border-amber-200/80 text-xs text-amber-950 italic">
+                        "{req.personalNote}"
+                      </div>
+                    )}
+
+                    {/* Host response note if any */}
+                    {req.hostResponseNote && (
+                      <div className="p-3 rounded-2xl bg-dark-50 border border-dark-200 text-xs text-dark-800">
+                        <span className="font-bold block text-[10px] uppercase text-dark-500">Response Note:</span>
+                        {req.hostResponseNote}
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex items-center justify-between pt-2 border-t border-dark-100">
+                      <div className="flex items-center gap-2">
+                        {travelerEmail && (
+                          <a
+                            href={`mailto:${travelerEmail}?subject=CampRoo Stay Request: ${encodeURIComponent(spotTitle)}`}
+                            className="px-3 py-1.5 rounded-xl bg-dark-100 hover:bg-dark-200 text-dark-800 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                          >
+                            <Mail className="w-3.5 h-3.5" />
+                            <span>Email Traveler</span>
+                          </a>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {req.status === 'pending' && (
+                          <>
+                            <button
+                              onClick={() => {
+                                respondToStayRequest(req.id, 'declined', 'Declined by Ranger Admin.');
+                                showToast('Stay request declined.', 'info');
+                              }}
+                              className="px-3.5 py-1.5 rounded-xl bg-red-100 hover:bg-red-200 text-red-800 text-xs font-bold transition-colors"
+                            >
+                              Decline
+                            </button>
+                            <button
+                              onClick={() => {
+                                respondToStayRequest(req.id, 'accepted', 'Approved by Ranger Admin.');
+                                showToast('Stay request accepted! Exact directions unlocked for guest.', 'success');
+                              }}
+                              className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Accept Stay</span>
+                            </button>
+                          </>
+                        )}
+
+                        <button
+                          onClick={() => {
+                            if (window.confirm('Delete this stay request?')) {
+                              adminDeleteStayRequest(req.id);
+                              showToast('Stay request deleted.', 'info');
+                            }
+                          }}
+                          className="p-1.5 rounded-xl text-dark-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                          title="Delete Request"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
             )}
           </div>
         </div>

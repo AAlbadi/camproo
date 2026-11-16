@@ -9,3 +9,7 @@ not_found_handling = "single-page-application"
 [[kv_namespaces]]
 binding = "TELEMETRY_KV"
 id = "1375578db51644f9b66e33390175e870"
+
+[vars]
+ADMIN_EMAIL = "aalbadi1911@gmail.com"
+EMAIL_FROM = "CampRoo <onboarding@resend.dev>"

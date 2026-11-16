@@ -9,6 +9,8 @@ import { CategoryBar } from '../common/CategoryBar';
 import { Spot } from '../../types';
 import { RouteOrigin, RouteResult, DEFAULT_ORIGINS, calculateRoute, getGoogleMapsNavigationUrl, findSpotsAlongRoute, enrichSpotsWithRouteTiming, formatArrivalTime, formatDuration } from '../../lib/routeService';
 import { getOptimizedImageUrl, getRawImageUrl, FALLBACK_CAMPING_PHOTO } from '../../lib/imageOptimizer';
+import { SpotBiomeVisual, SpotThumbnail } from '../common/SpotBiomeVisual';
+import { SpotListRow } from './SpotListRow';
 import { isSpotMatchingQuery, US_STATES, findCampingArea } from '../../lib/areaSearchService';
 import { AreaSelectPayload } from './MapSearchBar';
 
@@ -85,7 +87,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onRequestStay }) => {
   // Full Screen Mode: Side-by-side Listing & Mobile Sheet
   const [showSideListingOnFull, setShowSideListingOnFull] = useState<boolean>(true);
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState<boolean>(false);
-  const [mobileListMode, setMobileListMode] = useState<'card' | 'compact'>('card');
+  const [listingViewMode, setListingViewMode] = useState<'list' | 'card'>('list');
   const sideListingScrollRef = useRef<HTMLDivElement>(null);
   const floatingRowRef = useRef<HTMLDivElement>(null);
   const [hoveredSpotId, setHoveredSpotId] = useState<string | null>(null);
@@ -731,20 +733,39 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onRequestStay }) => {
               )}
             </div>
 
-            {/* Clean View Toggle: Standard List vs Full Map Only */}
+            {/* Clean View Toggle: Spec List (No Photos) vs Cards vs Full Map */}
             <div className="liquid-glass p-1 rounded-full border border-dark-200 flex items-center gap-1 shadow-xs">
               <button
                 onClick={() => {
+                  setListingViewMode('list');
                   setIsMapExpanded(false);
                   window.dispatchEvent(new Event('resize'));
                 }}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-extrabold flex items-center gap-1.5 transition-all ${
-                  !isMapExpanded ? 'bg-dark-900 text-white shadow-xs' : 'text-dark-700 hover:text-dark-950 hover:bg-white/50'
+                  !isMapExpanded && listingViewMode === 'list'
+                    ? 'bg-dark-900 text-white shadow-xs'
+                    : 'text-dark-700 hover:text-dark-950 hover:bg-white/50'
                 }`}
-                title="Standard Grid View"
+                title="Dense Spec List View (No Photos, High Rig Data)"
+              >
+                <List className="w-3.5 h-3.5" />
+                <span>Spec List</span>
+              </button>
+              <button
+                onClick={() => {
+                  setListingViewMode('card');
+                  setIsMapExpanded(false);
+                  window.dispatchEvent(new Event('resize'));
+                }}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-extrabold flex items-center gap-1.5 transition-all ${
+                  !isMapExpanded && listingViewMode === 'card'
+                    ? 'bg-dark-900 text-white shadow-xs'
+                    : 'text-dark-700 hover:text-dark-950 hover:bg-white/50'
+                }`}
+                title="Photo Cards Grid View"
               >
                 <LayoutGrid className="w-3.5 h-3.5" />
-                <span>Spots List</span>
+                <span>Cards</span>
               </button>
               <button
                 onClick={() => {
@@ -889,33 +910,33 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onRequestStay }) => {
                   : `Showing ${displayedSpots.length.toLocaleString()} spots`}
               </span>
 
-              {/* Mobile View Toggle (Cards vs Compact List) */}
+              {/* Mobile View Toggle (Spec List vs Cards) */}
               <div className="md:hidden flex items-center bg-dark-100/90 p-0.5 rounded-xl border border-dark-200/80 shrink-0">
                 <button
                   type="button"
-                  onClick={() => setMobileListMode('card')}
+                  onClick={() => setListingViewMode('list')}
                   className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
-                    mobileListMode === 'card'
+                    listingViewMode === 'list'
                       ? 'bg-white text-dark-950 shadow-2xs font-black'
                       : 'text-dark-500 hover:text-dark-900'
                   }`}
-                  title="Card View"
+                  title="Spec List View (No Photos)"
                 >
-                  <LayoutGrid className="w-3 h-3" />
-                  <span className="text-[10px]">Cards</span>
+                  <List className="w-3 h-3" />
+                  <span className="text-[10px]">Spec List</span>
                 </button>
                 <button
                   type="button"
-                  onClick={() => setMobileListMode('compact')}
+                  onClick={() => setListingViewMode('card')}
                   className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
-                    mobileListMode === 'compact'
+                    listingViewMode === 'card'
                       ? 'bg-white text-dark-950 shadow-2xs font-black'
                       : 'text-dark-500 hover:text-dark-900'
                   }`}
-                  title="Compact List View"
+                  title="Photo Cards View"
                 >
-                  <List className="w-3 h-3" />
-                  <span className="text-[10px]">Compact</span>
+                  <LayoutGrid className="w-3 h-3" />
+                  <span className="text-[10px]">Cards</span>
                 </button>
               </div>
             </div>
@@ -928,166 +949,88 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onRequestStay }) => {
               </div>
             ) : (
               <>
-                {/* Ultra-compact horizontal row listing for mobile when 'compact' mode selected */}
-                {mobileListMode === 'compact' && (
-                  <div className="md:hidden flex flex-col gap-2">
+                {/* 1. Spec List View (NO PHOTOS - High data, pure specs & climate emblem) */}
+                {listingViewMode === 'list' ? (
+                  <div className="flex flex-col gap-2.5 sm:gap-3">
                     {paginatedSpots.map((spot) => {
                       const isSelected = routedSpot?.id === spot.id;
                       const stopIdx = (spot as any).routeStopIndex;
-                      const agency = (spot as any).landManager || (spot as any)._pipeline?.land_manager || spot.environment;
+                      const roadTripStop = searchFilters.tripRoute && stopIdx ? {
+                        stopIndex: stopIdx,
+                        arrivalTimeFormatted: (spot as any).arrivalTimeFormatted,
+                        formattedDriveDuration: (spot as any).formattedDriveDuration,
+                        distanceToRoute: (spot as any).distanceToRoute,
+                      } : undefined;
+
+                      return (
+                        <SpotListRow
+                          key={spot.id}
+                          spot={spot}
+                          isSelected={isSelected}
+                          onSelect={(s) => {
+                            setIsMapExpanded(true);
+                            handleSpotMapSelect(s);
+                          }}
+                          onNavigateDetails={(id) => handleNavigateToDetails(id)}
+                          onRequestStay={(s) => onRequestStay(s)}
+                          roadTripStop={roadTripStop}
+                        />
+                      );
+                    })}
+                  </div>
+                ) : (
+                  /* 2. Visual Cards Grid */
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
+                    {paginatedSpots.map((spot) => {
+                      const host = users.find((u) => u.id === spot.hostId);
+                      const isSelected = routedSpot?.id === spot.id;
+                      const stopIdx = (spot as any).routeStopIndex;
+                      const roadTripStop = searchFilters.tripRoute && stopIdx ? {
+                        stopIndex: stopIdx,
+                        arrivalTimeFormatted: (spot as any).arrivalTimeFormatted,
+                        formattedDriveDuration: (spot as any).formattedDriveDuration,
+                        distanceToRoute: (spot as any).distanceToRoute,
+                      } : undefined;
+
                       return (
                         <div
                           key={spot.id}
+                          className={`relative rounded-2xl sm:rounded-3xl transition-all ${
+                            isSelected ? 'ring-2 ring-roo-500 shadow-md' : ''
+                          }`}
                           onClick={() => {
                             setIsMapExpanded(true);
                             handleSpotMapSelect(spot);
                           }}
-                          className={`p-2 rounded-2xl border bg-white shadow-2xs flex gap-2.5 cursor-pointer active:scale-[0.99] transition-all ${
-                            isSelected
-                              ? 'border-roo-500 ring-2 ring-roo-500/20 bg-roo-50/20'
-                              : 'border-dark-200/80 hover:border-dark-300'
-                          }`}
                         >
-                          <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-slate-100 dark:bg-dark-900 shrink-0 border border-dark-100/60 shadow-2xs">
-                            <img
-                              src={getOptimizedImageUrl(spot.photos[0], { width: 240, quality: 75 })}
-                              alt={cleanSpotTitle(spot.title)}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                              onError={(e) => {
-                                const target = e.currentTarget;
-                                const raw = getRawImageUrl(spot.photos[0]);
-                                if (target.src !== raw && raw !== FALLBACK_CAMPING_PHOTO) {
-                                  target.src = raw;
-                                } else {
-                                  target.src = FALLBACK_CAMPING_PHOTO;
-                                }
-                              }}
-                            />
-                            {stopIdx ? (
-                              <div className="absolute top-1 left-1 bg-gradient-to-r from-roo-500 to-amber-500 text-white px-1.5 py-0.5 rounded text-[8px] font-black leading-none">
-                                #{stopIdx}
-                              </div>
-                            ) : (
-                              <div className="absolute top-1 left-1 bg-dark-950/80 text-white px-1.5 py-0.5 rounded text-[8px] font-black">
-                                FREE
-                              </div>
-                            )}
-                            <div className="absolute bottom-1 right-1 bg-roo-600/90 text-white px-1 py-0.2 rounded text-[8px] font-bold">
-                              {spot.rigCompatibility?.maxLengthFt || 35}ft
-                            </div>
-                          </div>
-
-                          <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
-                            <div>
-                              <div className="flex items-center justify-between text-[10px] text-dark-500 font-bold mb-0.5">
-                                <span className="truncate max-w-[140px]">{spot.locationName}</span>
-                                <div className="flex items-center gap-1 shrink-0">
-                                  <span className="text-dark-900 font-extrabold flex items-center gap-0.5">
-                                    <Star className="w-2.5 h-2.5 text-amber-500 fill-amber-500" />
-                                    <span>{spot.rating || 4.8}</span>
-                                  </span>
-                                </div>
-                              </div>
-
-                              <h5 className="text-xs font-black text-dark-950 truncate leading-tight mb-0.5">
-                                {cleanSpotTitle(spot.title)}
-                              </h5>
-
-                              {searchFilters.tripRoute && stopIdx && (spot as any).arrivalTimeFormatted ? (
-                                <p className="text-[10px] text-roo-700 font-extrabold flex items-center gap-1">
-                                  <Clock className="w-2.5 h-2.5 text-roo-600 shrink-0" />
-                                  <span>Arrive ~{(spot as any).arrivalTimeFormatted} ({(spot as any).formattedDriveDuration})</span>
-                                </p>
-                              ) : (
-                                <p className="text-[10px] text-dark-600 truncate">
-                                  <span className="font-bold text-forest-700">{agency?.toUpperCase() || 'PUBLIC LAND'}</span>
-                                  <span> · Max {spot.rigCompatibility.maxLengthFt}ft</span>
-                                  {(spot as any).distanceMiles !== undefined && (spot as any).distanceMiles < 800 && (
-                                    <span className="text-blue-700 font-bold ml-1">
-                                      · {((spot as any).distanceMiles < 1 ? '< 1' : (spot as any).distanceMiles.toFixed(1))} mi
-                                    </span>
-                                  )}
-                                </p>
-                              )}
-                            </div>
-
-                            <div className="flex items-center justify-between pt-1 border-t border-dark-100 text-[10px]">
-                              <span className="font-black text-dark-900">$0 Free</span>
-                              <div className="flex items-center gap-2">
-                                <a
-                                  href={`https://www.google.com/maps/dir/?api=1&destination=${spot.coordinates[0]},${spot.coordinates[1]}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="text-blue-600 font-bold hover:underline text-[10px]"
-                                >
-                                  GPS ↗
-                                </a>
-                                <span className="text-roo-600 font-bold flex items-center gap-0.5">
-                                  <span>View</span>
-                                  <ArrowRight className="w-2.5 h-2.5" />
-                                </span>
-                              </div>
-                            </div>
-                          </div>
+                          <SpotCard
+                            spot={spot}
+                            host={host}
+                            isHovered={hoveredSpotId === spot.id || isSelected}
+                            onHover={setHoveredSpotId}
+                            onSelect={() => {
+                              setIsMapExpanded(true);
+                              handleSpotMapSelect(spot);
+                            }}
+                            onRequest={onRequestStay}
+                            roadTripStop={roadTripStop}
+                          />
                         </div>
                       );
                     })}
                   </div>
                 )}
 
-                {/* Standard / Cards Grid (shown on desktop always, and on mobile when 'card' mode) */}
-                <div className={`${mobileListMode === 'compact' ? 'hidden md:grid' : 'grid'} grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6`}>
-                  {paginatedSpots.map((spot) => {
-                    const host = users.find((u) => u.id === spot.hostId);
-                    const isSelected = routedSpot?.id === spot.id;
-                    const stopIdx = (spot as any).routeStopIndex;
-                    const roadTripStop = searchFilters.tripRoute && stopIdx ? {
-                      stopIndex: stopIdx,
-                      arrivalTimeFormatted: (spot as any).arrivalTimeFormatted,
-                      formattedDriveDuration: (spot as any).formattedDriveDuration,
-                      distanceToRoute: (spot as any).distanceToRoute,
-                    } : undefined;
-
-                    return (
-                      <div
-                        key={spot.id}
-                        className={`relative rounded-2xl sm:rounded-3xl transition-all ${
-                          isSelected ? 'ring-2 ring-roo-500 shadow-md' : ''
-                        }`}
-                        onClick={() => {
-                          setIsMapExpanded(true);
-                          handleSpotMapSelect(spot);
-                        }}
-                      >
-                        <SpotCard
-                          spot={spot}
-                          host={host}
-                          isHovered={hoveredSpotId === spot.id || isSelected}
-                          onHover={setHoveredSpotId}
-                          onSelect={() => {
-                            setIsMapExpanded(true);
-                            handleSpotMapSelect(spot);
-                          }}
-                          onRequest={onRequestStay}
-                          roadTripStop={roadTripStop}
-                        />
-                      </div>
-                    );
-                  })}
-
-                  {paginatedSpots.length < displayedSpots.length && (
-                    <div className="col-span-full flex justify-center py-6">
-                      <button
-                        onClick={() => setVisibleCount((prev) => prev + 24)}
-                        className="px-6 py-2.5 rounded-2xl bg-dark-900 hover:bg-black text-white text-xs font-black shadow-sm transition-all hover:scale-105 active:scale-95"
-                      >
-                        Load More Havens (+24) · {displayedSpots.length - paginatedSpots.length} remaining
-                      </button>
-                    </div>
-                  )}
-                </div>
+                {paginatedSpots.length < displayedSpots.length && (
+                  <div className="flex justify-center py-6">
+                    <button
+                      onClick={() => setVisibleCount((prev) => prev + 24)}
+                      className="px-6 py-2.5 rounded-2xl bg-dark-900 hover:bg-black text-white text-xs font-black shadow-sm transition-all hover:scale-105 active:scale-95"
+                    >
+                      Load More Havens (+24) · {displayedSpots.length - paginatedSpots.length} remaining
+                    </button>
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -1295,29 +1238,14 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onRequestStay }) => {
                     {/* Thumbnail with overlay badges */}
                     <div
                       onClick={() => handleNavigateToDetails(routedSpot.id)}
-                      className="relative w-20 h-20 rounded-xl overflow-hidden bg-slate-100 dark:bg-dark-900 shrink-0 cursor-pointer border border-dark-100/60 shadow-2xs group"
+                      className="cursor-pointer group shrink-0 w-16 h-16 sm:w-20 sm:h-20"
                       title="Click to view details"
                     >
-                      <img
-                        src={getOptimizedImageUrl(routedSpot.photos[0], { width: 160, quality: 75 })}
-                        alt={cleanSpotTitle(routedSpot.title)}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                        onError={(e) => {
-                          const target = e.currentTarget;
-                          const raw = getRawImageUrl(routedSpot.photos[0]);
-                          if (target.src !== raw && raw !== FALLBACK_CAMPING_PHOTO) {
-                            target.src = raw;
-                          } else {
-                            target.src = FALLBACK_CAMPING_PHOTO;
-                          }
-                        }}
+                      <SpotBiomeVisual
+                        spot={routedSpot}
+                        mode="thumb"
+                        className="w-full h-full rounded-xl"
                       />
-                      <div className="absolute top-1 left-1 bg-dark-950/85 text-white px-1.5 py-0.5 rounded text-[8px] font-black leading-none">
-                        FREE
-                      </div>
-                      <div className="absolute bottom-1 right-1 bg-roo-500 text-white px-1 py-0.5 rounded text-[8px] font-black leading-none">
-                        {routedSpot.rigCompatibility?.maxLengthFt || 35}ft
-                      </div>
                     </div>
 
                     {/* Content */}
@@ -1507,29 +1435,13 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onRequestStay }) => {
                             )}
 
                             <div className="flex flex-row items-center gap-2.5">
-                              {/* Left Thumbnail with fixed dimensions */}
-                              <div className="relative w-20 h-20 sm:w-22 sm:h-22 rounded-xl overflow-hidden shrink-0 bg-slate-100 dark:bg-dark-900 border border-dark-100/60 shadow-2xs">
-                                <img
-                                  src={getOptimizedImageUrl(spot.photos[0], { width: 200, quality: 75 })}
-                                  alt={cleanSpotTitle(spot.title)}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                                  loading="lazy"
-                                  onError={(e) => {
-                                    const target = e.currentTarget;
-                                    const raw = getRawImageUrl(spot.photos[0]);
-                                    if (target.src !== raw && raw !== FALLBACK_CAMPING_PHOTO) {
-                                      target.src = raw;
-                                    } else {
-                                      target.src = FALLBACK_CAMPING_PHOTO;
-                                    }
-                                  }}
+                              {/* Left Biome Spec Emblem - NO PICTURES */}
+                              <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0">
+                                <SpotBiomeVisual
+                                  spot={spot}
+                                  mode="thumb"
+                                  className="w-full h-full rounded-xl sm:rounded-2xl"
                                 />
-                                <div className="absolute top-1 left-1 bg-dark-950/85 text-white px-1.5 py-0.5 rounded text-[8px] font-black leading-none">
-                                  FREE
-                                </div>
-                                <div className="absolute bottom-1 right-1 bg-roo-500 text-white px-1 py-0.5 rounded text-[8px] font-black leading-none">
-                                  {spot.rigCompatibility?.maxLengthFt || 35}ft
-                                </div>
                               </div>
 
                               {/* Right Info */}
@@ -1721,31 +1633,21 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onRequestStay }) => {
                   >
                     <div className="flex items-center gap-2.5">
                       {/* Compact Photo Thumbnail */}
-                      <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-slate-100 dark:bg-dark-900 border border-dark-100/60 shrink-0 shadow-2xs">
-                        <img
-                          src={getOptimizedImageUrl(routedSpot.photos[0], { width: 160, quality: 75 })}
-                          alt={cleanSpotTitle(routedSpot.title)}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            const target = e.currentTarget;
-                            const raw = getRawImageUrl(routedSpot.photos[0]);
-                            if (target.src !== raw && raw !== FALLBACK_CAMPING_PHOTO) {
-                              target.src = raw;
-                            } else {
-                              target.src = FALLBACK_CAMPING_PHOTO;
-                            }
-                          }}
-                        />
-                        {searchFilters.tripRoute && (routedSpot as any)?.routeStopIndex ? (
-                          <div className="absolute top-1 left-1 bg-gradient-to-r from-roo-500 to-amber-500 text-white px-1 py-0.2 rounded text-[8px] font-black leading-none">
-                            STOP #{(routedSpot as any)?.routeStopIndex}
-                          </div>
-                        ) : (
-                          <div className="absolute top-1 left-1 bg-dark-950/85 text-white px-1 py-0.2 rounded text-[8px] font-black leading-none">
-                            FREE
-                          </div>
-                        )}
-                      </div>
+                      <SpotThumbnail
+                        spot={routedSpot}
+                        className="w-14 h-14 rounded-xl"
+                        badge={
+                          searchFilters.tripRoute && (routedSpot as any)?.routeStopIndex ? (
+                            <div className="absolute top-1 left-1 bg-gradient-to-r from-roo-500 to-amber-500 text-white px-1 py-0.2 rounded text-[8px] font-black leading-none">
+                              STOP #{(routedSpot as any)?.routeStopIndex}
+                            </div>
+                          ) : (
+                            <div className="absolute top-1 left-1 bg-dark-950/85 text-white px-1 py-0.2 rounded text-[8px] font-black leading-none">
+                              FREE
+                            </div>
+                          )
+                        }
+                      />
 
                       {/* Info */}
                       <div className="flex-1 min-w-0 pr-1">
@@ -1863,25 +1765,12 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onRequestStay }) => {
                       }}
                       className="p-2.5 rounded-2xl border border-dark-200/80 hover:border-forest-300 bg-white shadow-2xs flex gap-3 cursor-pointer active:scale-[0.99] transition-all"
                     >
-                      <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-slate-100 dark:bg-dark-900 border border-dark-100/60 shrink-0 shadow-2xs">
-                        <img
-                          src={getOptimizedImageUrl(spot.photos[0], { width: 240, quality: 75 })}
-                          alt={cleanSpotTitle(spot.title)}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                          onError={(e) => {
-                            const target = e.currentTarget;
-                            const raw = getRawImageUrl(spot.photos[0]);
-                            if (target.src !== raw && raw !== FALLBACK_CAMPING_PHOTO) {
-                              target.src = raw;
-                            } else {
-                              target.src = FALLBACK_CAMPING_PHOTO;
-                            }
-                          }}
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0">
+                        <SpotBiomeVisual
+                          spot={spot}
+                          mode="thumb"
+                          className="w-full h-full rounded-xl"
                         />
-                        <div className="absolute top-1 left-1 bg-dark-950/80 text-white px-1.5 py-0.5 rounded text-[8px] font-black">
-                          FREE
-                        </div>
                       </div>
 
                       <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">

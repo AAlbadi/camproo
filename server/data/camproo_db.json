@@ -215,11 +215,58 @@
       "createdAt": "2024-01-15"
     }
   ],
-  "requests": [],
+  "requests": [
+    {
+      "id": "req-1788643978138",
+      "status": "pending",
+      "createdAt": "2026-09-05T21:32:58.138Z",
+      "spotId": "spot-moab-redrock",
+      "spotTitle": "Red Rock Roo Oasis & BLM Gateway",
+      "spotLocation": "Moab, Utah",
+      "travelerId": "user-traveler-1",
+      "travelerName": "Aziz Rover Test",
+      "travelerEmail": "aalbadi1911@gmail.com",
+      "hostId": "user-host-1",
+      "arrivalDate": "2026-09-15",
+      "departureDate": "2026-09-17",
+      "nights": 2,
+      "guestCount": 2,
+      "travelerRig": {
+        "type": "class_c",
+        "lengthFt": 28,
+        "description": "28ft Thor Chateau"
+      },
+      "personalNote": "Excited to visit! Looking forward to boondocking at your beautiful spot."
+    },
+    {
+      "id": "req-1788643916767",
+      "status": "accepted",
+      "createdAt": "2026-09-05T21:31:56.767Z",
+      "spotId": "spot-moab-redrock",
+      "spotTitle": "Red Rock Roo Oasis & BLM Gateway",
+      "spotLocation": "Moab, Utah",
+      "travelerId": "user-traveler-1",
+      "travelerName": "Aziz Verification Test",
+      "travelerEmail": "aalbadi1911@gmail.com",
+      "hostId": "user-host-1",
+      "arrivalDate": "2026-09-10",
+      "departureDate": "2026-09-12",
+      "nights": 2,
+      "guestCount": 2,
+      "travelerRig": {
+        "type": "campervan",
+        "lengthFt": 22,
+        "description": "22ft Mercedes Sprinter"
+      },
+      "personalNote": "Verifying that stay requests appear in the dashboard and email delivery works!",
+      "hostResponseNote": "Welcome to our spot!"
+    }
+  ],
   "threads": [],
   "posts": [],
   "reviews": [],
   "reports": [],
+  "spot_edits": [],
   "traffic_events": [
     {
       "id": "evt-sample-1",
@@ -4018,6 +4065,56 @@
       "provider": "sandbox_local",
       "details": "Simulated delivery recorded in database. Ready for live API key.",
       "sentAt": "2026-09-05T13:49:06.938Z"
+    },
+    {
+      "id": "email-1788643918211-dhtr",
+      "to": "aalbadi1911@gmail.com",
+      "subject": "🚐 [New Stay Request] \"Red Rock Roo Oasis & BLM Gateway\" - Aziz Verification Test (2 nights)",
+      "type": "stay_request",
+      "status": "sent",
+      "provider": "resend",
+      "details": "Message ID: 0e678856-406e-489b-aae6-b664569918ab",
+      "sentAt": "2026-09-05T21:31:58.211Z"
+    },
+    {
+      "id": "email-1788643979627-olwx",
+      "to": "aalbadi1911@gmail.com",
+      "subject": "🚐 [New Stay Request] \"Red Rock Roo Oasis & BLM Gateway\" - Aziz Rover Test (2 nights)",
+      "type": "stay_request",
+      "status": "sent",
+      "provider": "resend",
+      "details": "Message ID: f0ba6877-c23c-4d46-ae07-e06243defe2e",
+      "sentAt": "2026-09-05T21:32:59.627Z"
+    },
+    {
+      "id": "email-1788643980138-nhi5",
+      "to": "caleb.sarah@redrockmoab.com",
+      "subject": "🏕️ [Stay Request for Your Spot] \"Red Rock Roo Oasis & BLM Gateway\" - Aziz Rover Test (2 nights)",
+      "type": "stay_request_host",
+      "status": "error",
+      "provider": "resend",
+      "details": "{\"statusCode\":403,\"name\":\"validation_error\",\"message\":\"You can only send testing emails to your own email address (aalbadi1911@gmail.com). To send emails to other recipients, please verify a domain at resend.com/domains, and change the `from` address to an email using this domain.\"}",
+      "sentAt": "2026-09-05T21:33:00.139Z"
+    },
+    {
+      "id": "email-1788643980141-uruf",
+      "to": "caleb.sarah@redrockmoab.com",
+      "subject": "🏕️ [Stay Request for Your Spot] \"Red Rock Roo Oasis & BLM Gateway\" - Aziz Rover Test (2 nights)",
+      "type": "stay_request_host",
+      "status": "delivered_sandbox",
+      "provider": "sandbox_local",
+      "details": "Simulated delivery recorded in database. Ready for live API key.",
+      "sentAt": "2026-09-05T21:33:00.141Z"
+    },
+    {
+      "id": "email-1788643980150-eqxx",
+      "to": "aalbadi1911@gmail.com",
+      "subject": "✅ Stay Request Received: \"Red Rock Roo Oasis & BLM Gateway\" (2026-09-15 - 2026-09-17)",
+      "type": "stay_request_receipt",
+      "status": "sent",
+      "provider": "resend",
+      "details": "Message ID: ee35b4ee-a98c-4651-a90c-8780a76919f2",
+      "sentAt": "2026-09-05T21:33:00.150Z"
     }
   ],
   "vsotd": {

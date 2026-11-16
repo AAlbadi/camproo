@@ -42,14 +42,17 @@ export const HostDashboardPage: React.FC = () => {
 
   // Spots hosted by current user
   const mySpots = spots.filter(s => s.hostId === currentUser.id);
+  const mySpotIds = new Set(mySpots.map(s => s.id));
   const filteredMySpots = mySpots.filter(s => {
     if (spotFilter === 'public') return s.visibility !== 'personal';
     if (spotFilter === 'personal') return s.visibility === 'personal';
     return true;
   });
 
-  // Requests for this host's spots
-  const incomingRequests = requests.filter(r => r.hostId === currentUser.id);
+  // Requests for this host's spots (or all if admin has no spots yet)
+  const incomingRequests = requests.filter(
+    r => r.hostId === currentUser.id || mySpotIds.has(r.spotId) || (currentUser.role === 'admin' && mySpots.length === 0)
+  );
   const pendingRequests = incomingRequests.filter(r => r.status === 'pending');
   const confirmedGuests = incomingRequests.filter(r => r.status === 'accepted');
 
@@ -139,6 +142,10 @@ export const HostDashboardPage: React.FC = () => {
             {pendingRequests.map(req => {
               const traveler = users.find(u => u.id === req.travelerId);
               const spot = spots.find(s => s.id === req.spotId);
+              const travelerName = (req as any).travelerName || traveler?.name || 'Traveler';
+              const spotTitle = (req as any).spotTitle || spot?.title || 'RV Spot';
+              const travelerEmail = (req as any).travelerEmail || traveler?.email || '';
+
               return (
                 <div
                   key={req.id}
@@ -147,20 +154,26 @@ export const HostDashboardPage: React.FC = () => {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-cream-100">
                     <div className="flex items-center gap-3">
                       <img
-                        src={traveler?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(traveler?.name || 'RVer')}&background=0284c7&color=fff&bold=true`}
-                        alt={traveler?.name}
+                        src={traveler?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(travelerName)}&background=0284c7&color=fff&bold=true`}
+                        alt={travelerName}
                         className="w-12 h-12 rounded-2xl object-cover"
                       />
                       <div>
-                        <h3 className="text-base font-extrabold text-forest-950">{traveler?.name}</h3>
+                        <h3 className="text-base font-extrabold text-forest-950">{travelerName}</h3>
                         <p className="text-xs text-cream-900/60">
-                          {traveler?.homeRegion} · {traveler?.tripsCompleted} completed stays · ★ {traveler?.rating}
+                          {travelerEmail ? (
+                            <a href={`mailto:${travelerEmail}`} className="text-emerald-700 font-semibold hover:underline">
+                              {travelerEmail}
+                            </a>
+                          ) : (
+                            `${traveler?.homeRegion || 'USA'} · ${traveler?.tripsCompleted || 0} completed stays · ★ ${traveler?.rating || 5.0}`
+                          )}
                         </p>
                       </div>
                     </div>
 
                     <div className="text-xs text-cream-900/70 font-semibold text-right">
-                      Requested spot: <strong className="text-forest-950">{spot?.title}</strong>
+                      Requested spot: <strong className="text-forest-950">{spotTitle}</strong>
                     </div>
                   </div>
 

@@ -211,6 +211,10 @@ export interface StayRequest {
   createdAt: string;
   hostResponseNote?: string;
   arrivalTimeEst?: string;
+  travelerName?: string;
+  travelerEmail?: string;
+  spotTitle?: string;
+  spotLocation?: string;
 }
 
 export interface ChatMessage {

@@ -4,6 +4,36 @@ export const FALLBACK_CAMPING_PHOTO = '/images/camping_scenic_placeholder.svg';
 export const SECONDARY_PHOTO_FALLBACK = '/images/real_bald_mountain.jpg';
 
 /**
+ * Validates whether a photo URL represents a genuine, distinct photo
+ * rather than a stock generic fallback or broken placeholder.
+ */
+export function isAuthenticPhoto(url: string | undefined | null): boolean {
+  if (!url || typeof url !== 'string') return false;
+  const trimmed = url.trim();
+  if (
+    !trimmed ||
+    trimmed === FALLBACK_CAMPING_PHOTO ||
+    trimmed === SECONDARY_PHOTO_FALLBACK ||
+    trimmed.includes('camping_scenic_placeholder') ||
+    trimmed.includes('desert_spot.jpg') ||
+    trimmed.includes('meadow_spot.jpg') ||
+    trimmed.includes('hero_rv_camp.jpg')
+  ) {
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Filters out duplicate and placeholder photos, returning only unique, authentic images.
+ */
+export function getAuthenticPhotos(photos: string[] | undefined | null): string[] {
+  if (!photos || !Array.isArray(photos)) return [];
+  const unique = Array.from(new Set(photos.map(p => p?.trim()).filter(Boolean)));
+  return unique.filter(isAuthenticPhoto);
+}
+
+/**
  * Extracts clean, raw direct image URL without proxies or query garbage
  */
 export function getRawImageUrl(url: string | undefined | null): string {

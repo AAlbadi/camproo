@@ -11,6 +11,7 @@ import { db } from './db.js';
 const getResendApiKey = () => process.env.RESEND_API_KEY || '';
 const getSendgridApiKey = () => process.env.SENDGRID_API_KEY || '';
 const getEmailFrom = () => process.env.EMAIL_FROM || 'CampRoo <onboarding@resend.dev>';
+const getAdminEmail = () => process.env.ADMIN_EMAIL || 'aalbadi1911@gmail.com';
 
 /**
  * Send an email via active provider or sandbox
@@ -245,7 +246,7 @@ export async function sendSpotSubmissionReviewEmail({
   visibility = 'public',
   notes = ''
 }) {
-  const adminEmail = 'aalbadi1911@gmail.com';
+  const adminEmail = getAdminEmail();
   const isPersonal = visibility === 'personal';
   const spotTitle = spot.title || 'Untitled RV Spot';
   const locationDesc = [spot.locationName, spot.generalArea].filter(Boolean).join(', ') || 'USA';
@@ -503,7 +504,7 @@ export async function sendSpotSubmitterConfirmationEmail({
 }
 
 export async function sendStayRequestAdminEmail({ travelerName, travelerEmail, spotTitle, spotLocation, arrivalDate, departureDate, nights, rigDescription, personalNote }) {
-  const adminEmail = 'aalbadi1911@gmail.com';
+  const adminEmail = getAdminEmail();
   const subject = `🚐 [New Stay Request] "${spotTitle}" - ${travelerName} (${nights} nights)`;
   const html = `
     <!DOCTYPE html>
@@ -527,8 +528,73 @@ export async function sendStayRequestAdminEmail({ travelerName, travelerEmail, s
   return sendEmail({ to: adminEmail, subject, html, text: subject, type: 'stay_request' });
 }
 
+export async function sendStayRequestHostEmail({ to, hostName, travelerName, travelerEmail, spotTitle, spotLocation, arrivalDate, departureDate, nights, rigDescription, personalNote }) {
+  if (!to || !to.includes('@')) return { success: false, note: 'No host email' };
+  const subject = `🏕️ [Stay Request for Your Spot] "${spotTitle}" - ${travelerName} (${nights} nights)`;
+  const mailtoBody = encodeURIComponent(`Hi ${travelerName},\n\nThank you for requesting to stay at ${spotTitle}.\n\nBest regards,\n${hostName || 'Your Host'}`);
+  const mailtoUrl = `mailto:${travelerEmail}?subject=${encodeURIComponent(`CampRoo Stay at ${spotTitle}`)}&body=${mailtoBody}`;
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <body style="font-family: -apple-system, sans-serif; background-color: #F8F9FA; padding: 25px 15px; color: #1E293B;">
+        <div style="max-width: 550px; margin: 0 auto; background: #ffffff; border-radius: 16px; border: 1px solid #E2E8F0; overflow: hidden;">
+          <div style="background: linear-gradient(135deg, #10B981, #059669); padding: 30px 24px; text-align: center; color: #ffffff;">
+            <h2 style="margin: 0;">New Stay Request for Your Spot!</h2>
+            <p style="margin: 5px 0 0; opacity: 0.9; font-size: 14px;">${spotTitle}</p>
+          </div>
+          <div style="padding: 25px;">
+            <p>Hi ${hostName || 'Host'},</p>
+            <p>A fellow RVer has requested to stay at your spot:</p>
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 15px; margin: 15px 0;">
+              <p style="margin: 4px 0;"><strong>Traveler:</strong> ${travelerName} (&lt;<a href="${mailtoUrl}">${travelerEmail}</a>&gt;)</p>
+              <p style="margin: 4px 0;"><strong>Dates:</strong> ${arrivalDate} to ${departureDate} (${nights} nights)</p>
+              <p style="margin: 4px 0;"><strong>Rig:</strong> ${rigDescription}</p>
+              <p style="margin: 4px 0;"><strong>Note:</strong> "${personalNote}"</p>
+            </div>
+            <p style="font-size: 13px; color: #475569;">You can log in to your CampRoo Host Dashboard to accept or decline this request, or reply directly via email.</p>
+            <div style="text-align: center; margin-top: 20px;">
+              <a href="${mailtoUrl}" style="display: inline-block; background: #10B981; color: #ffffff; text-decoration: none; font-weight: bold; font-size: 13px; padding: 12px 24px; border-radius: 10px;">
+                ✉️ Reply to ${travelerName}
+              </a>
+            </div>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+  return sendEmail({ to, subject, html, text: subject, type: 'stay_request_host' });
+}
+
+export async function sendStayRequestTravelerConfirmationEmail({ to, travelerName, spotTitle, spotLocation, arrivalDate, departureDate, nights }) {
+  if (!to || !to.includes('@')) return { success: false, note: 'No traveler email' };
+  const subject = `✅ Stay Request Received: "${spotTitle}" (${arrivalDate} - ${departureDate})`;
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <body style="font-family: -apple-system, sans-serif; background-color: #F8F9FA; padding: 25px 15px; color: #1E293B;">
+        <div style="max-width: 550px; margin: 0 auto; background: #ffffff; border-radius: 16px; border: 1px solid #E2E8F0; overflow: hidden;">
+          <div style="background: linear-gradient(135deg, #0284C7, #0369A1); padding: 30px 24px; text-align: center; color: #ffffff;">
+            <h2 style="margin: 0;">Stay Request Submitted! 🚐</h2>
+            <p style="margin: 5px 0 0; opacity: 0.9; font-size: 14px;">${spotTitle}</p>
+          </div>
+          <div style="padding: 25px;">
+            <p>Hi ${travelerName || 'Roamer'},</p>
+            <p>We received your stay request for <strong>${spotTitle}</strong> (${spotLocation}).</p>
+            <div style="background: #F0F9FF; border: 1px solid #BAE6FD; border-radius: 12px; padding: 15px; margin: 15px 0;">
+              <p style="margin: 4px 0;"><strong>Dates:</strong> ${arrivalDate} to ${departureDate} (${nights} nights)</p>
+              <p style="margin: 4px 0;"><strong>Status:</strong> Pending Host & Ranger Review</p>
+            </div>
+            <p style="font-size: 13px; color: #475569;">You'll receive an email update as soon as your request is accepted. Safe travels!</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+  return sendEmail({ to, subject, html, text: subject, type: 'stay_request_receipt' });
+}
+
 export async function sendNewReviewAdminEmail({ reviewerName, spotTitle, ratingOverall, categories, wouldWelcomeAgain, comment }) {
-  const adminEmail = 'aalbadi1911@gmail.com';
+  const adminEmail = getAdminEmail();
   const subject = `⭐ [New Review] ${ratingOverall}/5 for "${spotTitle}" by ${reviewerName}`;
   const html = `
     <!DOCTYPE html>
@@ -554,7 +620,7 @@ export async function sendNewReviewAdminEmail({ reviewerName, spotTitle, ratingO
 }
 
 export async function sendSafetyReportAdminEmail({ reporterName, reporterEmail, targetType, targetName, reason, details }) {
-  const adminEmail = 'aalbadi1911@gmail.com';
+  const adminEmail = getAdminEmail();
   const subject = `🚨 [URGENT Safety Report] ${targetType}: "${targetName}" - ${reason}`;
   const reporterDisplay = reporterEmail ? `${reporterName} (${reporterEmail})` : reporterName;
   const html = `
@@ -580,7 +646,7 @@ export async function sendSafetyReportAdminEmail({ reporterName, reporterEmail, 
 }
 
 export async function sendNewsletterSubscriberAdminEmail({ subscriberEmail, subscriberName, source, trafficSource }) {
-  const adminEmail = 'aalbadi1911@gmail.com';
+  const adminEmail = getAdminEmail();
   const subject = `📬 [New Newsletter Subscriber] ${subscriberEmail} via ${source}`;
   const html = `
     <!DOCTYPE html>
@@ -604,7 +670,7 @@ export async function sendNewsletterSubscriberAdminEmail({ subscriberEmail, subs
 }
 
 export async function sendNewUserRegistrationAdminEmail({ userName, userEmail, role, provider, homeRegion, rigType }) {
-  const adminEmail = 'aalbadi1911@gmail.com';
+  const adminEmail = getAdminEmail();
   const subject = `🎉 [New Member Joined] ${userName} (${role}) via ${provider}`;
   const html = `
     <!DOCTYPE html>
@@ -630,7 +696,7 @@ export async function sendNewUserRegistrationAdminEmail({ userName, userEmail, r
 }
 
 export async function sendCommunityPostAdminEmail({ authorName, title, category, content }) {
-  const adminEmail = 'aalbadi1911@gmail.com';
+  const adminEmail = getAdminEmail();
   const subject = `💬 [New Community Post] "${title}" by ${authorName}`;
   const html = `
     <!DOCTYPE html>
@@ -654,7 +720,7 @@ export async function sendCommunityPostAdminEmail({ authorName, title, category,
 }
 
 export async function sendDirectMessageAdminEmail({ senderName, senderEmail, recipientName, messageText, spotTitle }) {
-  const adminEmail = 'aalbadi1911@gmail.com';
+  const adminEmail = getAdminEmail();
   const displaySpot = spotTitle || 'Direct Message';
   const subject = `✉️ [New Message] ${senderName} → ${recipientName} re: ${displaySpot}`;
   const html = `
@@ -689,7 +755,7 @@ export async function sendSupportInquiryAdminEmail({
   subject = 'Support Inquiry',
   message = '',
 }) {
-  const adminEmail = 'aalbadi1911@gmail.com';
+  const adminEmail = getAdminEmail();
   const mailSubject = `📬 [Support & Inquiry] ${topic}: "${subject}" from ${name}`;
   const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(`Re: [CampRoo Support] ${subject}`)}`;
 
@@ -773,7 +839,7 @@ export async function sendSpotEditRequestAdminEmail({
   suggestedChanges = {},
   notes = ''
 }) {
-  const adminEmail = 'aalbadi1911@gmail.com';
+  const adminEmail = getAdminEmail();
   const mailSubject = `🛠️ [Spot Edit Suggestion] "${spotTitle}" (${editType}) by ${submitterName}`;
   const mailtoUrl = `mailto:${submitterEmail}?subject=${encodeURIComponent(`CampRoo Spot Edit: ${spotTitle}`)}`;
 
@@ -816,7 +882,7 @@ export async function sendSpotEditRequestAdminEmail({
  * Forward New Spot Photo submissions to aalbadi1911@gmail.com
  */
 export async function sendNewSpotPhotoAdminEmail({ spotId, spotTitle, uploaderName, photoUrl, caption }) {
-  const adminEmail = 'aalbadi1911@gmail.com';
+  const adminEmail = getAdminEmail();
   const mailSubject = `📸 [New Spot Photo] For "${spotTitle || spotId}"`;
   const isDataUrl = photoUrl && photoUrl.startsWith('data:');
   const previewImg = isDataUrl
@@ -854,7 +920,7 @@ export async function sendNewSpotPhotoAdminEmail({ spotId, spotTitle, uploaderNa
  * Forward Host Accept/Decline responses to aalbadi1911@gmail.com
  */
 export async function sendStayResponseAdminEmail({ requestId, spotTitle, hostName, travelerName, status, note }) {
-  const adminEmail = 'aalbadi1911@gmail.com';
+  const adminEmail = getAdminEmail();
   const mailSubject = `${status === 'accepted' ? '✅' : '❌'} [Stay Request ${status.toUpperCase()}] "${spotTitle || 'Spot'}" - ${hostName} responded`;
   const html = `
     <!DOCTYPE html>
@@ -889,7 +955,7 @@ export async function sendStayResponseAdminEmail({ requestId, spotTitle, hostNam
  * Forward New Community Discussion Comments to aalbadi1911@gmail.com
  */
 export async function sendCommunityCommentAdminEmail({ postId, postTitle, authorName, commentText }) {
-  const adminEmail = 'aalbadi1911@gmail.com';
+  const adminEmail = getAdminEmail();
   const mailSubject = `💬 [New Forum Reply] On "${postTitle || postId}" by ${authorName}`;
   const html = `
     <!DOCTYPE html>

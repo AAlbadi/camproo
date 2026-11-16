@@ -278,8 +278,12 @@ class Database {
   // Stay Requests
   getRequests(query = {}) {
     let list = [...this.data.requests];
-    if (query.travelerId) list = list.filter(r => r.travelerId === query.travelerId);
-    if (query.hostId) list = list.filter(r => r.hostId === query.hostId);
+    if (query.userId) {
+      list = list.filter(r => r.travelerId === query.userId || r.hostId === query.userId);
+    } else {
+      if (query.travelerId) list = list.filter(r => r.travelerId === query.travelerId);
+      if (query.hostId) list = list.filter(r => r.hostId === query.hostId);
+    }
     return list;
   }
   getRequestById(id) {
@@ -302,6 +306,13 @@ class Database {
     this.data.requests[idx] = { ...this.data.requests[idx], ...updates };
     this.save();
     return this.data.requests[idx];
+  }
+  deleteRequest(id) {
+    const idx = this.data.requests.findIndex(r => r.id === id);
+    if (idx === -1) return false;
+    this.data.requests.splice(idx, 1);
+    this.save();
+    return true;
   }
 
   // Threads & Messages

@@ -14,7 +14,8 @@ import { Badge } from '../ui/badge';
 import { Card } from '../ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody } from '../ui/dialog';
 import { InteractiveMap } from '../explore/InteractiveMap';
-import { getOptimizedImageUrl } from '../../lib/imageOptimizer';
+import { getOptimizedImageUrl, getAuthenticPhotos } from '../../lib/imageOptimizer';
+import { SpotBiomeVisual } from '../common/SpotBiomeVisual';
 import { isPublicSpot, getSpotAgencyInfo, Review } from '../../types';
 import {
   Star,
@@ -94,6 +95,7 @@ export const SpotDetailPage: React.FC = () => {
     : [];
   const isPublic = spot ? isPublicSpot(spot, users) : true;
   const agencyInfo = spot ? getSpotAgencyInfo(spot) : { agency: 'Public Land', shortName: 'Public', isFederal: true };
+  const authenticPhotos = React.useMemo(() => (spot ? getAuthenticPhotos(spot.photos) : []), [spot?.photos]);
 
   const handleCopyGps = () => {
     if (!spot) return;
@@ -407,63 +409,112 @@ export const SpotDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Signature 5-Photo Responsive Gallery */}
-      <div className="relative rounded-3xl overflow-hidden grid grid-cols-1 md:grid-cols-4 gap-2 aspect-[16/9] md:aspect-[20/9] max-h-[460px] bg-secondary shadow-md border border-border">
-        {/* Main Hero Photo (Left Half) */}
-        <div className="md:col-span-2 relative overflow-hidden h-full bg-secondary/80">
-          <img
-            src={getOptimizedImageUrl(spot.photos[0], { width: 900, quality: 85 })}
-            alt={spot.title}
-            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500 cursor-pointer"
-            onClick={() => setShowAllPhotos(true)}
-            onError={(e) => {
-              const target = e.currentTarget;
-              if (!target.src.includes('real_bald_mountain')) {
-                target.src = '/images/real_bald_mountain.jpg';
-              }
-            }}
-          />
-        </div>
+      {/* Signature Gallery OR Smart Biome Banner (No generic duplicate photos) */}
+      {authenticPhotos.length === 0 ? (
+        <SpotBiomeVisual
+          spot={spot}
+          mode="banner"
+          onUploadPhotoClick={() => setShowAddPhotoModal(true)}
+          className="mb-4"
+        />
+      ) : (
+        <div className="relative rounded-3xl overflow-hidden grid grid-cols-1 md:grid-cols-4 gap-2 aspect-[16/9] md:aspect-[20/9] max-h-[460px] bg-secondary shadow-md border border-border">
+          {/* Main Hero Photo (Left Half) */}
+          <div className={`${authenticPhotos.length === 1 ? 'col-span-full md:col-span-2' : 'md:col-span-2'} relative overflow-hidden h-full bg-secondary/80`}>
+            <img
+              src={getOptimizedImageUrl(authenticPhotos[0], { width: 900, quality: 85 })}
+              alt={spot.title}
+              className="w-full h-full object-cover hover:scale-105 transition-transform duration-500 cursor-pointer"
+              onClick={() => setShowAllPhotos(true)}
+            />
+          </div>
 
-        {/* 4 Thumbnails (Right Grid) */}
-        <div className="hidden md:grid md:col-span-2 grid-cols-2 gap-2 h-full">
-          {[1, 2, 3, 4].map(idx => (
-            <div key={idx} className="relative overflow-hidden bg-secondary/80 h-full">
-              <img
-                src={getOptimizedImageUrl(spot.photos[idx % spot.photos.length], { width: 500, quality: 80 })}
-                alt=""
-                className="w-full h-full object-cover hover:scale-105 transition-transform duration-500 cursor-pointer"
-                onClick={() => setShowAllPhotos(true)}
-                onError={(e) => {
-                  const target = e.currentTarget;
-                  if (!target.src.includes('real_bald_mountain')) {
-                    target.src = '/images/real_bald_mountain.jpg';
-                  }
-                }}
-              />
+          {/* When 1 photo: Show Biome Spec Companion on the right instead of duplicating */}
+          {authenticPhotos.length === 1 && (
+            <div className="hidden md:flex md:col-span-2 flex-col justify-between p-6 bg-gradient-to-br from-dark-900 to-dark-950 text-white rounded-2xl border border-white/10 select-none">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-black border border-emerald-500/30">
+                    🏛️ {agencyInfo.shortName} Dispersed Haven
+                  </span>
+                  <span className="text-xs text-white/60 font-mono">
+                    {spot.coordinates ? `${spot.coordinates[0].toFixed(2)}°N, ${Math.abs(spot.coordinates[1]).toFixed(2)}°W` : ''}
+                  </span>
+                </div>
+                <h3 className="text-lg font-black text-white">{spot.title}</h3>
+                <p className="text-xs text-white/70 leading-relaxed line-clamp-3">
+                  {spot.description || 'Verified free camping on public lands.'}
+                </p>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <span className="px-2.5 py-1 rounded-lg bg-white/10 text-xs font-bold text-white flex items-center gap-1.5">
+                    <span>🚐 Max {spot.rigCompatibility?.maxLengthFt || 35}ft</span>
+                  </span>
+                  <span className="px-2.5 py-1 rounded-lg bg-white/10 text-xs font-bold text-white capitalize">
+                    🛣️ {(spot.rigCompatibility?.accessType || 'back_in').replace('_', ' ')}
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-white/10 flex items-center justify-between">
+                <span className="text-xs text-white/60">Have more photos of this spot?</span>
+                <button
+                  onClick={() => setShowAddPhotoModal(true)}
+                  className="px-3 py-1.5 rounded-xl bg-white text-dark-950 hover:bg-neutral-100 font-black text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
+                >
+                  <Camera className="w-3.5 h-3.5 text-roo-500" />
+                  <span>Add Photo</span>
+                </button>
+              </div>
             </div>
-          ))}
-        </div>
+          )}
 
-        {/* Floating Photo Actions */}
-        <div className="absolute bottom-4 right-4 flex items-center gap-2 z-10">
-          <button
-            onClick={() => setShowAddPhotoModal(true)}
-            className="bg-emerald-800/90 hover:bg-emerald-900 text-white backdrop-blur-md px-3.5 py-2 rounded-xl text-xs font-bold shadow-lg flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95"
-            title="Upload your own photo of this campsite"
-          >
-            <Camera className="w-3.5 h-3.5" />
-            <span>Add Photos</span>
-          </button>
-          <button
-            onClick={() => setShowAllPhotos(true)}
-            className="bg-card/90 hover:bg-card backdrop-blur-md px-3.5 py-2 rounded-xl text-xs font-bold text-foreground shadow-lg border border-border flex items-center gap-1.5 transition-all"
-          >
-            <Grid className="w-3.5 h-3.5" />
-            <span>View all photos ({spot.photos.length})</span>
-          </button>
+          {/* When multiple unique photos: Display up to 4 unique photos (no repeats) */}
+          {authenticPhotos.length > 1 && (
+            <div className="hidden md:grid md:col-span-2 grid-cols-2 gap-2 h-full">
+              {authenticPhotos.slice(1, 5).map((photo, idx) => (
+                <div key={idx} className="relative overflow-hidden bg-secondary/80 h-full">
+                  <img
+                    src={getOptimizedImageUrl(photo, { width: 500, quality: 80 })}
+                    alt=""
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500 cursor-pointer"
+                    onClick={() => setShowAllPhotos(true)}
+                  />
+                </div>
+              ))}
+              {/* Fill remaining space with Add Photo invitation if under 5 photos */}
+              {authenticPhotos.length < 5 && (
+                <div
+                  onClick={() => setShowAddPhotoModal(true)}
+                  className="relative overflow-hidden bg-secondary/60 hover:bg-secondary/90 transition-colors h-full flex flex-col items-center justify-center p-3 text-center cursor-pointer border-2 border-dashed border-border rounded-xl"
+                >
+                  <Camera className="w-5 h-5 text-roo-500 mb-1" />
+                  <span className="text-xs font-bold text-foreground">Add Spot Photo</span>
+                  <span className="text-[10px] text-muted-foreground">+ Help fellow RVers</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Floating Photo Actions */}
+          <div className="absolute bottom-4 right-4 flex items-center gap-2 z-10">
+            <button
+              onClick={() => setShowAddPhotoModal(true)}
+              className="bg-emerald-800/90 hover:bg-emerald-900 text-white backdrop-blur-md px-3.5 py-2 rounded-xl text-xs font-bold shadow-lg flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95"
+              title="Upload your own photo of this campsite"
+            >
+              <Camera className="w-3.5 h-3.5" />
+              <span>Add Photos</span>
+            </button>
+            <button
+              onClick={() => setShowAllPhotos(true)}
+              className="bg-card/90 hover:bg-card backdrop-blur-md px-3.5 py-2 rounded-xl text-xs font-bold text-foreground shadow-lg border border-border flex items-center gap-1.5 transition-all"
+            >
+              <Grid className="w-3.5 h-3.5" />
+              <span>View photos ({authenticPhotos.length})</span>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Main Content Layout: 2 Columns */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start pt-2">
@@ -706,32 +757,48 @@ export const SpotDetailPage: React.FC = () => {
               </Button>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {spot.photos.slice(0, 4).map((photo, i) => (
-                <div
-                  key={i}
-                  onClick={() => setShowAllPhotos(true)}
-                  className="relative aspect-video sm:aspect-square rounded-2xl overflow-hidden border border-border cursor-pointer group bg-secondary"
-                >
-                  <img
-                    src={getOptimizedImageUrl(photo, { width: 400, quality: 80 })}
-                    alt=""
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      if (!target.src.includes('real_bald_mountain')) {
-                        target.src = '/images/real_bald_mountain.jpg';
-                      }
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <span className="text-white text-xs font-bold bg-black/60 px-2 py-1 rounded-lg backdrop-blur-xs">
-                      Enlarge
-                    </span>
-                  </div>
+            {authenticPhotos.length === 0 ? (
+              <div className="p-8 rounded-2xl bg-secondary/30 border border-border/80 text-center flex flex-col items-center justify-center">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-3">
+                  <Camera className="w-6 h-6" />
                 </div>
-              ))}
-            </div>
+                <h4 className="text-sm font-black text-foreground mb-1">
+                  No community photos uploaded yet
+                </h4>
+                <p className="text-xs text-muted-foreground max-w-md mb-4">
+                  Be the first camper or public land explorer to upload photos of this campsite, road conditions, or scenic vistas!
+                </p>
+                <Button
+                  size="sm"
+                  onClick={() => setShowAddPhotoModal(true)}
+                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs gap-1.5 shadow-xs"
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                  <span>Upload First Photo</span>
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {authenticPhotos.slice(0, 4).map((photo, i) => (
+                  <div
+                    key={i}
+                    onClick={() => setShowAllPhotos(true)}
+                    className="relative aspect-video sm:aspect-square rounded-2xl overflow-hidden border border-border cursor-pointer group bg-secondary"
+                  >
+                    <img
+                      src={getOptimizedImageUrl(photo, { width: 400, quality: 80 })}
+                      alt=""
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <span className="text-white text-xs font-bold bg-black/60 px-2 py-1 rounded-lg backdrop-blur-xs">
+                        Enlarge
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Traveler Reviews & Field Reports Section */}
@@ -1056,22 +1123,37 @@ export const SpotDetailPage: React.FC = () => {
               </Button>
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto py-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-w-6xl mx-auto w-full">
-            {spot.photos.map((photo, i) => (
-              <div key={i} className="aspect-[4/3] rounded-2xl overflow-hidden bg-zinc-900 border border-white/10">
-                <img
-                  src={getOptimizedImageUrl(photo, { width: 900, quality: 85 })}
-                  alt=""
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                  onError={(e) => {
-                    const target = e.currentTarget;
-                    if (!target.src.includes('real_bald_mountain')) {
-                      target.src = '/images/real_bald_mountain.jpg';
-                    }
+          <div className="flex-1 overflow-y-auto py-6 max-w-6xl mx-auto w-full">
+            {authenticPhotos.length === 0 ? (
+              <div className="text-center py-16 text-white/80">
+                <Camera className="w-12 h-12 text-emerald-400 mx-auto mb-3 opacity-80" />
+                <h4 className="text-lg font-bold mb-1">No community photos yet</h4>
+                <p className="text-sm text-white/60 mb-4 max-w-sm mx-auto">
+                  Be the first traveler to upload authentic photos from this public campsite!
+                </p>
+                <Button
+                  onClick={() => {
+                    setShowAllPhotos(false);
+                    setShowAddPhotoModal(true);
                   }}
-                />
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+                >
+                  Add First Photo
+                </Button>
               </div>
-            ))}
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {authenticPhotos.map((photo, i) => (
+                  <div key={i} className="aspect-[4/3] rounded-2xl overflow-hidden bg-zinc-900 border border-white/10">
+                    <img
+                      src={getOptimizedImageUrl(photo, { width: 900, quality: 85 })}
+                      alt=""
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

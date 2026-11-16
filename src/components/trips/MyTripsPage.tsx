@@ -24,7 +24,8 @@ import {
   Navigation,
   Sparkles
 } from 'lucide-react';
-import { getOptimizedImageUrl } from '../../lib/imageOptimizer';
+import { getOptimizedImageUrl, getAuthenticPhotos } from '../../lib/imageOptimizer';
+import { SpotBiomeVisual } from '../common/SpotBiomeVisual';
 
 export const MyTripsPage: React.FC = () => {
   const {
@@ -156,33 +157,46 @@ export const MyTripsPage: React.FC = () => {
                   className="p-3.5 rounded-3xl border-border bg-card shadow-soft hover:shadow-float transition-all flex flex-col justify-between"
                 >
                   <div>
-                    {/* Photo with 1-tap unlike heart */}
-                    <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-dark-200 mb-3">
-                      <img
-                        src={getOptimizedImageUrl(spot.photos[0], { width: 480, quality: 75 })}
-                        alt={spot.title}
-                        className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-300"
-                        onClick={() => {
-                          setSelectedSpotId(spot.id);
-                          setCurrentView('spot-detail');
-                        }}
-                      />
-                      <div className="absolute top-2 left-2 flex gap-1 items-center">
-                        <Badge variant="free" className="text-[9px] shadow-xs">
-                          100% FREE
-                        </Badge>
-                      </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleSaveSpot(spot.id);
-                        }}
-                        className="absolute top-2 right-2 p-1.5 rounded-full bg-white/90 backdrop-blur-md hover:bg-white text-rose-500 shadow-xs transition-transform active:scale-90"
-                        title="Remove from Liked Spots"
-                      >
-                        <Heart className="w-4 h-4 fill-rose-500" />
-                      </button>
-                    </div>
+                    {/* Visual: Authentic Photo or Smart Biome Spec Card */}
+                    {(() => {
+                      const authentic = getAuthenticPhotos(spot.photos);
+                      return (
+                        <div
+                          className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-dark-200 mb-3 cursor-pointer select-none"
+                          onClick={() => {
+                            setSelectedSpotId(spot.id);
+                            setCurrentView('spot-detail');
+                          }}
+                        >
+                          {authentic.length === 0 ? (
+                            <SpotBiomeVisual spot={spot} mode="card" />
+                          ) : (
+                            <>
+                              <img
+                                src={getOptimizedImageUrl(authentic[0], { width: 480, quality: 75 })}
+                                alt={spot.title}
+                                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                              />
+                              <div className="absolute top-2 left-2 flex gap-1 items-center z-10">
+                                <Badge variant="free" className="text-[9px] shadow-xs">
+                                  100% FREE
+                                </Badge>
+                              </div>
+                            </>
+                          )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleSaveSpot(spot.id);
+                            }}
+                            className="absolute top-2 right-2 p-1.5 rounded-full bg-white/90 backdrop-blur-md hover:bg-white text-rose-500 shadow-xs transition-transform active:scale-90 z-20"
+                            title="Remove from Liked Spots"
+                          >
+                            <Heart className="w-4 h-4 fill-rose-500" />
+                          </button>
+                        </div>
+                      );
+                    })()}
 
                     {/* Spot Title & Info */}
                     <h3

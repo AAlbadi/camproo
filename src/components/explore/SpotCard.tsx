@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Spot, User, isPublicSpot, getSpotAgencyInfo } from '../../types';
 import {
@@ -17,7 +17,8 @@ import { Card } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { useApp } from '../../context/AppContext';
-import { getOptimizedImageUrl, getRawImageUrl, FALLBACK_CAMPING_PHOTO } from '../../lib/imageOptimizer';
+import { getOptimizedImageUrl, getRawImageUrl, getAuthenticPhotos } from '../../lib/imageOptimizer';
+import { SpotBiomeVisual } from '../common/SpotBiomeVisual';
 
 export interface RoadTripStopInfo {
   stopIndex: number;
@@ -51,20 +52,28 @@ export const SpotCard: React.FC<SpotCardProps> = ({
   const [photoIdx, setPhotoIdx] = useState(0);
   const isSaved = isSpotSaved(spot.id);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [hasImageError, setHasImageError] = useState(false);
   const touchStartXRef = useRef<number | null>(null);
   const isPublic = isPublicSpot(spot);
   const agencyInfo = getSpotAgencyInfo(spot);
+
+  const authenticPhotos = useMemo(() => getAuthenticPhotos(spot.photos), [spot.photos]);
+  const showBiomeVisual = authenticPhotos.length === 0 || hasImageError;
 
   const effectiveDistance = distanceMiles ?? spot.distanceMiles;
 
   const nextPhoto = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setPhotoIdx((prev) => (prev + 1) % spot.photos.length);
+    if (authenticPhotos.length > 0) {
+      setPhotoIdx((prev) => (prev + 1) % authenticPhotos.length);
+    }
   };
 
   const prevPhoto = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setPhotoIdx((prev) => (prev - 1 + spot.photos.length) % spot.photos.length);
+    if (authenticPhotos.length > 0) {
+      setPhotoIdx((prev) => (prev - 1 + authenticPhotos.length) % authenticPhotos.length);
+    }
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -74,11 +83,11 @@ export const SpotCard: React.FC<SpotCardProps> = ({
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStartXRef.current === null) return;
     const diff = e.changedTouches[0].clientX - touchStartXRef.current;
-    if (Math.abs(diff) > 35) {
+    if (Math.abs(diff) > 35 && authenticPhotos.length > 0) {
       if (diff < 0) {
-        setPhotoIdx((prev) => (prev + 1) % spot.photos.length);
+        setPhotoIdx((prev) => (prev + 1) % authenticPhotos.length);
       } else {
-        setPhotoIdx((prev) => (prev - 1 + spot.photos.length) % spot.photos.length);
+        setPhotoIdx((prev) => (prev - 1 + authenticPhotos.length) % authenticPhotos.length);
       }
     }
     touchStartXRef.current = null;
@@ -119,41 +128,79 @@ export const SpotCard: React.FC<SpotCardProps> = ({
           </div>
         )}
 
-        {/* Photo Container with Carousel & Heart Button - Compact aspect ratio on mobile */}
+        {/* Visual Container: Authentic Photo Carousel OR Smart Biome Spec Card */}
         <div
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
           className="relative aspect-[16/10] sm:aspect-[20/19] rounded-xl sm:rounded-2xl overflow-hidden bg-dark-200/50 mb-2 sm:mb-2.5 select-none"
         >
-          {/* Shimmer skeleton before image loads */}
-          {!imgLoaded && (
-            <div className="absolute inset-0 bg-gradient-to-r from-dark-200/40 via-dark-100/60 to-dark-200/40 animate-pulse z-0" />
-          )}
+          {showBiomeVisual ? (
+            <SpotBiomeVisual spot={spot} mode="card" />
+          ) : (
+            <>
+              {/* Shimmer skeleton before image loads */}
+              {!imgLoaded && (
+                <div className="absolute inset-0 bg-gradient-to-r from-dark-200/40 via-dark-100/60 to-dark-200/40 animate-pulse z-0" />
+              )}
 
-          <img
-            src={getOptimizedImageUrl(spot.photos[photoIdx] || spot.photos[0], { width: 560, quality: 75 })}
-            alt={spot.title}
-            loading="lazy"
-            decoding="async"
-            onLoad={() => setImgLoaded(true)}
-            onError={(e) => {
-              const target = e.currentTarget;
-              const raw = getRawImageUrl(spot.photos[photoIdx] || spot.photos[0]);
-              if (target.src !== raw && raw !== FALLBACK_CAMPING_PHOTO) {
-                target.src = raw;
-              } else {
-                target.src = FALLBACK_CAMPING_PHOTO;
-              }
-              setImgLoaded(true);
-            }}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-          />
+              <img
+                src={getOptimizedImageUrl(authenticPhotos[photoIdx] || authenticPhotos[0], { width: 560, quality: 75 })}
+                alt={spot.title}
+                loading="lazy"
+                decoding="async"
+                onLoad={() => setImgLoaded(true)}
+                onError={() => setHasImageError(true)}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+              />
+
+              {/* Badge: Free Stay on real photo */}
+              <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 z-10 flex flex-col gap-1 items-start">
+                <Badge variant="free" className="shadow-xs text-[9px] sm:text-[10px] px-1.5 py-0.2 sm:px-2 sm:py-0.5">
+                  FREE STAY
+                </Badge>
+              </div>
+
+              {/* Carousel Arrows (Appear on Card Hover or Touch on Mobile) */}
+              {authenticPhotos.length > 1 && (
+                <div className="absolute inset-x-1.5 sm:inset-x-2 top-1/2 -translate-y-1/2 flex justify-between items-center opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                  <button
+                    onClick={prevPhoto}
+                    className="pointer-events-auto p-1 sm:p-1.5 rounded-full bg-white/90 hover:bg-white text-dark-900 shadow-md hover:scale-110 active:scale-90 transition-transform cursor-pointer"
+                  >
+                    <ChevronLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  </button>
+                  <button
+                    onClick={nextPhoto}
+                    className="pointer-events-auto p-1 sm:p-1.5 rounded-full bg-white/90 hover:bg-white text-dark-900 shadow-md hover:scale-110 active:scale-90 transition-transform cursor-pointer"
+                  >
+                    <ChevronRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  </button>
+                </div>
+              )}
+
+              {/* Carousel Dot Indicators */}
+              {authenticPhotos.length > 1 && (
+                <div className="absolute bottom-2 sm:bottom-2.5 inset-x-0 flex justify-center items-center gap-1 z-10 pointer-events-none">
+                  {authenticPhotos.map((_, idx) => (
+                    <span
+                      key={idx}
+                      className={`rounded-full transition-all ${
+                        photoIdx === idx
+                          ? 'w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white shadow-xs'
+                          : 'w-1 sm:w-1.5 h-1 sm:h-1.5 bg-white/60'
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
 
           {/* Floating Heart Button with Liquid Glass */}
           <motion.button
             whileTap={{ scale: 0.8 }}
             onClick={toggleSave}
-            className="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 p-1.5 sm:p-2 rounded-full liquid-glass-pill hover:bg-white transition-colors z-10"
+            className="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 p-1.5 sm:p-2 rounded-full liquid-glass-pill hover:bg-white transition-colors z-20"
           >
             <Heart
               className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-colors ${
@@ -162,53 +209,16 @@ export const SpotCard: React.FC<SpotCardProps> = ({
             />
           </motion.button>
 
-          {/* Badges: Free Stay + Distance from User */}
-          <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 z-10 flex flex-col gap-1 items-start">
-            <Badge variant="free" className="shadow-xs text-[9px] sm:text-[10px] px-1.5 py-0.2 sm:px-2 sm:py-0.5">
-              FREE STAY
-            </Badge>
-            {effectiveDistance !== undefined && effectiveDistance < 800 && (
-              <span className="text-[9px] sm:text-[10px] font-extrabold bg-blue-600/90 text-white px-1.5 sm:px-2 py-0.2 rounded-full shadow-xs backdrop-blur-xs flex items-center gap-1">
+          {/* Distance from User Badge */}
+          {effectiveDistance !== undefined && effectiveDistance < 800 && (
+            <div className={`absolute ${showBiomeVisual ? 'bottom-2 left-2 sm:bottom-2.5 sm:left-2.5' : 'top-8 left-2 sm:top-9 sm:left-2.5'} z-20`}>
+              <span className="text-[9px] sm:text-[10px] font-extrabold bg-blue-600/90 text-white px-1.5 sm:px-2 py-0.5 rounded-full shadow-xs backdrop-blur-xs flex items-center gap-1">
                 {spot.mileMarker !== undefined ? (
                   <>🛣️ Mile {Math.round(spot.mileMarker)} · {effectiveDistance.toFixed(1)} mi off</>
                 ) : (
                   <>📍 {effectiveDistance < 1 ? '< 1' : effectiveDistance.toFixed(1)} mi</>
                 )}
               </span>
-            )}
-          </div>
-
-          {/* Carousel Arrows (Appear on Card Hover or Touch on Mobile) */}
-          {spot.photos.length > 1 && (
-            <div className="absolute inset-x-1.5 sm:inset-x-2 top-1/2 -translate-y-1/2 flex justify-between items-center opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-              <button
-                onClick={prevPhoto}
-                className="pointer-events-auto p-1 sm:p-1.5 rounded-full bg-white/90 hover:bg-white text-dark-900 shadow-md hover:scale-110 active:scale-90 transition-transform cursor-pointer"
-              >
-                <ChevronLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              </button>
-              <button
-                onClick={nextPhoto}
-                className="pointer-events-auto p-1 sm:p-1.5 rounded-full bg-white/90 hover:bg-white text-dark-900 shadow-md hover:scale-110 active:scale-90 transition-transform cursor-pointer"
-              >
-                <ChevronRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              </button>
-            </div>
-          )}
-
-          {/* Carousel Dot Indicators */}
-          {spot.photos.length > 1 && (
-            <div className="absolute bottom-2 sm:bottom-2.5 inset-x-0 flex justify-center items-center gap-1 z-10 pointer-events-none">
-              {spot.photos.map((_, idx) => (
-                <span
-                  key={idx}
-                  className={`rounded-full transition-all ${
-                    photoIdx === idx
-                      ? 'w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white shadow-xs'
-                      : 'w-1 sm:w-1.5 h-1 sm:h-1.5 bg-white/60'
-                  }`}
-                />
-              ))}
             </div>
           )}
         </div>

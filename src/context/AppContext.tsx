@@ -45,6 +45,7 @@ interface AppContextType {
   resetFilters: () => void;
   submitStayRequest: (request: Omit<StayRequest, 'id' | 'createdAt' | 'status'>) => StayRequest;
   respondToStayRequest: (requestId: string, status: 'accepted' | 'declined', note?: string) => void;
+  adminDeleteStayRequest: (requestId: string) => void;
   sendMessage: (threadId: string | null, recipientId: string, text: string, spotId?: string, stayRequestId?: string) => void;
   createSpot: (newSpot: Omit<Spot, 'id' | 'createdAt' | 'rating' | 'reviewCount' | 'isFree'>) => Spot;
   submitSpotWithReview: (
@@ -891,12 +892,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (isMounted && serverUsers && serverUsers.length > 0) setUsers(serverUsers);
     }).catch(() => {});
 
-    // Only load user's requests and threads if authenticated
-    if (currentUserId && currentUserId !== 'guest') {
-      api.getRequests({ travelerId: currentUserId }).then(serverReqs => {
-        if (isMounted && Array.isArray(serverReqs)) setRequests(serverReqs);
-      }).catch(() => {});
+    // Load requests: All for admin, or user-specific (as traveler OR host) for authenticated users
+    const isUserAdmin = isAdminAuthenticated || (currentUserId !== 'guest' && users.find(u => u.id === currentUserId)?.role === 'admin');
+    const requestQuery = isUserAdmin ? {} : (currentUserId && currentUserId !== 'guest' ? { userId: currentUserId } : null);
 
+    if (requestQuery !== null) {
+      api.getRequests(requestQuery).then(serverReqs => {
+        if (isMounted && Array.isArray(serverReqs)) {
+          setRequests(prev => {
+            const map = new Map<string, StayRequest>();
+            serverReqs.forEach(r => map.set(r.id, r));
+            prev.forEach(r => {
+              if (!map.has(r.id)) map.set(r.id, r);
+            });
+            return Array.from(map.values());
+          });
+        }
+      }).catch(() => {});
+    }
+
+    if (currentUserId && currentUserId !== 'guest') {
       api.getThreads(currentUserId).then(serverThreads => {
         if (isMounted && Array.isArray(serverThreads)) setThreads(serverThreads);
       }).catch(() => {});
@@ -1038,15 +1053,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const enrichedReq = {
       ...newReq,
-      travelerName: currentUser.name,
-      travelerEmail: currentUser.email,
+      travelerName: (reqData as any).travelerName || (currentUser.id !== 'guest' ? currentUser.name : 'Roamer'),
+      travelerEmail: (reqData as any).travelerEmail || currentUser.email || '',
       spotTitle: spot?.title || 'RV Spot',
       spotLocation: [spot?.locationName, spot?.generalArea].filter(Boolean).join(', ') || 'USA',
       rigDescription: `${reqData.travelerRig?.lengthFt || 25}ft ${reqData.travelerRig?.description || reqData.travelerRig?.type || 'Rig'}`
     };
-    api.createRequest(enrichedReq as any).catch(() => {});
+    api.createRequest(enrichedReq as any).then(saved => {
+      if (saved?.id) {
+        setRequests(prev => prev.map(r => r.id === newReq.id ? { ...r, ...saved } : r));
+      }
+    }).catch(err => {
+      console.warn('[AppContext] Could not sync stay request to backend:', err);
+    });
 
     return newReq;
+  };
+
+  const adminDeleteStayRequest = (requestId: string) => {
+    setRequests(prev => prev.filter(r => r.id !== requestId));
+    api.deleteRequest(requestId).catch(() => {});
   };
 
   const respondToStayRequest = (requestId: string, status: 'accepted' | 'declined', note?: string) => {
@@ -1604,6 +1630,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         resetFilters,
         submitStayRequest,
         respondToStayRequest,
+        adminDeleteStayRequest,
         sendMessage,
         createSpot,
         submitSpotWithReview,

@@ -48,6 +48,8 @@ export const RequestStayModal: React.FC<RequestStayModalProps> = ({ spot, onClos
   const [guestCount, setGuestCount] = useState(2);
   const [rvType, setRvType] = useState<RVType>(currentUser.rig.type || 'class_c');
   const [rigLength, setRigLength] = useState<number>(currentUser.rig.lengthFt || 28);
+  const [contactName, setContactName] = useState(currentUser.id !== 'guest' ? currentUser.name : '');
+  const [contactEmail, setContactEmail] = useState(currentUser.email || '');
   const [personalNote, setPersonalNote] = useState(
     `Hi! We are traveling through the area in our ${currentUser.rig.lengthFt || 28}ft ${
       RV_TYPE_LABELS[currentUser.rig.type] || 'RV'
@@ -79,7 +81,7 @@ export const RequestStayModal: React.FC<RequestStayModalProps> = ({ spot, onClos
       submitStayRequest({
         spotId: spot.id,
         travelerId: currentUser.id,
-        hostId: spot.hostId,
+        hostId: spot.hostId || 'admin',
         arrivalDate,
         departureDate,
         nights,
@@ -91,7 +93,11 @@ export const RequestStayModal: React.FC<RequestStayModalProps> = ({ spot, onClos
         },
         personalNote,
         arrivalTimeEst: '4:00 PM',
-      });
+        travelerName: contactName || currentUser.name || 'Roamer',
+        travelerEmail: contactEmail || currentUser.email || 'roamer@camproo.com',
+        spotTitle: spot.title,
+        spotLocation: [spot.locationName, spot.generalArea].filter(Boolean).join(', ') || 'USA',
+      } as any);
 
       confetti({
         particleCount: 75,
@@ -242,6 +248,30 @@ export const RequestStayModal: React.FC<RequestStayModalProps> = ({ spot, onClos
                   <span>Rig fits comfortably on this {spot.rigCompatibility.maxLengthFt}ft pad ({spot.rigCompatibility.maxLengthFt - rigLength}ft margin).</span>
                 </div>
               )}
+            </div>
+
+            {/* Contact Details */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="font-bold text-foreground block mb-1">Your Name</label>
+                <Input
+                  type="text"
+                  required
+                  placeholder="e.g. Alex Rover"
+                  value={contactName}
+                  onChange={e => setContactName(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="font-bold text-foreground block mb-1">Your Email (for Stay Updates)</label>
+                <Input
+                  type="email"
+                  required
+                  placeholder="you@example.com"
+                  value={contactEmail}
+                  onChange={e => setContactEmail(e.target.value)}
+                />
+              </div>
             </div>
 
             {/* Note to Host */}
